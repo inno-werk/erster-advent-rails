@@ -13,6 +13,10 @@ To set up the development environment, follow these steps:
    cd ./infrastructure/erster-advent
    docker-compose up -d
    ```
+3. Run bundle install
+   ```bash
+   bundle install
+   ```
 
 ## Live server
 
@@ -21,12 +25,6 @@ To do live development, you need to do those 3 steps:
 ```bash
 # Rails dev server
 bin/dev
-
-# Tailwind CSS watcher
-bin/rails tailwindcss:watch
-
-# Guard for live reload
-bundle exec guard -d
 ```
 
 ## Tools
