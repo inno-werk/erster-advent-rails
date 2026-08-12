@@ -14,8 +14,21 @@ To set up the development environment, follow these steps:
    docker-compose up -d
    ```
 3. Run bundle install
+
    ```bash
    bundle install
+   ```
+
+   4. If not already done: Migrate DB.
+
+   ```bash
+   bin/rails db:migrate
+   ```
+
+   5. If you want: Seed the db to get some data in.
+
+   ```bash
+   bin/rails db:seed
    ```
 
 ## Live server
