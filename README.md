@@ -40,6 +40,8 @@ To do live development, you need to do those 3 steps:
 bin/dev
 ```
 
+To run commands in the docker container, you must be on /rails
+
 ## Tools
 
 To find formatting issues, run:
@@ -68,7 +70,7 @@ credentials for local dev database:
 The app is deployed to [Dokploy](https://dokploy.com) from the `Dockerfile`. Set the
 variables below in the app's **Environment** tab.
 
-Note that `dotenv-rails` is not installed — a `.env` file in the project is *not*
+Note that `dotenv-rails` is not installed — a `.env` file in the project is _not_
 loaded by the app. Everything has to come from the real environment.
 
 This app uses **environment-scoped credentials** (`config/credentials/production.yml.enc`),
@@ -91,14 +93,14 @@ puts ActiveSupport::EncryptedConfiguration.new(
 
 ### Required
 
-| Variable          | Description                                                              |
-| ----------------- | ------------------------------------------------------------------------ |
+| Variable           | Description                                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `RAILS_MASTER_KEY` | Contents of `config/credentials/production.key`. Decrypts `config/credentials/production.yml.enc` and provides `secret_key_base`. The app will not boot without it. |
-| `PGHOST`          | Postgres host. On Dokploy this is the internal service name of the database container. |
-| `PGPORT`          | Postgres port, defaults to `5432`.                                        |
-| `PGUSER`          | Postgres user, defaults to `postgres`.                                    |
-| `PGPASSWORD`      | Postgres password, defaults to `postgres`.                                |
-| `PGDATABASE`      | Database name. **No default in production** — must be set explicitly.     |
+| `PGHOST`           | Postgres host. On Dokploy this is the internal service name of the database container.                                                                              |
+| `PGPORT`           | Postgres port, defaults to `5432`.                                                                                                                                  |
+| `PGUSER`           | Postgres user, defaults to `postgres`.                                                                                                                              |
+| `PGPASSWORD`       | Postgres password, defaults to `postgres`.                                                                                                                          |
+| `PGDATABASE`       | Database name. **No default in production** — must be set explicitly.                                                                                               |
 
 `config/database.yml` points the `primary`, `cable`, `queue` and `cache` databases at the
 same `PGDATABASE`, so Solid Queue / Cache / Cable tables live alongside the app tables.
@@ -111,12 +113,12 @@ the other three on the `PG*` values.
 `config.active_storage.service = :amazon` is set in production, so uploads fail without
 these. The bucket name is built as `#{APP_NAME}-#{Rails.env}` in `config/storage.yml`.
 
-| Variable        | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
+| Variable        | Description                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------- |
 | `APP_NAME`      | Bucket name prefix. Must match the real bucket, i.e. `ersteradvent` for `ersteradvent-production`. |
-| `S3_KEY_ID`     | Access key ID of an IAM user scoped to that bucket.                          |
-| `S3_ACCESS_KEY` | Secret access key for the same user.                                         |
-| `S3_REGION`     | Bucket region, e.g. `eu-west-1`. Defaults to `us-east-1`.                    |
+| `S3_KEY_ID`     | Access key ID of an IAM user scoped to that bucket.                                                |
+| `S3_ACCESS_KEY` | Secret access key for the same user.                                                               |
+| `S3_REGION`     | Bucket region, e.g. `eu-west-1`. Defaults to `us-east-1`.                                          |
 
 The IAM user only needs `ListBucket` / `GetBucketLocation` on the bucket and
 `GetObject` / `PutObject` / `DeleteObject` plus the multipart actions on its contents.
@@ -128,20 +130,20 @@ need a CORS configuration.
 
 ### Optional
 
-| Variable              | Description                                                          |
-| --------------------- | -------------------------------------------------------------------- |
+| Variable              | Description                                                                                                                                                                                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `ALLOWED_HOSTS`       | Comma-separated extra host names accepted by DNS-rebinding protection, on top of the `erster-advent-bern.ch` / `.coffee-journal.com` domains hardcoded in `production.rb`. Needed when reaching the app on a Dokploy-generated domain or a bare IP — otherwise every request is rejected with `403` in middleware. |
-| `SOLID_QUEUE_IN_PUMA` | Set to `true` to run the Solid Queue supervisor inside Puma. Without it, no background jobs are processed, since there is no separate worker container. |
-| `JOB_CONCURRENCY`     | Solid Queue processes, defaults to `1`.                               |
-| `WEB_CONCURRENCY`     | Puma workers.                                                         |
-| `RAILS_MAX_THREADS`   | Puma threads and DB pool size, defaults to `10`.                      |
-| `RAILS_LOG_LEVEL`     | Defaults to `info`.                                                   |
-| `SMTP_USERNAME`       | SMTP user. Mail is not sent if unset.                                 |
-| `SMTP_PASSWORD`       | SMTP password.                                                        |
-| `SMTP_ADDRESS`        | Defaults to `smtp.gmail.com`.                                         |
-| `SMTP_PORT`           | Defaults to `587`.                                                    |
-| `SKIP_DB_PREPARE`     | Set to `true` to skip `db:prepare` on boot.                           |
-| `DB_PREPARE_RETRIES`  | Boot-time `db:prepare` attempts, defaults to `5`.                     |
+| `SOLID_QUEUE_IN_PUMA` | Set to `true` to run the Solid Queue supervisor inside Puma. Without it, no background jobs are processed, since there is no separate worker container.                                                                                                                                                            |
+| `JOB_CONCURRENCY`     | Solid Queue processes, defaults to `1`.                                                                                                                                                                                                                                                                            |
+| `WEB_CONCURRENCY`     | Puma workers.                                                                                                                                                                                                                                                                                                      |
+| `RAILS_MAX_THREADS`   | Puma threads and DB pool size, defaults to `10`.                                                                                                                                                                                                                                                                   |
+| `RAILS_LOG_LEVEL`     | Defaults to `info`.                                                                                                                                                                                                                                                                                                |
+| `SMTP_USERNAME`       | SMTP user. Mail is not sent if unset.                                                                                                                                                                                                                                                                              |
+| `SMTP_PASSWORD`       | SMTP password.                                                                                                                                                                                                                                                                                                     |
+| `SMTP_ADDRESS`        | Defaults to `smtp.gmail.com`.                                                                                                                                                                                                                                                                                      |
+| `SMTP_PORT`           | Defaults to `587`.                                                                                                                                                                                                                                                                                                 |
+| `SKIP_DB_PREPARE`     | Set to `true` to skip `db:prepare` on boot.                                                                                                                                                                                                                                                                        |
+| `DB_PREPARE_RETRIES`  | Boot-time `db:prepare` attempts, defaults to `5`.                                                                                                                                                                                                                                                                  |
 
 `RAILS_ENV` and the `BUNDLE_*` variables are already baked into the `Dockerfile` and do
 not need to be set.
