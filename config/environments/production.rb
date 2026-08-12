@@ -60,15 +60,16 @@ Rails.application.configure do
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "erster-advent-bern.coffee-journal.com" }
 
-   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-   config.action_mailer.smtp_settings = {
-     user_name: ENV.fetch("SMTP_USERNAME", Rails.application.credentials.dig(:smtp, :username)),
-     password: ENV.fetch("SMTP_PASSWORD", Rails.application.credentials.dig(:smtp, :password)),
-     address: ENV.fetch("SMTP_ADDRESS", "smtp.gmail.com"),
-     port: ENV.fetch("SMTP_PORT", 587),
-     authentication: :login,
-     enable_starttls_auto: true
-   }
+  # Specify outgoing SMTP server. Configured entirely via environment variables
+  # (see README, Deployment) so that no credentials are needed to send mail.
+  config.action_mailer.smtp_settings = {
+    user_name: ENV["SMTP_USERNAME"],
+    password: ENV["SMTP_PASSWORD"],
+    address: ENV.fetch("SMTP_ADDRESS", "smtp.gmail.com"),
+    port: ENV.fetch("SMTP_PORT", 587).to_i,
+    authentication: :login,
+    enable_starttls_auto: true
+  }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -80,14 +81,22 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-   # Enable DNS rebinding protection and other `Host` header attacks.
-   config.hosts = [
-     "erster-advent-bern.coffee-journal.com",     # Allow requests from example.com
-     "erster-advent-bern.ch",     # Allow requests from example.com
-     /.*\.erster-advent-bern\.ch/, # Allow requests from subdomains like `www.example.com`
-     /.*\.erster-advent-bern\.coffee-journal\.com/ # Allow requests from subdomains like `www.example.com`
-   ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Enable DNS rebinding protection and other `Host` header attacks.
+  config.hosts = [
+    "erster-advent-bern.coffee-journal.com",
+    "erster-advent-bern.ch",
+    "erster-advent.apps.innowerk.ch", # Dokploy deployment
+    /.*\.erster-advent-bern\.ch/, # Subdomains like `www.erster-advent-bern.ch`
+    /.*\.erster-advent-bern\.coffee-journal\.com/
+  ]
+
+  # Additional hosts for the deployment platform, e.g. a Dokploy-generated
+  # domain. Comma separated, see README (Deployment).
+  if ENV["ALLOWED_HOSTS"].present?
+    config.hosts.concat(ENV["ALLOWED_HOSTS"].split(",").map(&:strip))
+  end
+
+  # Skip DNS rebinding protection for the health check endpoint, which the
+  # platform requests via the container IP rather than the public host name.
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end
