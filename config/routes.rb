@@ -50,7 +50,7 @@ Rails.application.routes.draw do
 
       resource :invoice, only: [ :show ]
 
-      resources :users, only: [ :index, :show, :destroy ] do
+      resources :users, only: [ :index, :new, :create, :show, :update, :destroy ] do
         post :impersonate, on: :member
       end
       resource :cms, only: [ :edit, :update ]

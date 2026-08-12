@@ -1,20 +1,87 @@
 <%= content_for :title, @business.business_name.presence || "Store Details" %>
 
 <%= link_to admin_stores_path,
-class: "mb-4 inline-flex items-center gap-1 link-more text-sm md:text-base" do %>
+class: "mb-6 inline-flex items-center gap-1 link-more text-sm md:text-base" do %>
   <%= heroicon "chevron-left", options: { class: "w-4 h-4" } %>
   Zurück zu allen Geschäften
 <% end %>
 
-<div class="admin-card mb-8 p-5">
-  <div class="flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <%= render "admin/stores/status_badge", status: @business.status %>
-      <div>
-        <p class="font-jakarta font-bold"><%= @business.business_name %></p>
-        <p class="admin-subtitle"><%= @business.user&.email %></p>
-      </div>
+<div class="w-full max-w-2xl">
+  <% case @business.status.to_sym %>
+  <% when :pending %>
+    <div class="alert alert-info mb-8 rounded-2xl" data-controller="dismiss">
+      <%= heroicon "information-circle", options: { class: "w-5 h-5 shrink-0" } %>
+      <span>
+        Dieses Geschäft wartet auf Prüfung. Schauen Sie es sich über den Link unten an und
+        bestätigen Sie es, oder geben Sie dem Besitzer bei Bedarf per E-Mail Feedback.
+      </span>
+      <button
+        type="button"
+        data-action="dismiss#close"
+        class="btn btn-ghost btn-square btn-sm"
+        aria-label="Schliessen"
+      >
+        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
+      </button>
     </div>
+  <% when :confirmed %>
+    <div class="alert alert-success mb-8 rounded-2xl" data-controller="dismiss">
+      <%= heroicon "check-circle", options: { class: "w-5 h-5 shrink-0" } %>
+      <span>Dieses Geschäft ist bestätigt und live auf der Website.</span>
+      <button
+        type="button"
+        data-action="dismiss#close"
+        class="btn btn-ghost btn-square btn-sm"
+        aria-label="Schliessen"
+      >
+        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
+      </button>
+    </div>
+  <% when :rejected %>
+    <div class="alert alert-error mb-8 rounded-2xl" data-controller="dismiss">
+      <%= heroicon "x-circle", options: { class: "w-5 h-5 shrink-0" } %>
+      <span>Dieses Geschäft wurde abgelehnt.</span>
+      <button
+        type="button"
+        data-action="dismiss#close"
+        class="btn btn-ghost btn-square btn-sm"
+        aria-label="Schliessen"
+      >
+        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
+      </button>
+    </div>
+  <% end %>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <h1 class="font-jakarta font-bold text-2xl"><%= @business.business_name %></h1>
+    <%= render "admin/stores/status_badge", status: @business.status %>
+  </div>
+  <p class="admin-subtitle mt-1"><%= @business.user&.email %></p>
+
+  <div class="mt-8 border-t border-base-200 pt-6">
+    <p class="admin-eyebrow mb-3">Geschäftsinformationen</p>
+    <dl class="divide-y divide-base-200 font-jakarta">
+      <div class="flex items-center justify-between gap-4 py-3">
+        <dt class="font-light text-base-content/60">E-Mail</dt>
+        <dd><%= @business.user&.email || "-" %></dd>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-3">
+        <dt class="font-light text-base-content/60">Adresse</dt>
+        <dd class="text-right"><%= @business.address.presence || "-" %></dd>
+      </div>
+    </dl>
+
+    <%= link_to marketing_store_path(@business),
+    target: "_blank",
+    rel: "noopener",
+    class: "link-more mt-4 inline-flex items-center gap-1 text-sm" do %>
+      <%= heroicon "arrow-top-right-on-square", options: { class: "w-4 h-4" } %>
+      Live-Seite ansehen
+    <% end %>
+  </div>
+
+  <div class="mt-8 border-t border-base-200 pt-6">
+    <p class="admin-eyebrow mb-3">Status ändern</p>
     <%= form_with model: @business,
     url: admin_store_path(@business),
     method: :patch,
@@ -27,7 +94,6 @@ class: "mb-4 inline-flex items-center gap-1 link-more text-sm md:text-base" do %
       </select>
       <%= f.submit "Aktualisieren", class: "btn btn-primary rounded-full" %>
     <% end %>
+    <p class="admin-subtitle mt-2 text-xs">Änderungen am Status werden sofort gespeichert.</p>
   </div>
 </div>
-
-<%= render "shared/business_profile", business: @business, images: @images %>

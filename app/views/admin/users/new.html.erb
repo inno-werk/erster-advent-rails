@@ -1,0 +1,52 @@
+<%= content_for :title, "Benutzer hinzufügen" %>
+
+<%= link_to admin_users_path,
+class: "mb-4 inline-flex items-center gap-1 link-more text-sm md:text-base" do %>
+  <%= heroicon "chevron-left", options: { class: "w-4 h-4" } %>
+  Zurück zu allen Benutzern
+<% end %>
+
+<div class="w-full max-w-xl">
+  <div class="admin-card p-6">
+    <h1 class="font-jakarta font-bold text-xl mb-1">Neuen Benutzer anlegen</h1>
+    <p class="admin-subtitle mb-6">
+      Der Benutzer erhält eine E-Mail, um sein eigenes Passwort festzulegen.
+    </p>
+
+    <%= form_with model: @user, url: admin_users_path, local: true, class: "space-y-4" do |f| %>
+      <% if @user.errors.any? %>
+        <div class="alert alert-error rounded-2xl">
+          <span><%= @user.errors.full_messages.to_sentence %></span>
+        </div>
+      <% end %>
+
+      <div class="form-control">
+        <%= f.label :email, class: "label" do %>
+          <span class="label-text font-semibold">E-Mail</span>
+        <% end %>
+        <%= f.email_field :email, class: "input input-bordered w-full", required: true %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :name, class: "label" do %>
+          <span class="label-text font-semibold">Name</span>
+        <% end %>
+        <%= f.text_field :name, class: "input input-bordered w-full" %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :role, class: "label" do %>
+          <span class="label-text font-semibold">Rolle</span>
+        <% end %>
+        <%= f.select :role,
+        [ [ "Benutzer", 0 ], [ "Admin", 1 ], [ "Superadmin", 2 ] ],
+        {},
+        class: "select select-bordered w-full" %>
+      </div>
+
+      <div class="pt-2">
+        <%= f.submit "Benutzer anlegen", class: "btn btn-primary rounded-full" %>
+      </div>
+    <% end %>
+  </div>
+</div>

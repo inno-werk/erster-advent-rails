@@ -2,24 +2,35 @@
 
 <%= render "admin/shared/page_header",
 title: "Dashboard",
-subtitle: "Überblick über Geschäfte und Benutzer" %>
+subtitle: "Überblick über Geschäfte und Benutzer." %>
 
-<section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-  <% @metrics.each do |name, value| %>
-    <article class="admin-card p-6">
-      <p class="admin-subtitle"><%= name.to_s.humanize %></p>
-      <p class="mt-1 font-frank font-light text-4xl text-primary">
-        <%= number_with_delimiter(value) %>
+<section class="flex flex-wrap divide-x divide-base-200 border-y border-base-200">
+  <% @metrics.each do |metric| %>
+    <div class="min-w-[160px] flex-1 px-6 py-5 first:pl-0">
+      <div class="flex items-center gap-1.5">
+        <%= heroicon metric[:icon], options: { class: "w-4 h-4 shrink-0 text-base-content/40" } %>
+        <p class="admin-eyebrow"><%= metric[:label] %></p>
+      </div>
+      <p class="mt-2 font-frank font-light text-4xl text-primary">
+        <%= number_with_delimiter(metric[:value]) %>
       </p>
-    </article>
+    </div>
   <% end %>
 </section>
 
 <section class="mt-12">
-  <h2 class="font-jakarta font-bold text-xl md:text-2xl">Neue Geschäfte</h2>
-  <p class="admin-subtitle mt-1 mb-4">
-    Die zuletzt registrierten Geschäfte, deren Status zu prüfen ist
-  </p>
+  <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h2 class="font-jakarta font-bold text-xl md:text-2xl">Zu prüfende Geschäfte</h2>
+      <p class="admin-subtitle mt-1">
+        Neu registrierte Geschäfte, die auf eine Prüfung warten.
+      </p>
+    </div>
+    <%= link_to admin_stores_path(status: "pending"), class: "admin-action-link" do %>
+      Alle Geschäfte
+      <%= heroicon "arrow-right", options: { class: "w-4 h-4" } %>
+    <% end %>
+  </div>
 
   <%= render "admin/stores/list", businesses: @recent_businesses %>
 </section>

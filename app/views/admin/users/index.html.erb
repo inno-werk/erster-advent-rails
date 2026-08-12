@@ -1,36 +1,33 @@
 <%= content_for :title, "Benutzer" %>
 
-<%= render "admin/shared/page_header",
-title: "Benutzer",
-subtitle: "Alle registrierten Benutzerkonten verwalten" %>
+<div class="flex h-full min-h-0 flex-col overflow-hidden">
+  <div class="shrink-0">
+    <%= render "admin/shared/page_header",
+    title: "Benutzer",
+    subtitle: "Alle registrierten Benutzerkonten verwalten.",
+    actions: (current_user.superadmin? ? link_to("Benutzer hinzufügen", new_admin_user_path, class: "btn btn-primary rounded-full") : nil) %>
+  </div>
 
-<section class="w-full space-y-6">
   <%= form_with url: admin_users_path,
   method: :get,
-  data: {
-    controller: "search",
-    turbo_frame: "users_table",
-  } do %>
-    <label class="admin-search max-w-xl">
+  class: "mb-4 flex shrink-0 flex-wrap items-center justify-between gap-4" do %>
+    <label class="admin-search max-w-xl flex-1">
       <%= heroicon "magnifying-glass",
       options: {
         class: "w-5 h-5 shrink-0 text-black/40",
       } %>
-      <input
-        type="search"
-        name="q"
-        value="<%= @q %>"
-        placeholder="Benutzer suchen..."
-        data-search-target="input"
-      />
+      <input type="search" name="q" value="<%= @q %>" placeholder="Benutzer suchen..." />
     </label>
+
+    <span class="whitespace-nowrap font-jakarta font-light text-sm text-base-content/50">
+      <%= @users.size %> von <%= @pagy.count %> Benutzern
+    </span>
   <% end %>
 
-  <%= turbo_frame_tag "users_table" do %>
-    <div class="admin-card">
-      <% if @users.any? %>
-        <div class="overflow-x-auto">
-        <table class="table">
+  <div class="min-h-0 flex-1 overflow-y-auto">
+    <% if @users.any? %>
+      <div class="overflow-x-auto">
+        <table class="admin-table table">
           <thead>
             <tr>
               <th>Name</th>
@@ -41,36 +38,22 @@ subtitle: "Alle registrierten Benutzerkonten verwalten" %>
           </thead>
           <tbody>
             <% @users.each do |user| %>
-              <tr class="hover:bg-base-200/50">
-                <td class="font-normal"><%= user.name.presence || "-" %></td>
+              <tr>
+                <td>
+                  <div class="flex items-center gap-3">
+                    <span class="admin-row-icon">
+                      <%= heroicon "user", options: { class: "w-4.5 h-4.5" } %>
+                    </span>
+                    <span class="font-normal"><%= user.name.presence || "-" %></span>
+                  </div>
+                </td>
                 <td><%= user.email %></td>
                 <td><%= user.business&.business_name || user.business_name || "-" %></td>
                 <td>
-                  <div class="flex justify-end gap-2">
-                    <%= link_to "Details",
-                    admin_user_path(user),
-                    class: "btn btn-sm btn-outline rounded-full",
-                    data: {
-                      turbo_frame: "_top",
-                    } %>
-
-                    <% if user.business.present? %>
-                      <%= link_to "Geschäft",
-                      admin_store_path(user.business),
-                      class: "btn btn-sm btn-outline btn-secondary rounded-full",
-                      data: {
-                        turbo_frame: "_top",
-                      } %>
-                    <% end %>
-
-                    <%= link_to admin_user_path(user),
-                    class: "btn btn-sm btn-ghost btn-square text-error",
-                    title: "Benutzer löschen",
-                    data: {
-                      turbo_confirm: "Soll der Benutzer wirklich gelöscht werden?",
-                      turbo_method: :delete,
-                    } do %>
-                      <%= heroicon "trash", options: { class: "w-4 h-4" } %>
+                  <div class="flex justify-end gap-4">
+                    <%= link_to admin_user_path(user), class: "admin-action-link" do %>
+                      <%= heroicon "document-text", options: { class: "w-4 h-4" } %>
+                      Details
                     <% end %>
                   </div>
                 </td>
@@ -78,16 +61,18 @@ subtitle: "Alle registrierten Benutzerkonten verwalten" %>
             <% end %>
           </tbody>
         </table>
-        </div>
-      <% else %>
-        <p class="p-8 text-center font-jakarta font-light text-base-content/60">
-          Keine Benutzer gefunden.
-        </p>
-      <% end %>
-    </div>
+      </div>
+    <% else %>
+      <p class="p-8 text-center font-jakarta font-light text-base-content/60">
+        Keine Benutzer gefunden.
+      </p>
+    <% end %>
+  </div>
 
-    <div class="mt-6 flex justify-center">
-      <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
-    </div>
-  <% end %>
-</section>
+  <div class="shrink-0">
+    <%= render "admin/shared/pagination_bar",
+    pagy: @pagy,
+    path: admin_users_path,
+    extra_params: { q: @q } %>
+  </div>
+</div>

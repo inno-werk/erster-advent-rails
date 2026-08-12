@@ -3,20 +3,19 @@ class Admin::StoresController < Admin::BaseController
 
   def index
     @q = params[:q].to_s.strip
+    @status = params[:status].presence
+    @sort = params[:sort].presence || "name_asc"
+
     scope = Business.includes(:user)
     scope = scope.where("business_name ILIKE ?", "%#{@q}%") if @q.present?
-    @pagy, @businesses = pagy(scope.order(:business_name), items: params[:per]&.to_i || 20)
+    scope = scope.where(status: @status) if @status.present? && Business.statuses.key?(@status)
+    scope = @sort == "name_desc" ? scope.order(business_name: :desc) : scope.order(business_name: :asc)
+
+    @pagy, @businesses = pagy(scope, items: params[:per]&.to_i || 10)
   end
 
   def show
     @owner = @business.user
-    status_options = Business.statuses.keys.map { |status| [ status.humanize, status ] }
-    @images = [
-      @business.main_image,
-      @business.image_gallery1,
-      @business.image_gallery2,
-      @business.image_gallery3
-    ].select(&:attached?)
   end
 
   def update

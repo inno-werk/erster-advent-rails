@@ -6,7 +6,9 @@
 @source "../../../app/views/**/*";
 @source "../../../app/views/**/*";
 
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: light --default;
+}
 
 @plugin "daisyui/theme" {
   name: "light";
@@ -416,11 +418,14 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply border-b border-base-200 last:border-b-0 transition-colors;
   }
 
-  /* Search pill, admin-sized version of .search-pill */
+  /* Search pill, admin-sized version of .search-pill.
+     Solid white against the gray admin page background so it doesn't
+     wash out; a visible border plus a focus ring stand in for shadow depth. */
   .admin-search {
-    @apply flex w-full items-center gap-3 rounded-full border-2
-      border-transparent bg-[#F2F2F2] px-5 font-jakarta font-light text-black
-      focus-within:border-black;
+    @apply flex w-full items-center gap-3 rounded-full border
+      border-[#D8D8D8] bg-base-100 px-5 font-jakarta font-light text-black
+      transition-shadow focus-within:border-primary
+      focus-within:ring-2 focus-within:ring-primary/15;
     height: 3rem;
   }
   .admin-search input {
@@ -455,13 +460,14 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply border-transparent bg-transparent text-black/30;
   }
 
-  /* Sidebar menu item: white pill on hover/active, echoing .btn-navbar */
+  /* Sidebar menu item: translucent tint pill on hover/active */
   .admin-menu-item {
-    @apply flex w-full items-center gap-3 rounded-full px-4 py-2.5 font-jakarta
-      font-light text-primary-content transition-colors hover:bg-white/10;
+    @apply flex w-full items-center gap-3 rounded-xl px-4 py-3 font-jakarta
+      font-normal text-primary-content/70 transition-colors hover:bg-white/10
+      hover:text-primary-content;
   }
   .admin-menu-item.menu-active {
-    @apply bg-white font-normal text-black hover:bg-white;
+    @apply bg-white/15 font-semibold text-primary-content hover:bg-white/15;
   }
 
   .disabled-link {
@@ -470,5 +476,46 @@ button:has(+ #popover-1:popover-open) .icon-up {
     color: gray; /* optional styling */
     text-decoration: none; /* optional: remove underline */
     opacity: 0.6; /* optional: faded look */
+  }
+
+  /* Breadcrumb trail in the admin page header */
+  .admin-breadcrumb {
+    @apply flex items-center gap-1.5 font-jakarta font-light text-sm text-base-content/50;
+  }
+  .admin-breadcrumb a {
+    @apply transition-colors hover:text-base-content;
+  }
+
+  /* Small uppercase section label above a group of detail rows */
+  .admin-eyebrow {
+    @apply font-jakarta text-xs font-semibold uppercase tracking-wider
+      text-base-content/40;
+  }
+
+  /* Flat table for admin index pages: no card box, just a plain table on
+     the page background with a header underline and hairline row dividers */
+  .admin-table thead th {
+    @apply sticky top-0 z-[1] border-b border-base-300 bg-base-200 font-jakarta
+      text-xs font-semibold uppercase tracking-wider text-base-content/40;
+  }
+  .admin-table tbody td {
+    @apply font-jakarta font-light;
+  }
+  .admin-table tbody tr {
+    @apply border-b border-base-content/10 transition-colors last:border-b-0
+      hover:bg-base-100;
+  }
+
+  /* Quiet row-level action link (e.g. "Details"): visible but not the
+     bold red CTA color reserved for .link-more */
+  .admin-action-link {
+    @apply inline-flex items-center gap-1 font-jakarta text-sm font-medium
+      text-base-content/70 transition-colors hover:text-primary;
+  }
+
+  /* Square icon swatch leading a table row's primary column */
+  .admin-row-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
+      bg-base-200 text-base-content/50;
   }
 }

@@ -3,10 +3,12 @@
   Parameters:
   - link
   - text
-  - icon (optional heroicon name) %>
+  - icon (optional heroicon name)
+  - active (optional, overrides the current_page? check) %>
 
+<% active = local_assigns[:active].nil? ? current_page?(link) : local_assigns[:active] %>
 <li>
-  <%= link_to link, class: "admin-menu-item #{"menu-active" if current_page?(link)}" do %>
+  <%= link_to link, class: "admin-menu-item #{"menu-active" if active}" do %>
     <% if local_assigns[:icon].present? %>
       <%= heroicon icon, variant: :outline, options: { class: "w-5 h-5 shrink-0" } %>
     <% end %>
