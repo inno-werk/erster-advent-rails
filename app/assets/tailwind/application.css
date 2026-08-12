@@ -470,6 +470,124 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply bg-white/15 font-semibold text-primary-content hover:bg-white/15;
   }
 
+  /*
+   * ------------------------------------------------------------------
+   * Back-office forms (dashboard "Geschäft bearbeiten" and friends):
+   * quiet labels above hairline-bordered fields, sections separated by
+   * rules instead of cards.
+   * ------------------------------------------------------------------
+   */
+
+  /*
+   * Dashboard shell (app/views/layouts/app.html.erb). Every page in /app
+   * shares the same horizontal gutter, so the sticky bars and the page
+   * body line up on the exact same left and right edges.
+   */
+  .app-container {
+    @apply mx-auto w-full max-w-[1640px] px-5 sm:px-8 lg:px-10 xl:px-12;
+  }
+
+  /* Bar above the page body: breadcrumb left, page actions right. It sits
+     outside the scroll area, so it never moves. */
+  .app-topbar {
+    @apply z-20 shrink-0 border-b border-base-300 bg-base-100 py-3;
+  }
+
+  /* Bar below the page body: the primary action stays reachable at all times */
+  .app-bottombar {
+    @apply z-20 shrink-0 border-t border-base-300 bg-base-100 py-3
+      shadow-[0_-2px_12px_rgba(0,0,0,0.04)];
+  }
+
+  /* A titled group of fields; rules separate consecutive groups */
+  .form-section {
+    @apply border-t border-base-content/10 pt-10 mt-10;
+  }
+  .form-section:first-of-type {
+    @apply border-t-0 pt-0 mt-0;
+  }
+  .form-section-title {
+    @apply flex items-center gap-2 font-jakarta text-xl font-bold
+      text-base-content md:text-2xl;
+  }
+  .form-section-subtitle {
+    @apply mt-1 max-w-3xl font-jakarta text-sm font-light text-base-content/60;
+  }
+
+  /* Two-column field grid; use .md\:col-span-2 for full-width fields */
+  .form-grid {
+    @apply mt-6 grid gap-x-8 gap-y-5 md:grid-cols-2;
+  }
+
+  .field-label {
+    @apply mb-1.5 block font-jakarta text-sm font-medium text-base-content/80;
+  }
+  .field-hint {
+    @apply mt-1.5 font-jakarta text-xs font-light text-base-content/50;
+  }
+
+  /* Text inputs, textareas and select-like triggers */
+  .field-input {
+    @apply block w-full rounded-lg border border-[#C6C6C6] bg-base-100 px-4 py-2.5
+      font-jakarta font-light text-base-content transition-shadow
+      placeholder:text-base-content/35 focus:border-primary focus:outline-none
+      focus:ring-2 focus:ring-primary/15;
+  }
+  .field-input.field-invalid {
+    @apply border-error focus:border-error focus:ring-error/15;
+  }
+
+  /* Trix editor styled to sit in the same family as .field-input */
+  .field-editor trix-editor {
+    @apply min-h-32 rounded-b-lg rounded-t-none border border-[#C6C6C6] bg-base-100
+      px-4 py-2.5 font-jakarta font-light;
+  }
+  .field-editor trix-toolbar .trix-button-row {
+    @apply rounded-t-lg border border-b-0 border-[#C6C6C6] bg-base-200 px-1;
+  }
+
+  /* Selected-category chips under the multiselect */
+  .field-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-primary/10 py-1
+      pl-3 pr-2 font-jakarta text-sm font-light text-primary;
+  }
+  .field-chip button {
+    @apply cursor-pointer rounded-full p-0.5 text-primary/60 transition-colors
+      hover:bg-primary/15 hover:text-primary;
+  }
+
+  /* Read-only counterpart of .form-grid: label/value pairs on detail pages */
+  .data-grid {
+    @apply mt-6 grid gap-x-8 gap-y-5 md:grid-cols-2;
+  }
+  .data-item {
+    @apply border-b border-base-content/5 pb-4;
+  }
+  .data-label {
+    @apply font-jakarta text-xs font-semibold uppercase tracking-wider
+      text-base-content/40;
+  }
+  .data-value {
+    @apply mt-1 break-words font-jakarta font-light text-base-content;
+  }
+  .data-value a {
+    @apply text-primary underline-offset-2 hover:underline;
+  }
+  .data-empty {
+    @apply text-base-content/30;
+  }
+
+  /* Image tile in the upload sections */
+  .image-tile {
+    @apply relative h-56 w-56 overflow-hidden rounded-xl border border-[#C6C6C6]
+      bg-base-200;
+  }
+  .image-tile-action {
+    @apply absolute flex h-8 w-8 items-center justify-center rounded-full
+      bg-base-100/90 text-base-content/70 shadow-sm backdrop-blur transition-colors
+      hover:bg-base-100 hover:text-base-content;
+  }
+
   .disabled-link {
     pointer-events: none; /* disables clicks */
     cursor: default; /* shows default cursor */

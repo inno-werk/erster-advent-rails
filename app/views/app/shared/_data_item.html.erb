@@ -1,0 +1,24 @@
+<%# One label/value pair on an /app detail page.
+
+  Locals:
+  - label: field name
+  - value: plain text value (optional)
+  - url: turns the value into a link (optional)
+  - content: pre-rendered markup, used instead of value (optional) %>
+
+<div class="data-item">
+  <p class="data-label"><%= label %></p>
+  <div class="data-value">
+    <% if local_assigns[:content].present? %>
+      <%= content %>
+    <% elsif local_assigns[:value].present? %>
+      <% if local_assigns[:url].present? %>
+        <%= link_to value, url, target: "_blank", rel: "noopener" %>
+      <% else %>
+        <%= simple_format(value.to_s, {}, sanitize: true) %>
+      <% end %>
+    <% else %>
+      <span class="data-empty">Nicht angegeben</span>
+    <% end %>
+  </div>
+</div>

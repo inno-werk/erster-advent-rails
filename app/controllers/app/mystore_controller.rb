@@ -57,7 +57,7 @@ end
       view_context.image_tag(
       view_context.asset_path("placeholder.png"),
       id: "preview-#{params[:image]}",
-      class: "h-full object-cover"
+      class: "h-full w-full object-cover"
       )
     }
  end

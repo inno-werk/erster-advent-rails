@@ -1,0 +1,30 @@
+<%# Top bar for /app pages. Fill the layout's :topbar slot with it via
+  content_for, so it always sits in the same spot.
+
+  Locals:
+  - crumbs: array of [label, path] pairs; the last entry renders as the
+    current, non-linked page.
+  - actions: optional markup (e.g. a capture block) shown on the right %>
+
+<% trail = Array(crumbs) %>
+
+<div class="app-topbar">
+  <div class="app-container flex flex-wrap items-center justify-between gap-3">
+    <nav class="admin-breadcrumb" aria-label="Breadcrumb">
+      <% trail.each_with_index do |(label, path), index| %>
+        <% if index.positive? %>
+          <span aria-hidden="true">/</span>
+        <% end %>
+        <% if path.present? && index < trail.length - 1 %>
+          <%= link_to label, path %>
+        <% else %>
+          <span class="text-base-content/70" aria-current="page"><%= label %></span>
+        <% end %>
+      <% end %>
+    </nav>
+
+    <% if local_assigns[:actions].present? %>
+      <div class="flex flex-wrap items-center gap-2"><%= actions %></div>
+    <% end %>
+  </div>
+</div>

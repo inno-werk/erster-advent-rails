@@ -13,21 +13,31 @@
     <%= render "layouts/head" %>
   </head>
 
-  <body class="h-screen ">
+  <%# The dashboard owns the viewport: the window itself never scrolls, only the
+    page body between the app shell's bars does. %>
+  <body class="h-screen overflow-hidden">
 
     <%= render "layouts/flash", { flash: flash } %>
 
-    <div class="flex h-full flex-col">
+    <div class="flex h-full min-h-0 flex-col">
 
-      <div class="drawer relative flex-1 lg:drawer-open">
+      <div class="drawer relative min-h-0 flex-1 overflow-hidden lg:drawer-open">
         <input id="my-drawer" type="checkbox" class="drawer-toggle"/>
-        <div class="drawer-content h-full overflow-y-scroll">
-          <div class=" mx-auto flex h-full w-full flex-col">
-            <%= render "shared/business_status_header", { business: current_user.business } %>
-            <div class="page-container py-8">
+        <%# App shell: the optional top bar (breadcrumb + actions) and bottom bar
+          (primary action) stay put while only the page body scrolls between
+          them. Pages fill the slots with content_for :topbar / :bottombar. %>
+        <div
+          class="drawer-content flex h-full min-h-0 flex-col overflow-hidden"
+          data-controller="unsaved-changes"
+        >
+          <%= render "shared/business_status_header", { business: current_user.business } %>
+          <%= yield :topbar %>
+          <div class="min-h-0 flex-1 overflow-y-auto">
+            <div class="app-container py-8">
               <%= yield %>
             </div>
           </div>
+          <%= yield :bottombar %>
         </div>
         <div class="drawer-side">
           <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>

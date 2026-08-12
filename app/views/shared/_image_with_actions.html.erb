@@ -1,37 +1,35 @@
+<%# Image tile with an upload and (optional) delete action.
+  Required locals:
+  - image_url, form, image_field
+  - delete_path (optional) %>
+
 <% real_image_url = image_url.presence || asset_path("placeholder.png") %>
 <% input_id = "#{image_field}-input-#{SecureRandom.hex(4)}" %>
 
-<div class="rounded-xl overflow-hidden bg-base-200 w-max h-96 relative">
+<div class="image-tile group">
   <%= image_tag real_image_url,
   id: "preview-#{image_field}",
-  class: "h-full object-cover" %>
+  class: "h-full w-full object-cover" %>
 
   <%= form.file_field image_field,
                   class: "hidden",
                   id: input_id,
                   onchange: "previewImage(event, 'preview-#{image_field}')" %>
 
+  <label for="<%= input_id %>" class="image-tile-action left-2 top-2 cursor-pointer">
+    <span class="sr-only">Bild ersetzen</span>
+    <%= heroicon "pencil-square", options: { class: "h-4 w-4" } %>
+  </label>
+
   <% if delete_path.present? && image_url.present? %>
-    <%= link_to delete_path, 
+    <%= link_to delete_path,
       params: { image: image_field },
             data: { turbo_confirm: "Möchten Sie dieses Bild wirklich löschen?", turbo_method: :delete },
-            class: "
-              absolute top-2 right-2 bg-white rounded-full p-1 shadow
-              hover:ring-2 hover:ring-red-500 cursor-pointer
-            " do %>
-      <%= heroicon "trash", options: { class: "h-5 w-5 text-red-500" } %>
+            class: "image-tile-action right-2 top-2 hover:text-error" do %>
+      <span class="sr-only">Bild löschen</span>
+      <%= heroicon "trash", options: { class: "h-4 w-4" } %>
     <% end %>
   <% end %>
-
-  <label
-    for="<%= input_id %>"
-    class="
-      absolute top-2 left-2 bg-white rounded-full p-1 shadow hover:ring-2
-      hover:ring-blue-500 cursor-pointer
-    "
-  >
-    <%= heroicon "pencil-square", options: { class: "h-5 w-5 text-blue-500" } %>
-  </label>
 </div>
 
 <script>

@@ -1,0 +1,15 @@
+<%# Bottom bar for /app pages. Fill the layout's :bottombar slot with it
+  via content_for.
+
+  Locals:
+  - actions: markup for the buttons (right aligned)
+  - hint: optional text shown on the left %>
+
+<div class="app-bottombar">
+  <div class="app-container flex flex-wrap items-center justify-between gap-3">
+    <p class="font-jakarta text-sm font-light text-base-content/50">
+      <%= local_assigns[:hint] %>
+    </p>
+    <div class="flex flex-wrap items-center gap-2 ml-auto"><%= actions %></div>
+  </div>
+</div>

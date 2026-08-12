@@ -1,71 +1,76 @@
-<%# 
+<%#
   Required locals:
     - form: form builder object
     - field_name: symbol for the form field (e.g., :categories)
     - label: string for the label text
-    - subtext: optional string for additional info (not used in this example)
+    - subtext: optional hint shown below the field
     - options: array of selectable options
     - selected_options: array of currently selected options %>
 
-  <div data-controller="multiselect">
-    <%= form.label field_name, label, class: "label-text font-semibold" %>
-    <% if subtext.present? do %>
-      <p class="text-sm text-base-content/70 mb-2"><%= subtext %></p>
-    <% end %>
-    <div class="dropdown w-full" id="business-categories">
-      <label
-        tabindex="0"
-        class="btn btn-outline flex w-full items-center justify-between gap-2"
-      >
-        <span>
-          <% if options.present? %>
-            <% count = selected_options.length %>
-            <span data-multiselect-target="count">
+<div data-controller="multiselect">
+  <%= form.label field_name, label, class: "field-label" %>
 
-              <%= count %>
-            </span>
-            <%= "#{count == 1 ? "Kategorie" : "Kategorien"} ausgewählt" %>
-          <% else %>
-            Kategorien auswählen
-          <% end %>
-        </span>
-        <%= heroicon "chevron-down", options: { class: "h-5 w-5" } %>
-      </label>
-      <ul
-        tabindex="0"
-        class="
-          dropdown-content menu w-full space-y-1 rounded-box bg-base-100 p-3 shadow
-          max-h-60 overflow-y-auto
-        "
-      >
-        <%= hidden_field_tag "business[categories][]", "", id: nil %>
-        <% options.each do |category| %>
-          <li>
-            <label class="label cursor-pointer justify-between gap-3">
-              <span class="label-text"><%= category %></span>
-              <%= check_box_tag "business[categories][]",
-              category,
-              selected_options.include?(category),
-              class: "checkbox checkbox-primary checkbox-sm",
-              data: {
-                action: "change->multiselect#update",
-                multiselect_target: "checkbox",
-              } %>
-            </label>
-          </li>
-        <% end %>
-      </ul>
-    </div>
-    <% if @selected_categories.present? %>
-      <div data-multiselect-target="tags" class="mt-3 flex flex-wrap gap-2">
-        <% @selected_categories.each do |value| %>
-          <% category = @categories.find { |config| config == value } %>
-          <span class="badge badge-outline">
-            <%= category ? category : value %>
+  <div class="dropdown w-full" id="business-categories">
+    <label
+      tabindex="0"
+      class="field-input flex cursor-pointer items-center justify-between gap-2"
+    >
+      <span>
+        <% if options.present? %>
+          <span data-multiselect-target="count"><%= selected_options.length %></span>
+          <span data-multiselect-target="noun">
+            <%= selected_options.length == 1 ? "Kategorie" : "Kategorien" %>
           </span>
+          ausgewählt
+        <% else %>
+          Kategorien auswählen
         <% end %>
-      </div>
-    <% end %>
-
+      </span>
+      <%= heroicon "chevron-down", options: { class: "h-5 w-5 text-base-content/50" } %>
+    </label>
+    <ul
+      tabindex="0"
+      class="
+        dropdown-content menu z-10 mt-1 max-h-60 w-full space-y-1 overflow-y-auto
+        rounded-lg border border-[#C6C6C6] bg-base-100 p-2 shadow-lg
+      "
+    >
+      <%= hidden_field_tag "business[categories][]", "", id: nil %>
+      <% options.each do |category| %>
+        <li>
+          <label class="label cursor-pointer justify-between gap-3 font-light">
+            <span class="label-text font-light"><%= category %></span>
+            <%= check_box_tag "business[categories][]",
+            category,
+            selected_options.include?(category),
+            class: "checkbox checkbox-primary checkbox-sm",
+            data: {
+              action: "change->multiselect#update",
+              multiselect_target: "checkbox",
+            } %>
+          </label>
+        </li>
+      <% end %>
+    </ul>
   </div>
-<% end %>
+
+  <div data-multiselect-target="tags" class="mt-2 flex flex-wrap gap-2">
+    <% selected_options.each do |value| %>
+      <span class="field-chip">
+        <%= value %>
+        <button
+          type="button"
+          data-action="multiselect#remove"
+          data-value="<%= value %>"
+          aria-label="<%= value %> entfernen"
+        >
+          <%= heroicon "x-mark", options: { class: "h-3.5 w-3.5" } %>
+        </button>
+      </span>
+    <% end %>
+  </div>
+
+  <% if local_assigns[:subtext].present? %>
+    <p class="field-hint"><%= subtext %></p>
+  <% end %>
+</div>

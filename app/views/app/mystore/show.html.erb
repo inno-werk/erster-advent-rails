@@ -1,40 +1,225 @@
 <%= content_for :title, "Mein Geschäft" %>
 
 <% if @business&.persisted? %>
-  <%= render "shared/business_profile", business: @business, images: @gallery_images do %>
-    <%= link_to edit_app_mystore_path, class: "btn btn-ghost btn-circle" do %>
-      <span class="sr-only">Geschäft bearbeiten</span>
-      <%= heroicon "pencil-square", options: { class: "h-8 w-8" } %>
-    <% end %>
+  <% categories = Array(@business.categories).compact_blank %>
+  <% gallery_images = [
+    [ "Hauptbild", @business.main_image ],
+    [ "Galeriebild 1", @business.image_gallery1 ],
+    [ "Galeriebild 2", @business.image_gallery2 ],
+    [ "Galeriebild 3", @business.image_gallery3 ],
+  ].select { |_label, image| image.attached? } %>
+
+  <% content_for :topbar do %>
+    <%= render "app/shared/topbar",
+    crumbs: [ [ "Dashboard", app_root_path ], [ "Mein Geschäft" ] ],
+    actions: capture {
+      if @business.confirmed?
+        concat(
+        link_to(marketing_store_path(@business),
+        target: "_blank",
+        rel: "noopener",
+        class: "btn btn-outline gap-2") do
+          concat heroicon("eye", options: { class: "h-5 w-5" })
+          concat "Live anschauen"
+        end
+        )
+      end
+      concat(
+      link_to(edit_app_mystore_path, class: "btn btn-primary gap-2") do
+        concat heroicon("pencil-square", options: { class: "h-5 w-5" })
+        concat "Geschäft bearbeiten"
+      end
+      )
+    } %>
   <% end %>
-<% else %>
-  <section class="w-full">
-    <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <div
-        class="
-          flex flex-col items-center gap-6 rounded-3xl bg-base-100 px-8 py-16 text-center
-          shadow-2xl
-        "
-      >
-        <div
-          class="
-            flex h-20 w-20 items-center justify-center rounded-full border-4 border-base-100
-            bg-primary text-primary-content shadow-lg
-          "
-        >
-          <%= heroicon "building-storefront", options: { class: "h-10 w-10" } %>
-        </div>
-        <div class="space-y-3 max-w-xl">
-          <h2 class="text-3xl font-bold text-base-content">Erstellen Sie Ihr Geschäft</h2>
-          <p class="text-base text-base-content/70">
-            Sie haben noch keine Geschäftsdetails hinterlegt. Ergänzen Sie
-            jetzt alle Informationen und präsentieren Sie Ihr Angebot.
-          </p>
-        </div>
-        <%= link_to "Jetzt Geschäft einrichten",
-        edit_app_mystore_path,
-        class: "btn btn-primary btn-wide" %>
-      </div>
+
+  <header class="border-b border-base-content/10 pb-6">
+    <p class="font-jakarta text-xs uppercase tracking-[0.35em] text-primary/80">
+      Übersicht
+    </p>
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+      <h1 class="admin-heading font-jakarta font-bold">
+        <%= @business.business_name.presence || "Ihr Geschäft" %>
+      </h1>
+      <%= render "shared/business_status_badge", status: @business.status %>
     </div>
-  </section>
+    <p class="admin-subtitle mt-2 max-w-3xl">
+      So sind Ihre Angaben hinterlegt. Über „Geschäft bearbeiten“ können Sie
+      jederzeit alles anpassen.
+    </p>
+  </header>
+
+  <div class="mt-10">
+    <%# --- Geschäftsinformationen ------------------------------------- %>
+    <section class="form-section">
+      <h2 class="form-section-title">Geschäftsinformationen</h2>
+      <p class="form-section-subtitle">
+        Diese Angaben werden auf der Website des ersten Advents öffentlich gelistet.
+      </p>
+
+      <div class="data-grid">
+        <%= render "app/shared/data_item",
+        label: "Geschäftsname",
+        value: @business.business_name %>
+
+        <%= render "app/shared/data_item",
+        label: "Kategorien",
+        content: (
+          capture {
+            concat content_tag(:div, class: "flex flex-wrap gap-2") {
+              safe_join(categories.map { |category| content_tag(:span, category, class: "field-chip") })
+            }
+          } if categories.any?
+        ) %>
+
+        <div class="md:col-span-2">
+          <%= render "app/shared/data_item",
+          label: "Gasse und Hausnummer",
+          value: @business.address %>
+        </div>
+
+        <%= render "app/shared/data_item",
+        label: "Telefonnummer",
+        value: @business.phone,
+        url: (@business.phone.present? ? "tel:#{@business.phone.gsub(/\s+/, '')}" : nil) %>
+
+        <%= render "app/shared/data_item",
+        label: "E-Mail-Adresse",
+        value: @business.email,
+        url: (@business.email.present? ? "mailto:#{@business.email}" : nil) %>
+
+        <%= render "app/shared/data_item",
+        label: "Webseite",
+        value: @business.website,
+        url: @business.website %>
+
+        <%= render "app/shared/data_item",
+        label: "Google-Maps-Link",
+        value: @business.map_link,
+        url: @business.map_link %>
+      </div>
+    </section>
+
+    <%# --- Social Media ------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">Social Media</h2>
+
+      <div class="data-grid">
+        <% { "Instagram" => @business.instagram,
+          "TikTok" => @business.tiktok,
+          "LinkedIn" => @business.linkedin,
+          "Facebook" => @business.facebook }.each do |label, url| %>
+          <%= render "app/shared/data_item", label: label, value: url, url: url %>
+        <% end %>
+      </div>
+    </section>
+
+    <%# --- Beschreibung ------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">Beschreibung</h2>
+
+      <div class="mt-6 space-y-6">
+        <div>
+          <p class="data-label">Besonderes am 1. Advent</p>
+          <div class="data-value trix-content max-w-3xl">
+            <% if @business.first_advent_specialities.present? %>
+              <%= @business.first_advent_specialities %>
+            <% else %>
+              <span class="data-empty">Nicht angegeben</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <p class="data-label">Allgemeiner Beschrieb</p>
+          <div class="data-value trix-content max-w-3xl">
+            <% if @business.description.present? %>
+              <%= @business.description %>
+            <% else %>
+              <span class="data-empty">Nicht angegeben</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <%# --- Bilder ------------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">Bilder</h2>
+      <p class="form-section-subtitle">
+        Das Hauptbild erscheint auf der Übersichtsseite, die Galeriebilder auf
+        Ihrer Detailseite.
+      </p>
+
+      <% if gallery_images.any? %>
+        <div class="mt-6 flex flex-wrap gap-4">
+          <% gallery_images.each do |label, image| %>
+            <figure>
+              <div class="image-tile">
+                <%= image_tag image, class: "h-full w-full object-cover", alt: label %>
+              </div>
+              <figcaption class="field-hint"><%= label %></figcaption>
+            </figure>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="data-value mt-6">
+          <span class="data-empty">Noch keine Bilder hochgeladen.</span>
+        </p>
+      <% end %>
+    </section>
+
+    <%# --- Kontaktinfos ------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">
+        Kontaktinfos
+        <span
+          class="tooltip tooltip-right font-normal"
+          data-tip="Nur für das Team des ersten Advents sichtbar."
+        >
+          <%= heroicon "lock-closed", options: { class: "h-5 w-5 text-base-content/40" } %>
+        </span>
+      </h2>
+      <p class="form-section-subtitle">
+        Diese Angaben sind nicht öffentlich, sondern dienen zur Administration
+        des Anlasses.
+      </p>
+
+      <div class="data-grid">
+        <%= render "app/shared/data_item",
+        label: "Vor- und Nachname",
+        value: @business.contact_name %>
+
+        <%= render "app/shared/data_item",
+        label: "Rechnungsadresse",
+        value: @business.billing_address %>
+      </div>
+    </section>
+  </div>
+<% else %>
+  <% content_for :topbar do %>
+    <%= render "app/shared/topbar",
+    crumbs: [ [ "Dashboard", app_root_path ], [ "Mein Geschäft" ] ] %>
+  <% end %>
+
+  <div class="flex flex-col items-center gap-6 py-20 text-center">
+    <div
+      class="
+        flex h-20 w-20 items-center justify-center rounded-full bg-primary
+        text-primary-content
+      "
+    >
+      <%= heroicon "building-storefront", options: { class: "h-10 w-10" } %>
+    </div>
+    <div class="max-w-xl space-y-3">
+      <h1 class="admin-heading font-jakarta font-bold">Erstellen Sie Ihr Geschäft</h1>
+      <p class="admin-subtitle">
+        Sie haben noch keine Geschäftsdetails hinterlegt. Ergänzen Sie jetzt
+        alle Informationen und präsentieren Sie Ihr Angebot.
+      </p>
+    </div>
+    <%= link_to "Jetzt Geschäft einrichten",
+    edit_app_mystore_path,
+    class: "btn btn-primary btn-wide" %>
+  </div>
 <% end %>

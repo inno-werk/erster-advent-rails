@@ -1,17 +1,110 @@
 <%= content_for :title, "Geschäft bearbeiten" %>
 
-<section class="page-container">
-  <div class="flex gap-2 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <p class="text-sm uppercase tracking-[0.35em] text-primary/80">Angaben zu Ihrem Geschäft</p>
-      <h1 class="text-3xl font-bold text-base-content sm:text-4xl">
+<%# The form lives in the page body, its buttons in the layout's sticky bars —
+  the HTML `form` attribute wires them back together. %>
+<% form_id = "business-form" %>
+<% submit_label = @business.persisted? ? "Änderungen speichern" : "Geschäft anlegen" %>
+
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar",
+  crumbs: [
+    [ "Dashboard", app_root_path ],
+    [ "Mein Geschäft", app_mystore_path ],
+    [ "Angaben" ],
+  ],
+  actions: capture {
+    if @business.confirmed?
+      concat(
+      link_to(marketing_store_path(@business),
+      target: "_blank",
+      rel: "noopener",
+      class: "btn btn-outline gap-2") do
+        concat heroicon("eye", options: { class: "h-5 w-5" })
+        concat "Live anschauen"
+      end
+      )
+    elsif @business.persisted?
+      concat(
+      link_to(app_mystore_path, class: "btn btn-outline gap-2") do
+        concat heroicon("eye", options: { class: "h-5 w-5" })
+        concat "Übersicht"
+      end
+      )
+    end
+    concat(
+    button_tag(
+    type: "submit",
+    form: form_id,
+    class: "btn btn-primary gap-2 hidden",
+    data: { unsaved_changes_target: "save" }
+    ) do
+      concat heroicon("check", options: { class: "h-5 w-5" })
+      concat submit_label
+    end
+    )
+  } %>
+<% end %>
+
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar",
+  hint: capture {
+    concat content_tag(
+    :span,
+    "Alle Änderungen gespeichert.",
+    data: {
+      unsaved_changes_target: "status",
+      clean_text: "Alle Änderungen gespeichert.",
+      dirty_text: "Sie haben ungespeicherte Änderungen.",
+    }
+    )
+  },
+  actions: capture {
+    concat link_to("Abbrechen", app_mystore_path, class: "btn btn-ghost")
+    concat(
+    button_tag(
+    submit_label,
+    type: "submit",
+    form: form_id,
+    class: "btn btn-primary hidden",
+    data: { unsaved_changes_target: "save" }
+    )
+    )
+  } %>
+<% end %>
+
+<%= form_with model: @business,
+url: app_mystore_path,
+local: true,
+html: {
+  id: form_id,
+  multipart: true,
+  data: {
+    unsaved_changes_target: "form",
+    action: "input->unsaved-changes#markDirty change->unsaved-changes#markDirty " \
+            "trix-change->unsaved-changes#markDirty",
+  },
+} do |form| %>
+
+  <header class="border-b border-base-content/10 pb-6">
+    <p class="font-jakarta text-xs uppercase tracking-[0.35em] text-primary/80">
+      Angaben zu Ihrem Geschäft
+    </p>
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+      <h1 class="admin-heading font-jakarta font-bold">
         <%= @business.business_name.presence || "Geschäft einrichten" %>
       </h1>
+      <% if @business.persisted? %>
+        <%= render "shared/business_status_badge", status: @business.status %>
+      <% end %>
     </div>
-  </div>
+    <p class="admin-subtitle mt-2 max-w-3xl">
+      Die Angaben in dieser Sektion werden auf der Website des ersten Advents
+      für alle Besucher:innen öffentlich gelistet.
+    </p>
+  </header>
 
   <% if @business.errors.any? %>
-    <div class="mt-6 alert alert-error flex-col items-start gap-2">
+    <div role="alert" class="alert alert-error mt-6 flex-col items-start gap-2">
       <div class="font-semibold">Bitte korrigieren Sie die folgenden Angaben:</div>
       <ul class="list-disc pl-5 text-sm">
         <% @business.errors.full_messages.each do |message| %>
@@ -21,189 +114,226 @@
     </div>
   <% end %>
 
-  <%= form_with model: @business, url: app_mystore_path, local: true, html: { class: "mt-8", multipart: true } do |form| %>
-    <h3 class="text-2xl">Geschäftsinformationen</h3>
-    <p class="mb-5">Die Angaben in dieser Sektion werden auf der Website des ersten Advents
-      für alle Besucher:innen öffentlich gelistet.</p>
-    <div class="grid gap-6 md:grid-cols-2">
-      <div class="form-control">
-        <div class="flex flex-row gap-2 items-baseline">
-          <%= form.label :business_name, "Geschäftsname", class: "label-text font-semibold" %>
+  <div class="mt-10">
+    <%# --- Geschäftsinformationen ------------------------------------- %>
+    <section class="form-section">
+      <h2 class="form-section-title">
+        Geschäftsinformationen
+        <span
+          class="tooltip tooltip-right font-normal"
+          data-tip="Diese Angaben erscheinen öffentlich auf Ihrem Profil."
+        >
+          <%= heroicon "information-circle",
+          options: { class: "h-5 w-5 text-base-content/40" } %>
+        </span>
+      </h2>
+      <p class="form-section-subtitle">
+        Die Angaben in dieser Sektion werden auf der Website des ersten Advents
+        für alle Besucher:innen öffentlich gelistet.
+      </p>
 
+      <div class="form-grid">
+        <div>
+          <%= form.label :business_name, "Geschäftsname", class: "field-label" %>
+          <%= form.text_field :business_name,
+                          class: "field-input",
+                          placeholder: "Mein Geschäft" %>
         </div>
 
-        <%= form.text_field :business_name,
-                        class: "input input-bordered w-full",
-                        placeholder: "Mein Geschäft" %>
+        <div>
+          <%= render "shared/multiselect",
+          form: form,
+          field_name: :categories,
+          label: "Kategorien",
+          subtext: "Wählen Sie alle Kategorien, die zu Ihrem Geschäft passen.",
+          options: @categories,
+          selected_options: @selected_categories %>
+        </div>
 
+        <div class="md:col-span-2">
+          <%= form.label :address, "Gasse und Hausnummer", class: "field-label" %>
+          <%= form.text_area :address,
+                         rows: 3,
+                         class: "field-input",
+                         placeholder: "Strasse 1\n8000 Zürich" %>
+        </div>
+
+        <div>
+          <%= form.label :phone, "Telefonnummer (Geschäft)", class: "field-label" %>
+          <%= form.telephone_field :phone,
+                               class: "field-input",
+                               placeholder: "+41 44 123 45 67" %>
+        </div>
+
+        <div>
+          <%= form.label :email, "E-Mail-Adresse (Geschäft)", class: "field-label" %>
+          <%= form.email_field :email,
+                           class: "field-input",
+                           placeholder: "kontakt@mein-geschäft.ch" %>
+        </div>
+
+        <div class="md:col-span-2">
+          <%= form.label :website, "Webseite", class: "field-label" %>
+          <%= form.url_field :website,
+                         class: "field-input",
+                         placeholder: "https://mein-geschäft.ch" %>
+        </div>
+
+        <div class="md:col-span-2">
+          <%= form.label :map_link, "Google-Maps-Link", class: "field-label" %>
+          <%= form.url_field :map_link,
+                         class: "field-input",
+                         placeholder: "https://maps.google.com/..." %>
+          <p class="field-hint">
+            Hilft Besucher:innen, Ihr Geschäft am 1. Advent zu finden.
+          </p>
+        </div>
       </div>
-      <div class="form-control md:col-span-2">
-        <%= render "shared/multiselect",
-        form: form,
-        field_name: :categories,
-        label: "Kategorien",
-        subtext: "Wählen Sie alle Kategorien, die zu Ihrem Geschäft passen.",
-        options: @categories,
-        selected_options: @selected_categories %>
+    </section>
+
+    <%# --- Social Media ------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">
+        Social Media (optional)
+        <span
+          class="tooltip tooltip-right font-normal"
+          data-tip="Verlinkte Profile werden als Icons auf Ihrem Profil angezeigt."
+        >
+          <%= heroicon "information-circle",
+          options: { class: "h-5 w-5 text-base-content/40" } %>
+        </span>
+      </h2>
+
+      <div class="form-grid">
+        <div>
+          <%= form.label :instagram, "Instagram", class: "field-label" %>
+          <%= form.url_field :instagram,
+                         class: "field-input",
+                         placeholder: "https://instagram.com/ihrprofil" %>
+        </div>
+
+        <div>
+          <%= form.label :tiktok, "TikTok", class: "field-label" %>
+          <%= form.url_field :tiktok,
+                         class: "field-input",
+                         placeholder: "https://www.tiktok.com/@ihrprofil" %>
+        </div>
+
+        <div>
+          <%= form.label :linkedin, "LinkedIn", class: "field-label" %>
+          <%= form.url_field :linkedin,
+                         class: "field-input",
+                         placeholder: "https://www.linkedin.com/company/ihrprofil" %>
+        </div>
+
+        <div>
+          <%= form.label :facebook, "Facebook", class: "field-label" %>
+          <%= form.url_field :facebook,
+                         class: "field-input",
+                         placeholder: "https://www.facebook.com/ihrprofil" %>
+        </div>
       </div>
-      <div class="form-control md:col-span-2">
-        <%= form.label :address, "Gasse und Hausnummer", class: "label-text font-semibold" %>
-        <%= form.text_area :address,
-                       rows: 3,
-                       class: "textarea textarea-bordered w-full",
-                       placeholder: "Strasse 1\n8000 Zürich" %>
+    </section>
+
+    <%# --- Beschreibungstexte ------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">Beschreibung</h2>
+      <p class="form-section-subtitle">
+        Erzählen Sie Besucher:innen, was Ihr Geschäft ausmacht und was am
+        1. Advent auf sie wartet.
+      </p>
+
+      <div class="mt-6 space-y-6">
+        <div class="field-editor">
+          <%= form.label :first_advent_specialities,
+                     "Besonderes am 1. Advent (optional)",
+                     class: "field-label" %>
+          <%= form.rich_textarea :first_advent_specialities %>
+        </div>
+
+        <div class="field-editor">
+          <%= form.label :description, "Allgemeiner Beschrieb", class: "field-label" %>
+          <%= form.rich_textarea :description %>
+        </div>
       </div>
+    </section>
 
-      <div class="form-control">
-        <%= form.label :phone, "Telefonnummer (Geschäft)", class: "label-text font-semibold" %>
-        <%= form.telephone_field :phone,
-                             class: "input input-bordered w-full",
-                             placeholder: "+41 44 123 45 67" %>
-      </div>
-      <div class="form-control">
-        <%= form.label :email,
-                   "E-Mail-Adresse (Geschäft)",
-                   class: "label-text font-semibold" %>
-        <%= form.email_field :email,
-                         class: "input input-bordered w-full",
-                         placeholder: "kontakt@mein-geschäft.ch" %>
-      </div>
+    <%# --- Bilder ------------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">Bilder</h2>
+      <p class="form-section-subtitle">
+        Das Hauptbild erscheint auf der Übersichtsseite, die Galeriebilder
+        zusätzlich auf Ihrer Detailseite.
+      </p>
 
-      <div class="form-control col-span-2">
-        <%= form.label :website, "Webseite", class: "label-text font-semibold" %>
-        <%= form.url_field :website,
-                       class: "input input-bordered w-full",
-                       placeholder: "https://mein-geschäft.ch" %>
-      </div>
+      <div class="mt-6 space-y-6">
+        <div>
+          <p class="field-label">Hauptbild</p>
+          <%= render "shared/image_with_actions",
+          image_url: @business.main_image,
+          delete_path: purge_image_app_mystore_path(image: :main_image),
+          form: form,
+          image_field: :main_image %>
+        </div>
 
-      <div class="md:col-span-2 space-y-4">
-        <h4 class="text-lg font-semibold">Social Media (optional)</h4>
-        <div class="grid gap-6 md:grid-cols-2">
-          <div class="form-control">
-            <%= form.label :instagram, "Instagram", class: "label-text font-semibold" %>
-            <%= form.url_field :instagram,
-                           class: "input input-bordered w-full",
-                           placeholder: "https://instagram.com/ihrprofil" %>
-          </div>
+        <div>
+          <p class="field-label">Galeriebilder</p>
+          <p class="field-hint mt-0 mb-3">
+            Laden Sie bis zu 3 Bilder hoch, um Ihr Geschäft besser zu präsentieren.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <%= render "shared/image_with_actions",
+            image_url: @business.image_gallery1,
+            delete_path: purge_image_app_mystore_path(image: :image_gallery1),
+            form: form,
+            image_field: :image_gallery1 %>
 
-          <div class="form-control">
-            <%= form.label :tiktok, "TikTok", class: "label-text font-semibold" %>
-            <%= form.url_field :tiktok,
-                           class: "input input-bordered w-full",
-                           placeholder: "https://www.tiktok.com/@ihrprofil" %>
-          </div>
+            <%= render "shared/image_with_actions",
+            image_url: @business.image_gallery2,
+            delete_path: purge_image_app_mystore_path(image: :image_gallery2),
+            form: form,
+            image_field: :image_gallery2 %>
 
-          <div class="form-control">
-            <%= form.label :linkedin, "LinkedIn", class: "label-text font-semibold" %>
-            <%= form.url_field :linkedin,
-                           class: "input input-bordered w-full",
-                           placeholder: "https://www.linkedin.com/company/ihrprofil" %>
-          </div>
-
-          <div class="form-control">
-            <%= form.label :facebook, "Facebook", class: "label-text font-semibold" %>
-            <%= form.url_field :facebook,
-                           class: "input input-bordered w-full",
-                           placeholder: "https://www.facebook.com/ihrprofil" %>
+            <%= render "shared/image_with_actions",
+            image_url: @business.image_gallery3,
+            delete_path: purge_image_app_mystore_path(image: :image_gallery3),
+            form: form,
+            image_field: :image_gallery3 %>
           </div>
         </div>
       </div>
-
-      <div class="form-control md:col-span-2">
-        <%= form.label :map_link, "Google-Maps-Link", class: "label-text font-semibold" %>
-        <%= form.url_field :map_link,
-                       class: "input input-bordered w-full",
-                       placeholder: "https://maps.google.com/..." %>
-      </div>
-
-    </div>
-
-    <section class="space-y-6">
-      <div class="form-control">
-        <%= form.label :first_advent_specialities,
-                   "Besonderes am 1. Advent (optional)",
-                   class: "label-text font-semibold" %>
-        <%= form.rich_textarea :first_advent_specialities %>
-      </div>
-
-      <div class="form-control">
-        <%= form.label :description,
-                   "Allgemeiner Beschrieb",
-                   class: "label-text font-semibold" %>
-        <%= form.rich_textarea :description %>
-      </div>
-
     </section>
 
-    <section class="w-full my-10 gap-6">
-      <h3 class="text-xl">Hauptbild</h3>
-      <p class="text-sm text-base-content/70 mb-5">Wird auf der Übersichtsseite angezeigt</p>
+    <%# --- Kontaktinfos ------------------------------------------------ %>
+    <section class="form-section">
+      <h2 class="form-section-title">
+        Kontaktinfos
+        <span
+          class="tooltip tooltip-right font-normal"
+          data-tip="Nur für das Team des ersten Advents sichtbar."
+        >
+          <%= heroicon "lock-closed", options: { class: "h-5 w-5 text-base-content/40" } %>
+        </span>
+      </h2>
+      <p class="form-section-subtitle">
+        Diese Angaben sind nicht öffentlich, sondern dienen zur Administration
+        des Anlasses.
+      </p>
 
-      <%= render "shared/image_with_actions",
-      image_url: @business.main_image,
-      delete_path: purge_image_app_mystore_path(image: :main_image),
-      form: form,
-      image_field: :main_image %>
+      <div class="form-grid">
+        <div>
+          <%= form.label :contact_name, "Vor- und Nachname", class: "field-label" %>
+          <%= form.text_field :contact_name, class: "field-input" %>
+        </div>
 
-      <h3 class="text-xl mt-5">Galeriebilder</h3>
-      <p class="text-sm text-base-content/70 mb-5">Diese Bilder werden (Zusätzlich zum Hautpbild) auf der Detailseite
-        angezeigt. Laden Sie bis zu 3 Bilder hoch, um Ihr Geschäft besser zu
-        präsentieren.</p>
-      <div class="flex-row flex flex-wrap gap-3 mb-3">
-
-        <%= render "shared/image_with_actions",
-        image_url: @business.image_gallery1,
-        delete_path: purge_image_app_mystore_path(image: :image_gallery1),
-        form: form,
-        image_field: :image_gallery1 %>
-
-        <%= render "shared/image_with_actions",
-        image_url: @business.image_gallery2,
-        delete_path: purge_image_app_mystore_path(image: :image_gallery2),
-        form: form,
-        image_field: :image_gallery2 %>
-
-        <%= render "shared/image_with_actions",
-        image_url: @business.image_gallery3,
-        delete_path: purge_image_app_mystore_path(image: :image_gallery3),
-        form: form,
-        image_field: :image_gallery3 %>
+        <div>
+          <%= form.label :billing_address, "Rechnungsadresse", class: "field-label" %>
+          <%= form.text_area :billing_address,
+                         rows: 3,
+                         class: "field-input",
+                         placeholder: "Strasse 1\n8000 Zürich" %>
+        </div>
       </div>
-
     </section>
-
-    <hr class="mt-5"/>
-    <h3 class="text-2xl mt-5">Kontaktinfos</h3>
-    <p class="mb-5">Diese angaben sind nicht öffentlich, sondern dienen zur Administration
-      des Anlasses</p>
-
-    <div class="grid gap-6 md:grid-cols-2">
-
-      <div class="form-control">
-        <%= form.label :contact_name, "Vor- und Nachname", class: "label-text font-semibold" %>
-        <%= form.text_field :contact_name,
-                        class: "input input-bordered w-full",
-                        placeholder: "" %>
-      </div>
-
-      <div class="form-control">
-        <%= form.label :billing_address,
-                   "Rechnungsadresse",
-                   class: "label-text font-semibold" %>
-        <%= form.text_area :billing_address,
-                       rows: 3,
-                       class: "textarea textarea-bordered w-full",
-                       placeholder: "Strasse 1\n8000 Zürich" %>
-      </div>
-    </div>
-
-    <div class="flex flex-wrap justify-end gap-3 mt-10">
-      <%= link_to "Abbrechen", app_mystore_path, class: "btn btn-outline" %>
-      <%= form.submit(
-        @business.persisted? ? "Änderungen speichern" : "Geschäft anlegen",
-        class: "btn btn-primary",
-      ) %>
-    </div>
-  <% end %>
-
-</section>
+  </div>
+<% end %>
