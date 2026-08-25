@@ -1,0 +1,18 @@
+de:
+  activerecord:
+    models:
+      cms_block: Block
+      site_setting: Einstellung
+    attributes:
+      cms_block:
+        title: Titel
+        content: Text
+        image: Bild
+        image_position: Bildposition
+        button_text: Button-Beschriftung
+        button_url: Button-Link
+        question: Frage
+        answer: Antwort
+        is_active: Sichtbarkeit
+      site_setting:
+        brand_color: Farbe des Jahres

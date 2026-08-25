@@ -2,27 +2,77 @@
 
 <%= render "admin/shared/page_header",
 title: "Frontpage CMS",
-subtitle: "Inhalte der Startseite bearbeiten" %>
+subtitle: "Inhalte der Startseite bearbeiten",
+actions: link_to("Startseite ansehen",
+root_path,
+target: "_blank",
+rel: "noopener",
+class: "btn btn-outline btn-sm gap-2") %>
 
-<%= render "shared/under_construction" do %>
-  <%= form_with data: { controller: "blocks" }, class: "w-full max-w-4xl space-y-6" do |f| %>
-    <div class="admin-card p-6">
-      <%= f.label :title, class: "font-jakarta font-bold text-sm" %>
-      <%= f.text_field :title, class: "input input-bordered mt-2 w-full rounded-full" %>
+<%= render "admin/cms/brand_color", site_setting: @site_setting %>
+
+<section>
+  <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h2 class="form-section-title">Abschnitte</h2>
+      <p class="form-section-subtitle">
+        Erscheinen auf der Startseite in dieser Reihenfolge, unterhalb der
+        Bildergalerie und oberhalb der Fragen und Antworten.
+      </p>
     </div>
-
-    <div id="blocks" data-blocks-target="list" class="space-y-4">
-      <%= f.fields_for :blocks do |block_fields| %>
-        <%= render "cms/edit_block", f: block_fields %>
+    <div class="flex flex-wrap gap-2">
+      <% CmsBlock::SECTION_TYPES.each do |type| %>
+        <%= link_to new_admin_cms_block_path(block_type: type),
+        class: "btn btn-outline btn-sm gap-1" do %>
+          <%= heroicon "plus", options: { class: "h-4 w-4" } %>
+          <%= cms_block_type_label(type) %>
+        <% end %>
       <% end %>
     </div>
+  </div>
 
-    <div class="flex gap-2">
-      <button type="button" data-action="blocks#add" class="btn btn-outline rounded-full">
-        + Block hinzufügen
-      </button>
+  <div class="admin-card divide-y divide-base-content/10">
+    <% if @sections.empty? %>
+      <p class="px-5 py-8 text-center font-jakarta font-light text-base-content/50">
+        Noch keine Abschnitte angelegt.
+      </p>
+    <% end %>
+    <% @sections.each.with_index do |block, index| %>
+      <%= render "admin/cms/block_row",
+      block: block,
+      first: index.zero?,
+      last: index == @sections.size - 1 %>
+    <% end %>
+  </div>
+</section>
 
-      <%= f.submit "Speichern", class: "btn btn-primary rounded-full" %>
+<section class="form-section">
+  <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h2 class="form-section-title">Fragen und Antworten</h2>
+      <p class="form-section-subtitle">
+        Die Einträge der «Wissenswertes»-Sektion am Ende der Startseite. Titel
+        und Aufbau der Sektion sind fest vorgegeben.
+      </p>
     </div>
-  <% end %>
-<% end %>
+    <%= link_to new_admin_cms_block_path(block_type: "faq_item"),
+    class: "btn btn-outline btn-sm gap-1" do %>
+      <%= heroicon "plus", options: { class: "h-4 w-4" } %>
+      Frage hinzufügen
+    <% end %>
+  </div>
+
+  <div class="admin-card divide-y divide-base-content/10">
+    <% if @faq_items.empty? %>
+      <p class="px-5 py-8 text-center font-jakarta font-light text-base-content/50">
+        Noch keine Fragen angelegt.
+      </p>
+    <% end %>
+    <% @faq_items.each.with_index do |block, index| %>
+      <%= render "admin/cms/block_row",
+      block: block,
+      first: index.zero?,
+      last: index == @faq_items.size - 1 %>
+    <% end %>
+  </div>
+</section>

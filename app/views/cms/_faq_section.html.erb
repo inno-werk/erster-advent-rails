@@ -1,0 +1,23 @@
+<%# The FAQ section is fixed in place and in wording; only the question and
+  answer rows come from the CMS. %>
+<section class="w-full py-section pb-16 md:pb-20 lg:pb-28">
+  <div class="page-container">
+    <h3 class="heading-section mb-8 lg:mb-14"><em>Wissenswertes rund um den</em><br>
+      Ersten Advent
+      <%= Date.today.year %></h3>
+
+    <div class="lg:max-w-[1226px]">
+      <% faq_items.each do |item| %>
+        <div class="collapse collapse-arrow rounded-none accordion-row">
+          <input type="checkbox">
+          <div class="collapse-title accordion-title px-0 py-6 lg:py-8">
+            <%= item.question %>
+          </div>
+          <div class="collapse-content px-0">
+            <p class="text-body"><%= item.answer.presence || "Weitere Informationen folgen in Kürze." %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>

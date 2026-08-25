@@ -1,0 +1,69 @@
+<%# Brand colour of the current year. It replaces the theme's primary colour
+  everywhere — buttons, links, the admin sidebar, focus rings. %>
+<section
+  class="mb-10"
+  data-controller="color-field"
+  data-color-field-confirm-template-value="<%= cms_brand_color_confirm("%{color}") %>"
+>
+  <div class="mb-4">
+    <h2 class="form-section-title">Farbe des Jahres</h2>
+    <p class="form-section-subtitle">
+      Die Hauptfarbe der Website. Sie wird überall verwendet, wo die
+      Primärfarbe erscheint — auf der Startseite, im Mitgliederbereich und in
+      dieser Verwaltung.
+    </p>
+  </div>
+
+  <%# The colour applies to the whole site, so it is confirmed before saving.
+    The Stimulus controller keeps the message in step with the picked colour. %>
+  <%= form_with model: site_setting,
+  url: admin_cms_path,
+  method: :patch,
+  data: {
+    color_field_target: "form",
+    turbo_confirm: cms_brand_color_confirm(site_setting.brand_color),
+  } do |form| %>
+    <% if site_setting.errors.any? %>
+      <div role="alert" class="alert alert-error mb-6 flex-col items-start gap-2">
+        <ul class="list-disc pl-5 text-sm">
+          <% site_setting.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="admin-card flex flex-wrap items-end gap-6 p-6">
+      <div>
+        <%= form.label :brand_color, "Farbwert", class: "field-label" %>
+        <div class="flex items-center gap-3">
+          <%= form.color_field :brand_color,
+                           class: "h-11 w-14 cursor-pointer rounded-lg border border-[#C6C6C6] bg-base-100 p-1",
+                           data: {
+                             color_field_target: "swatch",
+                             action: "input->color-field#syncFromSwatch",
+                           } %>
+          <%= form.text_field :brand_color,
+                          class: "field-input w-40 font-mono uppercase",
+                          maxlength: 7,
+                          placeholder: SiteSetting::DEFAULT_BRAND_COLOR,
+                          data: {
+                            color_field_target: "hex",
+                            action: "input->color-field#syncFromHex",
+                          } %>
+        </div>
+        <p class="field-hint">Hex-Wert, z.&nbsp;B. <%= SiteSetting::DEFAULT_BRAND_COLOR %>.</p>
+      </div>
+
+      <div data-color-field-target="preview">
+        <span class="field-label">Vorschau</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="btn btn-primary pointer-events-none">Schaltfläche</span>
+          <span class="brand-gradient h-11 w-24 rounded-lg"></span>
+        </div>
+      </div>
+
+      <%= form.submit "Farbe speichern", class: "btn btn-primary ml-auto" %>
+    </div>
+  <% end %>
+</section>

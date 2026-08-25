@@ -1,0 +1,7 @@
+<%= content_for :title, "Block hinzufügen" %>
+
+<%= render "admin/shared/page_header",
+title: "Block hinzufügen",
+subtitle: cms_block_type_label(@block.block_type) %>
+
+<%= render "form", block: @block %>

@@ -54,6 +54,11 @@ Rails.application.routes.draw do
         post :impersonate, on: :member
       end
       resource :cms, only: [ :edit, :update ]
+      resources :cms_blocks, path: "cms/blocks", except: [ :index, :show ] do
+        member do
+          patch :move
+        end
+      end
     end
 
     namespace :app do

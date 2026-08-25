@@ -1,0 +1,4 @@
+<%# Renders the CMS-managed sections of a page in their configured order. %>
+<% blocks.each do |block| %>
+  <%= render "cms/blocks/#{block.block_type}", block: block %>
+<% end %>

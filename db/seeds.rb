@@ -9,6 +9,7 @@ Payment.delete_all
 Business.destroy_all
 User.destroy_all
 CmsBlock.destroy_all
+SiteSetting.delete_all
 ActionText::RichText.delete_all if defined?(ActionText::RichText)
 ActiveStorage::Attachment.delete_all if defined?(ActiveStorage::Attachment)
 ActiveStorage::Blob.delete_all if defined?(ActiveStorage::Blob)
@@ -472,31 +473,87 @@ products.first(14).each.with_index do |product, index|
   product.increment!(:total_orders, quantity)
 end
 
-CmsBlock.create!(
-  page: "home",
-  position: 1,
-  block_type: :content_block,
-  is_active: true,
-  button_text: "Geschäfte entdecken",
-  button_url: "/stores",
-  title: "Erster Advent in der Unteren Altstadt",
-  content: "Am Ersten Advent oeffnen die Geschaefte, Werkstaetten, Galerien, Cafes und Restaurants der Unteren Altstadt Bern ihre Tueren. Zwischen Zytglogge, Postgasse, Gerechtigkeitsgasse, Rathausplatz und Matte entsteht ein persoenlicher Adventsweg mit Begegnungen, Musik, Handwerk und kulinarischen Pausen."
-)
+SiteSetting.create!(brand_color: SiteSetting::DEFAULT_BRAND_COLOR)
+
+# ---------------------------------------------------------------------------
+# Frontpage CMS
+#
+# Mirrors the content the homepage shipped with before it became editable, so
+# a freshly seeded database renders the designed page 1:1.
+# ---------------------------------------------------------------------------
+
+sections = [
+  {
+    block_type: :text_image_block,
+    image: "bild_6.png",
+    image_position: "left",
+    title: "<div><strong>Informationen</strong><br>für Besucherinnen und Besucher</div>",
+    content: "<div>Die Untere Altstadt umfasst das in der idyllischen Aareschlaufe " \
+             "eingebettete Gebiet vom Matte-Quartier bis zum Zytglogge. Im Gegensatz " \
+             "zur Oberen Altstadt finden sich hier noch zahlreiche unabhängige und " \
+             "eingesessene Geschäfte, Ateliers, Buchhandlungen, Handwerksbetriebe und " \
+             "Galerien. Wer einzigartige Kleidungsstücke, in Bern hergestellten Schmuck " \
+             "oder eine liebevoll sortierte Buchhandlung und Objekte mit Geschichte " \
+             "schätzt, wird beim Schlendern durch die historischen Lauben sicherlich " \
+             "fündig.</div>",
+    button_text: "Teilnehmende Geschäfte entdecken",
+    button_url: "/stores"
+  },
+  {
+    block_type: :text_image_block,
+    image: "bild_6.png",
+    image_position: "right",
+    title: "<div><strong>Informationen</strong> für Geschäfte und Gastronomiebetriebe</div>",
+    content: "<div>Die Aufforderung zur Anmeldung wird wie üblich nach den Sommerferien " \
+             "verschickt. Bitte registrieren Sie sich über das Kontaktformular für den " \
+             "Verteiler. Geschäfte der Unteren Altstadt beteiligen sich mit einem " \
+             "pauschalen Teilnahmebeitrag von CHF 200. Aus damit zur Verfügung stehenden " \
+             "Budget wird der Anlass weit über die Stadtgrenzen hinaus beworben. Zudem " \
+             "werden damit auch attraktive Rahmenprogramme finanziert und gefördert.</div>",
+    button_text: "Jetzt mein Geschäft anmelden",
+    button_url: "/users/sign_in"
+  },
+  {
+    block_type: :full_image_block,
+    image: "bild_7.png"
+  },
+  {
+    block_type: :plain_text_block,
+    title: "<div><em>Über den</em><br>Verein Erster Advent</div>",
+    content: "<div>Der Erste Advent ist ein Anlass, der seit 30 Jahren Tradition hat, mit " \
+             "seinem Ursprung an der beschaulichen Postgasse. Benachbarte Ladengeschäfte " \
+             "schlossen sich zusammen, um am Ersten Advent gemeinsam den Besucherinnen und " \
+             "Besuchern auch die weniger frequentierten Gassen näherzubringen. Das Konzept " \
+             "wird mittlerweile von der gesamten Unteren Altstadt getragen und durch den " \
+             "Mitgliederbeitrag eines jeden einzelnen Geschäftes gestützt.</div>"
+  }
+]
+
+sections.each.with_index(1) do |attributes, position|
+  image = attributes.delete(:image)
+  block = CmsBlock.new(attributes.merge(page: "home", position: position, is_active: true))
+
+  attach_asset!(block, :image, "home/#{image}") if image
+
+  block.save!
+end
 
 [
-  [ "Kommt der Samichlous auch dieses Jahr?", "Ja, der Samichlous ist in der Unteren Altstadt unterwegs. Die genauen Zeiten werden kurz vor dem Anlass publiziert." ],
-  [ "Wann haben die Geschaefte geoeffnet?", "Die teilnehmenden Geschaefte sind am Ersten Advent in der Regel von 11 bis 17 Uhr geoeffnet. Einzelne Gastronomiebetriebe koennen laenger offen bleiben." ],
-  [ "Wo finde ich die teilnehmenden Geschaefte?", "Alle bestaetigten Geschaefte erscheinen in der Store-Uebersicht. Viele liegen rund um Postgasse, Kramgasse, Gerechtigkeitsgasse, Rathausplatz, Nydegg und Matte." ],
-  [ "Muss ich mich anmelden?", "Besucherinnen und Besucher brauchen keine Anmeldung. Geschaefte melden sich ueber das Mitgliederportal oder direkt beim Verein Erster Advent Bern." ]
-].each.with_index(2) do |(question, answer), position|
+  [ "Kommt #{Date.today.year} auch wieder der Samichlous?", "" ],
+  [ "Haben alle Geschäfte geöffnet?", "" ],
+  [ "Finden andere Rahmenveranstaltungen statt?", "" ],
+  [ "Wie finanziert sich die Organisation?", "" ],
+  [ "Findet wieder das Adventssingen auf der Kramgasse statt?", "" ]
+].each.with_index(sections.length + 1) do |(question, answer), position|
   CmsBlock.create!(
     page: "home",
     position: position,
-    block_type: :qa_block,
+    block_type: :faq_item,
     is_active: true,
     question: question,
     answer: answer
   )
 end
 
+puts "Brand colour: #{SiteSetting.current.brand_color}"
 puts "Seeded #{User.count} users, #{Business.count} Bern stores, #{Product.count} products, #{Order.count} orders, #{Payment.count} payments and #{CmsBlock.count} CMS blocks."

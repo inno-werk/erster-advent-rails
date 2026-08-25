@@ -1,0 +1,143 @@
+<%# Fields for one frontpage block. Which fields appear depends on the block
+  type, which is fixed once the block exists. %>
+<%= form_with model: block,
+url: block.persisted? ? admin_cms_block_path(block) : admin_cms_blocks_path,
+html: { multipart: true } do |form| %>
+
+  <%= form.hidden_field :block_type %>
+
+  <% if block.errors.any? %>
+    <div role="alert" class="alert alert-error mb-6 flex-col items-start gap-2">
+      <div class="font-semibold">Bitte korrigieren Sie die folgenden Angaben:</div>
+      <ul class="list-disc pl-5 text-sm">
+        <% block.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="admin-card p-6 md:p-8">
+    <% unless block.faq_item? %>
+      <label class="flex items-center gap-3">
+        <%= form.check_box :is_active, class: "toggle toggle-primary" %>
+        <span class="font-jakarta text-sm font-medium text-base-content/80">
+          Auf der Startseite anzeigen
+        </span>
+      </label>
+      <div class="mt-8"></div>
+    <% end %>
+
+    <% case block.block_type %>
+    <% when "text_image_block" %>
+      <div>
+        <%= form.label :title, "Titel", class: "field-label" %>
+        <div class="field-editor"><%= form.rich_text_area :title %></div>
+        <p class="field-hint">
+          <strong>Fett</strong> gesetzte Stellen erscheinen in der fetten
+          serifenlosen Schrift (wie «Informationen»), der Rest in der hellen
+          Serifenschrift. Zeilenumbrüche werden übernommen.
+        </p>
+      </div>
+
+      <div class="mt-6">
+        <%= form.label :content, "Text", class: "field-label" %>
+        <div class="field-editor"><%= form.rich_text_area :content %></div>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <%= form.label :button_text, "Button-Beschriftung", class: "field-label" %>
+          <%= form.text_field :button_text,
+                          class: "field-input",
+                          placeholder: "Teilnehmende Geschäfte entdecken" %>
+        </div>
+        <div>
+          <%= form.label :button_url, "Button-Link", class: "field-label" %>
+          <%= form.text_field :button_url,
+                          class: "field-input",
+                          placeholder: "/stores" %>
+          <p class="field-hint">
+            Interner Pfad (z.&nbsp;B. <code>/stores</code>) oder vollständige
+            Adresse. Leer lassen, wenn kein Button erscheinen soll.
+          </p>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section-title">Bild</h2>
+        <p class="form-section-subtitle">
+          Das Bild wird quadratisch beschnitten und ist ab Tablet-Breite sichtbar.
+        </p>
+        <div class="mt-6 flex flex-wrap items-start gap-8">
+          <%= render "shared/image_with_actions",
+          form: form,
+          image_field: :image,
+          image_url: block.image.attached? ? url_for(block.image) : nil,
+          delete_path: nil %>
+
+          <fieldset>
+            <legend class="field-label">Bildposition</legend>
+            <div class="flex flex-col gap-2">
+              <% CmsBlock::IMAGE_POSITIONS.each do |position| %>
+                <label class="flex items-center gap-2 font-jakarta font-light">
+                  <%= form.radio_button :image_position, position, class: "radio radio-primary radio-sm" %>
+                  <%= position == "left" ? "Links vom Text" : "Rechts vom Text" %>
+                </label>
+              <% end %>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+
+    <% when "full_image_block" %>
+      <div>
+        <span class="field-label">Bild</span>
+        <p class="field-hint mb-4 mt-0">
+          Wird über die volle Breite dargestellt. Ein breites Querformat
+          funktioniert am besten.
+        </p>
+        <%= render "shared/image_with_actions",
+        form: form,
+        image_field: :image,
+        image_url: block.image.attached? ? url_for(block.image) : nil,
+        delete_path: nil %>
+      </div>
+
+    <% when "plain_text_block" %>
+      <div>
+        <%= form.label :title, "Titel", class: "field-label" %>
+        <div class="field-editor"><%= form.rich_text_area :title %></div>
+        <p class="field-hint">
+          <em>Kursiv</em> gesetzte Stellen erscheinen in der hellen
+          Serifenschrift (wie «Über den»), der Rest in der fetten serifenlosen
+          Schrift. Zeilenumbrüche werden übernommen.
+        </p>
+      </div>
+
+      <div class="mt-6">
+        <%= form.label :content, "Text", class: "field-label" %>
+        <div class="field-editor"><%= form.rich_text_area :content %></div>
+      </div>
+
+    <% when "faq_item" %>
+      <div>
+        <%= form.label :question, "Frage", class: "field-label" %>
+        <%= form.text_area :question, rows: 2, class: "field-input" %>
+      </div>
+      <div class="mt-6">
+        <%= form.label :answer, "Antwort", class: "field-label" %>
+        <%= form.text_area :answer, rows: 5, class: "field-input" %>
+        <p class="field-hint">
+          Leer lassen, um «Weitere Informationen folgen in Kürze.» anzuzeigen.
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <%= form.submit block.persisted? ? "Änderungen speichern" : "Block hinzufügen",
+                class: "btn btn-primary" %>
+    <%= link_to "Abbrechen", edit_admin_cms_path, class: "btn btn-ghost" %>
+  </div>
+<% end %>

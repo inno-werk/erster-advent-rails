@@ -1,0 +1,12 @@
+<%# Full-width image band. %>
+<% if block.image.attached? %>
+  <section class="w-full py-8 md:py-10">
+    <div class="page-container">
+      <div class="h-56 md:h-96 xl:h-[540px] w-full">
+        <%= image_tag block.image,
+        alt: "Erster Advent Bern",
+        class: "object-cover w-full h-full rounded-[15px]" %>
+      </div>
+    </div>
+  </section>
+<% end %>

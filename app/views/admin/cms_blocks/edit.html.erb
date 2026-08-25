@@ -1,0 +1,7 @@
+<%= content_for :title, "Block bearbeiten" %>
+
+<%= render "admin/shared/page_header",
+title: "Block bearbeiten",
+subtitle: cms_block_type_label(@block.block_type) %>
+
+<%= render "form", block: @block %>

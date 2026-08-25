@@ -19,7 +19,7 @@
   --color-base-200: oklch(96% 0.001 286.375);
   --color-base-300: oklch(92% 0.004 286.32);
   --color-base-content: oklch(21% 0.006 285.885);
-  --color-primary: #5d3a5d;
+  --color-primary: #52819C;
   --color-primary-content: oklch(98% 0.003 247.858);
   --color-secondary: #d03036;
   --color-secondary-content: oklch(98% 0.003 247.858);
@@ -115,7 +115,25 @@ button:has(+ #popover-1:popover-open) .icon-up {
   }
 }
 
+/*
+ * Shades derived from the brand colour. `--color-primary` itself is
+ * overridden per request from the CMS setting (see BrandingHelper), so
+ * anything built on these follows the brand colour automatically.
+ */
+:root {
+  --color-primary-dark: color-mix(in srgb, var(--color-primary), black 35%);
+}
+
 @layer components {
+  /* Admin sidebar backdrop: brand colour fading into its darker shade */
+  .brand-gradient {
+    background-image: linear-gradient(
+      to bottom,
+      var(--color-primary),
+      var(--color-primary-dark)
+    );
+  }
+
   .full-flex {
     @apply flex flex-col w-full;
   }
@@ -349,6 +367,27 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .specialities-list ul,
   .specialities-list ol {
     @apply list-none pl-0;
+  }
+
+  /*
+   * Body copy coming out of the CMS Trix editor. Deliberately not Action
+   * Text's own `.trix-content`, whose line-height would override the
+   * storefront's .text-body / .text-lead scales.
+   */
+  .cms-rich-text > * + * {
+    @apply mt-6;
+  }
+  .cms-rich-text :is(b, strong) {
+    @apply font-bold;
+  }
+  .cms-rich-text a {
+    @apply underline underline-offset-2 hover:text-secondary;
+  }
+  .cms-rich-text ul {
+    @apply list-disc pl-5;
+  }
+  .cms-rich-text ol {
+    @apply list-decimal pl-5;
   }
 
   /* Image + text split section (e.g. the "Informationen" blocks on home):

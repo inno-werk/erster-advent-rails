@@ -1,0 +1,30 @@
+<%# Split section: image on one side, heading + copy + CTA on the other.
+  Markup mirrors the original hard-coded "Informationen ..." sections. %>
+<section class="w-full py-section">
+  <div class="page-container">
+    <div class="split-section">
+      <% image = capture do %>
+        <div class="hidden md:block">
+          <% if block.image.attached? %>
+            <%= image_tag block.image,
+            alt: "Erster Advent Bern",
+            class:
+              "object-cover w-full aspect-square rounded-[15px] max-w-[748px] max-h-[748px]" %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% text = capture do %>
+        <div>
+          <h3 class="heading-serif mb-6 lg:mb-10 lg:mt-10"><%= cms_heading(block.title) %></h3>
+          <div class="text-body cms-rich-text"><%= cms_body(block.content) %></div>
+          <% if block.button? %>
+            <%= link_to block.button_text, block.button_url, class: "btn-cta mt-10 lg:mt-14" %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= block.image_left? ? image + text : text + image %>
+    </div>
+  </div>
+</section>

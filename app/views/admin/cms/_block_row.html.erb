@@ -1,0 +1,58 @@
+<%# One row in the admin block list.
+  Locals: block, first, last %>
+<div class="flex flex-wrap items-center gap-4 px-5 py-4">
+  <div class="flex flex-col gap-1">
+    <%= button_to move_admin_cms_block_path(block, direction: "up"),
+    method: :patch,
+    disabled: first,
+    class: "btn btn-ghost btn-xs px-1 disabled:opacity-30",
+    form_class: "leading-none" do %>
+      <span class="sr-only">Nach oben</span>
+      <%= heroicon "chevron-up", options: { class: "h-4 w-4" } %>
+    <% end %>
+    <%= button_to move_admin_cms_block_path(block, direction: "down"),
+    method: :patch,
+    disabled: last,
+    class: "btn btn-ghost btn-xs px-1 disabled:opacity-30",
+    form_class: "leading-none" do %>
+      <span class="sr-only">Nach unten</span>
+      <%= heroicon "chevron-down", options: { class: "h-4 w-4" } %>
+    <% end %>
+  </div>
+
+  <% if block.image.attached? %>
+    <%= image_tag block.image,
+    alt: "",
+    class: "h-14 w-14 shrink-0 rounded-lg border border-[#C6C6C6] object-cover" %>
+  <% else %>
+    <span class="admin-row-icon h-14 w-14">
+      <%= heroicon block.faq_item? ? "question-mark-circle" : "bars-3-bottom-left",
+      variant: :outline,
+      options: { class: "h-5 w-5" } %>
+    </span>
+  <% end %>
+
+  <div class="min-w-48 flex-1">
+    <p class="font-jakarta font-medium text-base-content"><%= block.admin_label %></p>
+    <p class="admin-breadcrumb mt-0.5">
+      <span><%= cms_block_type_label(block.block_type) %></span>
+      <% unless block.is_active? %>
+        <span>/</span>
+        <span class="text-warning">Ausgeblendet</span>
+      <% end %>
+    </p>
+  </div>
+
+  <div class="flex items-center gap-1">
+    <%= link_to "Bearbeiten",
+    edit_admin_cms_block_path(block),
+    class: "admin-action-link px-3 py-2" %>
+    <%= button_to admin_cms_block_path(block),
+    method: :delete,
+    class: "admin-action-link px-3 py-2 hover:text-error",
+    form: { data: { turbo_confirm: "Diesen Block wirklich löschen?" } } do %>
+      <%= heroicon "trash", options: { class: "h-4 w-4" } %>
+      <span class="sr-only">Löschen</span>
+    <% end %>
+  </div>
+</div>

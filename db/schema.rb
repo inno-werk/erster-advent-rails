@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_13_141405) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_25_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -83,8 +83,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_141405) do
   end
 
   create_table "cms_blocks", force: :cascade do |t|
-    t.string "page", null: false
-    t.integer "position", null: false
+    t.string "page", default: "home", null: false
+    t.integer "position", default: 0, null: false
     t.integer "block_type", null: false
     t.boolean "is_active", default: true, null: false
     t.string "button_url"
@@ -93,6 +93,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_141405) do
     t.text "answer"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "image_position", default: "left", null: false
+    t.index ["page", "position"], name: "index_cms_blocks_on_page_and_position"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -133,6 +135,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_141405) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_products_on_user_id"
+  end
+
+  create_table "site_settings", force: :cascade do |t|
+    t.string "brand_color", default: "#52819C", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|

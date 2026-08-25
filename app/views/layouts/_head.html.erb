@@ -15,3 +15,6 @@
 media: "all",
 "data-turbolinks-track": "reload" %>
 <%= javascript_importmap_tags %>
+
+<%# Must come after the stylesheets so it overrides the compiled theme. %>
+<%= brand_color_style_tag %>
