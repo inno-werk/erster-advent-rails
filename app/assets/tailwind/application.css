@@ -63,6 +63,7 @@
   --spacing-content-width: 1640px;
 
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-korolev: "Korolev", sans-serif;
   --font-frank: "Frank Ruhl Libre", serif;
 
   /*
@@ -323,6 +324,21 @@ button:has(+ #popover-1:popover-open) .icon-up {
     font-size: clamp(0.875rem, 1.5625vw, 1.875rem);
   }
 
+  /*
+   * Word mark beside the logo in the expanded header. From the XD artboard:
+   * Korolev Bold, uppercase, 26px type on 26px leading, 7 lines, set against
+   * a 177.79px tall logo and sitting 14.96px to its right. Both are expressed
+   * as a ratio of --nav-logo-height so the type always spans the logo, which
+   * is what "font-size auf Logo-Hoehe" means: cap line to last baseline
+   * equals the height of the mark next to it.
+   */
+  .nav-lockup {
+    @apply font-korolev font-bold uppercase;
+    margin-inline-start: calc(var(--nav-logo-height) * 0.08415);
+    font-size: calc(var(--nav-logo-height) * 0.14625);
+    line-height: 1;
+  }
+
   /* Item in the header dropdown: PJS Light 20px black, hover bold red */
   .menu-item-nav {
     @apply rounded-none bg-transparent px-0 py-1.5 font-jakarta font-light
@@ -403,18 +419,9 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .accordion-title {
     @apply font-jakarta font-light text-[#D33D43];
     padding-inline-start: 0 !important;
-    padding-inline-end: clamp(3rem, 8vw, 4rem) !important;
+    padding-inline-end: clamp(3.5rem, 5.2vw, 6.25rem) !important;
     font-size: clamp(1.0625rem, 1.5625vw, 1.875rem);
     line-height: 1.467;
-  }
-  /* Thin chevron on the right, vertically centered; rotation on open comes
-     from daisyUI's collapse-arrow rules, so only size/stroke/position here */
-  .collapse-arrow > .accordion-title::after {
-    @apply text-black;
-    width: clamp(0.625rem, 0.83vw, 1rem);
-    height: clamp(0.625rem, 0.83vw, 1rem);
-    box-shadow: 1.5px 1.5px;
-    inset-inline-end: 0.75rem;
   }
 
   /*
@@ -675,4 +682,34 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
       bg-base-200 text-base-content/50;
   }
+}
+
+/* FAQ accordion chevron. Unlayered on purpose: daisyUI's collapse-arrow
+   rules live in a later cascade layer than @layer components, so layered
+   overrides would lose regardless of specificity.
+
+   Geometry taken 1:1 from the XD file (component "akkord", "Pfad 10"):
+   31.2549 x 16.1 box, two 45 degree legs, 1px black stroke with butt caps
+   and mitred join, inset 32px from the right end of the rule, centred in
+   the 110px row. All values are the 1920px artboard sizes, expressed in vw
+   so they scale with the rest of the page. */
+.collapse.collapse-arrow > .collapse-title.accordion-title::after {
+  width: clamp(1.125rem, 1.6278vw, 1.9534rem);
+  height: clamp(0.5795rem, 0.8385vw, 1.00625rem);
+  inset-inline-end: clamp(1rem, 1.6667vw, 2rem);
+  box-shadow: none;
+  background-color: #000;
+  transform-origin: center;
+  transform: translateY(-50%) rotate(0deg);
+  -webkit-mask: var(--accordion-chevron) center / 100% 100% no-repeat;
+  mask: var(--accordion-chevron) center / 100% 100% no-repeat;
+  --accordion-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31.2549 16.1' fill='none' stroke='%23000' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='10'%3E%3Cpath d='M31.0187 0.2364 L15.6274 15.6278 L0.2360 0.2364'/%3E%3C/svg%3E");
+}
+.collapse.collapse-open.collapse-arrow > .collapse-title.accordion-title::after,
+.collapse.collapse-arrow:focus:not(.collapse-close) > .collapse-title.accordion-title::after,
+.collapse.collapse-arrow[tabindex]:focus-within:not(.collapse-close) > .collapse-title.accordion-title::after,
+.collapse.collapse-arrow:not(.collapse-close)
+  > input:is([type="checkbox"], [type="radio"]):checked
+  ~ .collapse-title.accordion-title::after {
+  transform: translateY(-50%) rotate(180deg);
 }
