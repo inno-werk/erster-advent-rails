@@ -80,9 +80,18 @@ button:has(+ #popover-1:popover-open) .icon-up {
                 every width and only steps aside below ~480px, where the date it
                 sits next to leaves no room at all. Everything else in the bar
                 gives way to it. The expanded header carries no date, so it
-                always keeps the pill. %>
-            <%= link_to "Geschäfte entdecken",
-            marketing_stores_path,
+                always keeps the pill.
+
+                Anywhere in the store section - the index and the detail pages
+                alike - it would point at where the visitor already is, so there
+                it turns around and offers the way back to the general
+                information instead. Matched on the controller rather than the
+                path: locale is an optional scope, so /stores and /de/stores are
+                the same page, and the search and pagination params must not
+                count as a different one either. %>
+            <% in_stores_section = controller_path == "marketing/stores" %>
+            <%= link_to in_stores_section ? "Allgemeine Infos" : "Geschäfte entdecken",
+            in_stores_section ? root_path : marketing_stores_path,
             class: "btn-navbar shrink-0 max-[480px]:group-[.small]:hidden" %>
 
             <% if current_user %>
