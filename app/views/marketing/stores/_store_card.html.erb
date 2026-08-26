@@ -1,39 +1,40 @@
-<div
-  class="
-    col-span-4 md:col-span-4 lg:col-span-4 w-full flex flex-col items-start
-  "
->
-  <div class="relative w-full aspect-[4/3] rounded-[15px] overflow-hidden">
-    <% if business.main_image.present? %>
-      <%= image_tag business.main_image,
-      alt: business.business_name,
-      class: "object-cover object-center h-full w-full" %>
-    <% else %>
-      <div class="flex h-full w-full items-center justify-center bg-primary">
-        <%= image_tag "logo.svg", alt: "Logo", class: "h-40" %>
-      </div>
+<div class="store-card col-span-4">
+  <div class="store-card-media">
+    <%= link_to marketing_store_path(business),
+    class: "block h-full w-full",
+    aria: {
+      label: business.business_name,
+    } do %>
+      <% if business.main_image.present? %>
+        <%= image_tag business.main_image,
+        alt: business.business_name,
+        class: "object-cover object-center h-full w-full" %>
+      <% else %>
+        <div class="flex h-full w-full items-center justify-center bg-primary">
+          <%= image_tag "logo.svg", alt: "Logo", class: "h-40" %>
+        </div>
+      <% end %>
     <% end %>
     <% categories = Array(business.categories).compact_blank %>
     <% if categories.any? %>
-      <div class="absolute top-5 left-5 flex flex-wrap gap-2">
+      <div class="store-card-tags">
         <% categories.each do |tag| %>
           <span class="tag-pill"><%= tag %></span>
         <% end %>
       </div>
     <% end %>
   </div>
-  <h2
-    class="
-      font-jakarta font-bold text-xl lg:text-[32px] lg:leading-[40px] mt-5 lg:mt-6
-    "
-  >
-    <%= business.business_name %>
-  </h2>
-  <% if business.address.present? %>
-    <p class="text-body my-1 lg:my-2"><%= business.address %></p>
-  <% end %>
-  <p class="text-body mt-3 lg:mt-4 line-clamp-3"><%= business.description&.to_plain_text %></p>
-  <%= link_to "Mehr erfahren",
-  marketing_store_path(business),
-  class: "link-more mt-4 lg:mt-6 hover:underline" %>
+  <div class="store-card-body">
+    <h2 class="store-card-name"><%= business.business_name %></h2>
+    <% street = street_address(business.address) %>
+    <% if street.present? %>
+      <p class="text-body store-card-address"><%= street %></p>
+    <% end %>
+    <p class="text-body store-card-copy line-clamp-3">
+      <%= business.description&.to_plain_text %>
+    </p>
+    <%= link_to "Mehr erfahren",
+    marketing_store_path(business),
+    class: "link-more store-card-cta hover:underline" %>
+  </div>
 </div>

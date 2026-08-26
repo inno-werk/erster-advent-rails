@@ -306,13 +306,71 @@ button:has(+ #popover-1:popover-open) .icon-up {
    * ------------------------------------------------------------------
    */
 
-  /* Category tag on store cards: black pill 44px, PJS Light 24/32 */
+  /* Category tag on store cards: black pill 44px, PJS Light 24/32.
+     The bottom padding trims the descender space out of the centred line
+     box, so the type sits ~2px (at 1920px) above the geometric middle —
+     plain flex centring reads as sitting too low inside the pill. */
   .tag-pill {
     @apply inline-flex w-fit items-center whitespace-nowrap rounded-full
       bg-black text-white font-jakarta font-light;
     height: clamp(1.75rem, 2.29vw, 2.75rem);
     padding-inline: clamp(0.75rem, 1.04vw, 1.25rem);
+    padding-block-end: 0.167em;
     font-size: clamp(0.8125rem, 1.25vw, 1.5rem);
+  }
+
+  /*
+   * ------------------------------------------------------------------
+   * Store teaser card (/stores), 1:1 from the XD artboard
+   * "EA_Geschaefte_Uebersicht", repeat grid "teaser-reihe" at 1920px.
+   * A card spans 4 of the 12 columns = 536px, the image is 536x380 and
+   * the text below it is inset 54px from the right image edge (482/536),
+   * expressed as a percentage so it follows the card at every breakpoint.
+   *
+   * The vertical rhythm deliberately groups name + address into one unit:
+   * 20px image to name, 8px name to address, 40px address to copy and a
+   * slightly larger 48px from copy to the "Mehr erfahren" link. Every text
+   * element carries an exact line-height, so these margins are the gaps
+   * measured in the XD file.
+   * ------------------------------------------------------------------
+   */
+  .store-card {
+    @apply flex w-full flex-col items-start;
+  }
+
+  .store-card-media {
+    @apply relative w-full aspect-[4/3] overflow-hidden rounded-[15px];
+  }
+
+  /* Category pills, 20px inside the top-left image corner and 4px apart */
+  .store-card-tags {
+    @apply absolute left-5 top-5 flex flex-wrap gap-1;
+  }
+
+  .store-card-body {
+    @apply w-full;
+    padding-inline-end: 10.075%;
+  }
+
+  /* Store name: Plus Jakarta Sans Bold 32/40 */
+  .store-card-name {
+    @apply font-jakarta font-bold;
+    font-size: clamp(1.25rem, 1.667vw, 2rem);
+    line-height: 1.25;
+    margin-top: clamp(0.75rem, 1.042vw, 1.25rem);
+  }
+
+  .store-card-address {
+    margin-top: clamp(0.25rem, 0.417vw, 0.5rem);
+  }
+
+  .store-card-copy {
+    margin-top: clamp(1rem, 2.083vw, 2.5rem);
+  }
+
+  .store-card-cta {
+    @apply inline-block;
+    margin-top: clamp(1.25rem, 2.5vw, 3rem);
   }
 
   /* Larger tag on store detail: black pill 52px, PJS Light 30px */
