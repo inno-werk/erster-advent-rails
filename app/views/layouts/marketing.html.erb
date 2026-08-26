@@ -24,19 +24,24 @@ button:has(+ #popover-1:popover-open) .icon-up {
 
   <body class="bg-base-200 group large" data-controller="scroll-nav">
 
+    <%# The minimized bar's background belongs on this full-width wrapper, not
+        on the <header>: the header lives inside .page-container, which caps at
+        1640px and pads, so a background there would stop short of the screen
+        edges. The bar spans the viewport, its content stays in the grid. %>
     <div
       class="
         fixed top-0 left-0 w-full z-10 duration-300 ease-in-out will-change-transform
-        transition-[translate,opacity] translate-y-0 opacity-100
+        transition-[translate,opacity,background-color] translate-y-0 opacity-100
+        bg-transparent group-[.small]:bg-primary
         group-[.small.down]:-translate-y-full group-[.small.down]:opacity-0
         group-[.small.up]:translate-y-0 group-[.small.up]:opacity-100
       "
     >
-      <div class="page-container max-md:group-[.small]:px-0">
+      <div class="page-container">
         <header
           class="
             navbar bg-transparent w-full p-0 items-start duration-300 ease-in-out
-            transition-[height,background-color,padding] group-[.small]:bg-primary
+            transition-[height,padding]
             group-[.small]:h-[var(--nav-small-height)] group-[.small]:items-center
             group-[.large]:h-[calc(var(--nav-top-offset)_+_var(--nav-logo-height))]
             group-[.large]:pt-[var(--nav-top-offset)]
@@ -48,7 +53,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
               <%= image_tag "logo.svg",
               alt: "Erster Advent Logo",
               class:
-                "h-full w-auto group-[.small]:m-4 group-[.small]:h-[calc(100%-2rem)]" %>
+                "h-full w-auto group-[.small]:h-[var(--nav-small-mark-ratio)]" %>
               <div class="nav-lockup hidden sm:block group-[.small]:hidden">
                 <p class="text-black">
                   1.&#8201;Advent<br>Untere<br>Altstadt<br>Bern
@@ -57,10 +62,12 @@ button:has(+ #popover-1:popover-open) .icon-up {
                   Sonntag<br>29.11.2026<br>11&#8201;&ndash;&#8201;17&nbsp;Uhr
                 </p>
               </div>
+              <%# 40px between the mark and the date at 1920px (XD: 210.9 -> 251) %>
               <p
                 class="
-                  hidden group-[.small]:block font-jakarta font-bold text-primary-content
+                  hidden group-[.small]:block font-jakarta font-bold text-white
                   text-base md:text-lg lg:text-[28px] whitespace-nowrap
+                  ms-[clamp(1rem,2.083vw,2.5rem)]
                 "
               >
                 Sonntag, 29.11.2026
@@ -69,12 +76,26 @@ button:has(+ #popover-1:popover-open) .icon-up {
           </div>
           <!-- desktop nav -->
           <div class="navbar-end gap-2 flex mx-2">
-            <%= link_to "Geschäfte entdecken", marketing_stores_path, class: "btn-navbar" %>
+            <%# The most important control in the bar: it keeps its full size at
+                every width and only steps aside below ~480px, where the date it
+                sits next to leaves no room at all. Everything else in the bar
+                gives way to it. The expanded header carries no date, so it
+                always keeps the pill. %>
+            <%= link_to "Geschäfte entdecken",
+            marketing_stores_path,
+            class: "btn-navbar shrink-0 max-[480px]:group-[.small]:hidden" %>
 
             <% if current_user %>
 
+              <%# Absorbs whatever width is left after the date and the
+                  "Geschäfte entdecken" pill have taken theirs, up to the 354px
+                  of the artboard. That way it narrows on its own as the screen
+                  gets smaller instead of pushing the pill over the date. It is
+                  hidden below md, so it must not claim flex space there. %>
               <div
-                class="relative w-min group/dropdown"
+                class="
+                  relative hidden md:flex min-w-[180px] flex-1 max-w-[354px] group/dropdown
+                "
                 data-controller="dropdown"
                 data-action="
                   click@window->dropdown#closeOnOutsideClick
@@ -84,8 +105,12 @@ button:has(+ #popover-1:popover-open) .icon-up {
                 <button
                   type="button"
                   data-action="dropdown#toggle"
+                  <%# Fills its wrapper rather than sizing to its label: with the
+                      old min-w the button grew with the business name (a long
+                      e-mail made it 334px at md) and shoved the bar's right side
+                      over the date. The label truncates instead. %>
                   class="
-                    btn-navbar hidden md:flex min-w-[280px] lg:min-w-[354px] cursor-pointer relative
+                    btn-navbar flex w-full cursor-pointer relative
                     z-[2] group-[.open]/dropdown:bg-black group-[.open]/dropdown:border-black
                     group-[.open]/dropdown:text-white
                   "
@@ -104,8 +129,8 @@ button:has(+ #popover-1:popover-open) .icon-up {
                 <ul
                   data-dropdown-target="menu"
                   class="
-                    hidden absolute left-0 top-full z-[1] -mt-7 w-full min-w-[280px]
-                    lg:min-w-[354px] flex-col gap-2 bg-white rounded-b-[28px] px-6 pt-12 pb-6
+                    hidden absolute left-0 top-full z-[1] -mt-7 w-full
+                    flex-col gap-2 bg-white rounded-b-[28px] px-6 pt-12 pb-6
                     [&:not(.hidden)]:flex
                   "
                 >
