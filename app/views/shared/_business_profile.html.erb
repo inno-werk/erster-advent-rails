@@ -10,7 +10,7 @@
 
 <% if categories.present? %>
   <section class="page-container mt-5 lg:mt-8">
-    <div class="flex flex-wrap gap-2 lg:gap-3">
+    <div class="flex flex-wrap gap-1">
       <% categories.each do |tag| %>
         <span class="tag-pill-lg"><%= tag %></span>
       <% end %>
@@ -42,17 +42,21 @@
   </section>
 <% end %>
 
+<%# Whichever block comes first below the address gets the wider gap. %>
+<% spacing_below_address = business.address.present? ? "section-after-address" : "mt-10 md:mt-14 lg:mt-20" %>
+
 <% if business.first_advent_specialities.present? %>
-  <section class="page-container mt-10 md:mt-14 lg:mt-20">
+  <section class="page-container <%= spacing_below_address %>">
     <h3 class="heading-serif"><b>Besonderes am</b>
       1. Advent</h3>
     <div class="specialities-list mt-4 lg:mt-8 lg:max-w-[1226px]">
       <%= business.first_advent_specialities %>
     </div>
   </section>
+  <% spacing_below_address = "mt-10 md:mt-14 lg:mt-20" %>
 <% end %>
 
-<section class="page-container mt-10 md:mt-14 lg:mt-20">
+<section class="page-container <%= spacing_below_address %>">
   <div class="text-body-lg lg:max-w-[1226px]">
     <%= business.description %>
   </div>
