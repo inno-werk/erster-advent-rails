@@ -17,8 +17,13 @@
         <%= (Date.new(Date.today.year, 11, 30) - Date.today).to_i %>
       </strong>
       Tage bis zum</p>
-    <h1 class="heading-hero mt-2"><strong>Ersten Advent</strong>
-      in der<br>Unteren Altstadt Bern</h1>
+    <%# The <br> is the artboard's line break and holds down to ~400px. Below
+        that "Ersten Advent in der" no longer fits on one line, so the break
+        lands mid-phrase and strands "der" and "Bern" on lines of their own.
+        On those screens the hard break steps aside and the browser balances
+        the headline into three even lines instead. %>
+    <h1 class="heading-hero mt-2 max-[420px]:text-balance"><strong>Ersten Advent</strong>
+      in der <br class="max-[420px]:hidden">Unteren Altstadt Bern</h1>
   </div>
 </section>
 <div class="relative z-[5] bg-base-200 mt-[100svh]" data-nav-boundary>
