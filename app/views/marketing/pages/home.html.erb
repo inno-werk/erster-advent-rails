@@ -47,38 +47,42 @@
 
   <section class="w-full py-section">
     <div class="page-container">
-      <div class="responsive-grid gap-y-4 items-end">
+      <%# On mobile the strip runs on its own rhythm: 14px between the columns
+          and between the images, identical in both directions, and a 20px
+          radius. From sm upwards the 1920px artboard takes over again with its
+          16px gaps and 15px corners. %>
+      <div class="responsive-grid gap-y-4 max-sm:gap-x-[14px] items-end">
         <div
           class="
-            col-span-2 md:col-span-4 lg:col-span-6 flex flex-col gap-3 sm:gap-4
+            col-span-2 md:col-span-4 lg:col-span-6 flex flex-col gap-[14px] sm:gap-4
           "
         >
           <%= image_tag image_path("home/bild_1.png"),
           alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[15px]" %>
+          class: "w-full h-auto rounded-[20px] sm:rounded-[15px]" %>
           <%= image_tag image_path("home/bild_3.png"),
           alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[15px]" %>
+          class: "w-full h-auto rounded-[20px] sm:rounded-[15px]" %>
         </div>
 
         <div
           class="
-            col-span-2 md:col-span-4 lg:col-span-6 flex flex-col gap-3 sm:gap-4
+            col-span-2 md:col-span-4 lg:col-span-6 flex flex-col gap-[14px] sm:gap-4
           "
         >
           <%= image_tag image_path("home/bild_2.png"),
           alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[15px]" %>
+          class: "w-full h-auto rounded-[20px] sm:rounded-[15px]" %>
           <%= image_tag image_path("home/bild_4.png"),
           alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[15px]" %>
+          class: "w-full h-auto rounded-[20px] sm:rounded-[15px]" %>
         </div>
       </div>
 
-      <div class="mt-3 sm:mt-4 w-full">
+      <div class="mt-[14px] sm:mt-4 w-full">
         <%= image_tag image_path("home/bild_5.png"),
         alt: "Erster Advent Bern",
-        class: "w-full h-auto rounded-[15px]" %>
+        class: "w-full h-auto rounded-[20px] sm:rounded-[15px]" %>
       </div>
     </div>
   </section>
