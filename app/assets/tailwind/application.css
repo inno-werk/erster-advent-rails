@@ -235,6 +235,24 @@ button:has(+ #popover-1:popover-open) .icon-up {
     line-height: 1.05;
   }
 
+  /*
+   * Altstadt street names are long ("Gerechtigkeitsgasse"), and at mobile
+   * widths they swallow a whole line of these headlines or push past the
+   * gutter. Below the md breakpoint they are hyphenated instead; the desktop
+   * artboards set both headlines unhyphenated, so this stays mobile-only.
+   * Relies on lang="de" on <html> (see layouts/marketing.html.erb) for the
+   * German hyphenation dictionary. The limits keep stray two-letter
+   * fragments off the end of a line.
+   */
+  @media (max-width: 767px) {
+    .heading-store,
+    .heading-address {
+      -webkit-hyphens: auto;
+      hyphens: auto;
+      hyphenate-limit-chars: 8 4 3;
+    }
+  }
+
   /* Serif lead/intro copy: Frank Ruhl Libre Light 44/60,
      bold spans: Plus Jakarta Sans Bold 40px */
   .text-lead {
