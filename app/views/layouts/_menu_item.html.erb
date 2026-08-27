@@ -4,7 +4,8 @@
   - link
   - text
   - icon (optional heroicon name)
-  - active (optional, overrides the current_page? check) %>
+  - active (optional, overrides the current_page? check)
+  - attention (optional accessible status label) %>
 
 <% active = local_assigns[:active].nil? ? current_page?(link) : local_assigns[:active] %>
 <li>
@@ -13,5 +14,10 @@
       <%= heroicon icon, variant: :outline, options: { class: "w-5 h-5 shrink-0" } %>
     <% end %>
     <span class="truncate"><%= text %></span>
+    <% if local_assigns[:attention].present? %>
+      <span class="ml-auto shrink-0 text-warning" role="img" aria-label="<%= attention %>" title="<%= attention %>">
+        <%= heroicon "exclamation-triangle", variant: :outline, options: { class: "h-5 w-5", "aria-hidden": true } %>
+      </span>
+    <% end %>
   <% end %>
 </li>

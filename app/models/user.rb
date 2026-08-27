@@ -5,12 +5,15 @@ class User < ApplicationRecord
          :confirmable, :lockable, :trackable
 
   has_one :business, dependent: :destroy
+  has_many :participations, dependent: :destroy
+  has_many :print_orders, dependent: :destroy
   has_one :payment, dependent: :destroy
   has_many :products, dependent: :destroy
   has_many :customer_orders, class_name: "Order", foreign_key: :id_of_user, inverse_of: :customer, dependent: :destroy
   has_many :received_orders, through: :products, source: :orders
 
   validates :role, inclusion: { in: [ 0, 1, 2 ] }
+  validate :allowed_role_change, on: :update
 
   scope :active, -> { where(deleted: false) }
 
@@ -36,4 +39,25 @@ class User < ApplicationRecord
   def superadmin? = role == 2
 
   def adminish? = admin? || superadmin?
+
+  def current_participation
+    participations.for_year.first
+  end
+
+  def participation_complete?
+    current_participation&.complete? || false
+  end
+
+  def business_editing_allowed?
+    current_participation&.category != "no_listing"
+  end
+
+  private
+
+  def allowed_role_change
+    return unless will_save_change_to_role?
+    return if role_in_database == 1 && role == 2
+
+    errors.add(:role, "kann nur von Admin zu Superadmin geändert werden.")
+  end
 end

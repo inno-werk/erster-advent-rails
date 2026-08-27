@@ -1,99 +1,124 @@
-<%= content_for :title, @business.business_name.presence || "Store Details" %>
-
-<%= link_to admin_stores_path,
-class: "mb-6 inline-flex items-center gap-1 link-more text-sm md:text-base" do %>
-  <%= heroicon "chevron-left", options: { class: "w-4 h-4" } %>
-  Zurück zu allen Geschäften
+<% content_for :title, @business.business_name %>
+<% content_for :admin_detail_header do %>
+  <header class="admin-detail-header">
+    <div class="min-w-0">
+      <%= link_to admin_stores_path, class: "admin-action-link text-xs" do %>
+        <%= heroicon "chevron-left", options: { class: "h-3.5 w-3.5", "aria-hidden": true } %>
+        Alle Geschäfte
+      <% end %>
+      <h1 class="mt-1 break-words text-xl font-semibold tracking-tight"><%= @business.business_name %></h1>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <%= link_to "Geschäftseintrag ansehen", @business.publicly_visible? ? marketing_store_path(@business) : preview_admin_store_path(@business), target: "_blank", rel: "noopener", class: "admin-list-button" %>
+      <%= link_to "Informationen bearbeiten", edit_admin_store_path(@business), class: "btn btn-primary btn-sm rounded-lg" %>
+    </div>
+  </header>
 <% end %>
 
-<div class="w-full max-w-2xl">
-  <% case @business.status.to_sym %>
-  <% when :pending %>
-    <div class="alert alert-info mb-8 rounded-2xl" data-controller="dismiss">
-      <%= heroicon "information-circle", options: { class: "w-5 h-5 shrink-0" } %>
-      <span>
-        Dieses Geschäft wartet auf Prüfung. Schauen Sie es sich über den Link unten an und
-        bestätigen Sie es, oder geben Sie dem Besitzer bei Bedarf per E-Mail Feedback.
-      </span>
-      <button
-        type="button"
-        data-action="dismiss#close"
-        class="btn btn-ghost btn-square btn-sm"
-        aria-label="Schliessen"
-      >
-        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
-      </button>
-    </div>
-  <% when :confirmed %>
-    <div class="alert alert-success mb-8 rounded-2xl" data-controller="dismiss">
-      <%= heroicon "check-circle", options: { class: "w-5 h-5 shrink-0" } %>
-      <span>Dieses Geschäft ist bestätigt und live auf der Website.</span>
-      <button
-        type="button"
-        data-action="dismiss#close"
-        class="btn btn-ghost btn-square btn-sm"
-        aria-label="Schliessen"
-      >
-        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
-      </button>
-    </div>
-  <% when :rejected %>
-    <div class="alert alert-error mb-8 rounded-2xl" data-controller="dismiss">
-      <%= heroicon "x-circle", options: { class: "w-5 h-5 shrink-0" } %>
-      <span>Dieses Geschäft wurde abgelehnt.</span>
-      <button
-        type="button"
-        data-action="dismiss#close"
-        class="btn btn-ghost btn-square btn-sm"
-        aria-label="Schliessen"
-      >
-        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
-      </button>
-    </div>
-  <% end %>
+<div class="grid items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+  <div class="min-w-0 space-y-6">
+    <section class="admin-detail-section" aria-labelledby="store-information-heading">
+      <h2 id="store-information-heading">Geschäftsinformationen</h2>
+      <dl class="admin-detail-grid">
+        <%= render "admin/shared/detail_field", label: "Geschäftsname", value: @business.business_name %>
+        <%= render "admin/shared/detail_field", label: "Kategorien", value: Array(@business.categories).compact_blank.join(", ") %>
+        <%= render "admin/shared/detail_field", label: "Adresse", value: @business.address %>
+        <%= render "admin/shared/detail_field", label: "Telefon", value: @business.phone, url: "tel:#{@business.phone.gsub(/\s+/, '')}" %>
+        <%= render "admin/shared/detail_field", label: "Geschäftliche E-Mail", value: @business.email, url: "mailto:#{@business.email}" %>
+        <%= render "admin/shared/detail_field", label: "Website", value: @business.website, url: store_external_url(@business.website) %>
+      </dl>
+    </section>
 
-  <div class="flex flex-wrap items-center gap-3">
-    <h1 class="font-jakarta font-bold text-2xl"><%= @business.business_name %></h1>
-    <%= render "admin/stores/status_badge", status: @business.status %>
+    <section class="admin-detail-section" aria-labelledby="store-contact-heading">
+      <h2 id="store-contact-heading">Kontakt und Abrechnung</h2>
+      <p class="mt-1 text-xs text-base-content/50">Interne Angaben für die Administration.</p>
+      <dl class="admin-detail-grid">
+        <%= render "admin/shared/detail_field", label: "Kontaktperson", value: @business.contact_name %>
+        <%= render "admin/shared/detail_field", label: "Rechnungsadresse", value: @business.billing_address %>
+      </dl>
+    </section>
+
   </div>
-  <p class="admin-subtitle mt-1"><%= @business.user&.email %></p>
 
-  <div class="mt-8 border-t border-base-200 pt-6">
-    <p class="admin-eyebrow mb-3">Geschäftsinformationen</p>
-    <dl class="divide-y divide-base-200 font-jakarta">
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">E-Mail</dt>
-        <dd><%= @business.user&.email || "-" %></dd>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">Adresse</dt>
-        <dd class="text-right"><%= @business.address.presence || "-" %></dd>
-      </div>
+  <aside class="min-w-0 space-y-6">
+    <section class="admin-detail-section" aria-labelledby="store-user-heading">
+      <h2 id="store-user-heading">Benutzer</h2>
+      <%= link_to admin_user_path(@owner), class: "mt-5 flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3 hover:bg-base-200/50" do %>
+        <span class="min-w-0">
+          <span class="block text-sm font-medium"><%= @owner.name.presence || "Benutzerkonto" %></span>
+          <span class="mt-1 block break-all text-xs text-base-content/60"><%= @owner.email %></span>
+        </span>
+        <%= heroicon "arrow-up-right", options: { class: "h-4 w-4 shrink-0 text-base-content/50", "aria-hidden": true } %>
+      <% end %>
+      <dl class="mt-5 space-y-4">
+        <%= render "admin/shared/detail_field", label: "Kontostatus", value: @owner.deleted? ? "Deaktiviert" : "Aktiv" %>
+        <%= render "admin/shared/detail_field", label: "E-Mail bestätigt", value: @owner.confirmed_at ? l(@owner.confirmed_at, format: :short) : "Noch nicht bestätigt" %>
+        <%= render "admin/shared/detail_field", label: "Registriert am", value: l(@owner.created_at, format: :short) %>
+      </dl>
+    </section>
+
+    <section class="admin-detail-section" aria-labelledby="store-administration-heading">
+      <h2 id="store-administration-heading">Verwaltung</h2>
+      <dl class="mt-5 space-y-4">
+        <%= render "admin/shared/detail_field", label: "Öffentlich sichtbar", value: @business.publicly_visible? ? "Ja" : "Nein" %>
+        <%= render "admin/shared/detail_field", label: "Mitgliedschaft #{EventConfiguration.year}", value: @current_participation&.category_title || "Noch nicht ausgewählt" %>
+        <%= render "admin/shared/detail_field", label: "Mitgliedschaftsstatus", value: @current_participation ? participation_payment_label(@current_participation) : "Noch nicht ausgewählt" %>
+        <%= render "admin/shared/detail_field", label: "Erfasst am", value: l(@business.created_at, format: :short) %>
+        <%= render "admin/shared/detail_field", label: "Geändert am", content: time_tag(@business.updated_at, l(@business.updated_at, format: :short)) %>
+      </dl>
+      <%= form_with model: @business, url: admin_store_path(@business), method: :patch, class: "mt-5 border-t border-base-300 pt-5", data: { turbo_confirm: "Möchten Sie die Freigabe für dieses Geschäft wirklich ändern?" } do |form| %>
+        <%= form.label :status, "Freigabe", class: "field-label" %>
+        <%= form.select :status, [["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Gelöscht", "deleted"]], {}, class: "field-input" %>
+        <%= form.submit "Freigabe speichern", class: "admin-list-button mt-3" %>
+      <% end %>
+    </section>
+  </aside>
+</div>
+
+<div class="mt-6 space-y-6">
+  <%= render "admin/stores/orders", orders: @print_orders %>
+  <%= render "admin/stores/payments", participations: @participations %>
+  <section class="admin-detail-section" aria-labelledby="store-online-heading">
+    <h2 id="store-online-heading">Online-Präsenz</h2>
+    <dl class="admin-detail-grid">
+      <% { "Google Maps" => :map_link, "Instagram" => :instagram, "TikTok" => :tiktok, "LinkedIn" => :linkedin, "Facebook" => :facebook }.each do |label, attribute| %>
+        <% value = @business.public_send(attribute) %>
+        <%= render "admin/shared/detail_field", label: label, value: value, url: store_external_url(value) %>
+      <% end %>
     </dl>
+  </section>
 
-    <%= link_to marketing_store_path(@business),
-    target: "_blank",
-    rel: "noopener",
-    class: "link-more mt-4 inline-flex items-center gap-1 text-sm" do %>
-      <%= heroicon "arrow-top-right-on-square", options: { class: "w-4 h-4" } %>
-      Live-Seite ansehen
-    <% end %>
-  </div>
+  <section class="admin-detail-section" aria-labelledby="store-description-heading">
+    <h2 id="store-description-heading">Beschreibung und Angebot</h2>
+    <div class="mt-5 space-y-6 text-sm">
+      <% { "Beschreibung" => @business.description, "Besonderes am Ersten Advent" => @business.first_advent_specialities }.each do |label, content| %>
+        <div>
+          <h3 class="mb-2 text-xs font-medium text-base-content/50"><%= label %></h3>
+          <% if content.present? %>
+            <div class="trix-content break-words leading-relaxed"><%= content %></div>
+          <% else %>
+            <p class="text-base-content/40">Nicht angegeben</p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
 
-  <div class="mt-8 border-t border-base-200 pt-6">
-    <p class="admin-eyebrow mb-3">Status ändern</p>
-    <%= form_with model: @business,
-    url: admin_store_path(@business),
-    method: :patch,
-    class: "flex flex-wrap items-center gap-2",
-    local: true do |f| %>
-      <select name="business[status]" class="select select-bordered rounded-full w-48">
-        <option value="pending" <%= "selected" if @business.pending? %>>Wartend</option>
-        <option value="confirmed" <%= "selected" if @business.confirmed? %>>Bestätigt</option>
-        <option value="rejected" <%= "selected" if @business.rejected? %>>Abgelehnt</option>
-      </select>
-      <%= f.submit "Aktualisieren", class: "btn btn-primary rounded-full" %>
+  <section class="admin-detail-section" aria-labelledby="store-images-heading">
+    <h2 id="store-images-heading">Bilder</h2>
+    <% if @gallery_images.any? %>
+      <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <% @gallery_images.each do |label, image| %>
+          <figure>
+            <%= link_to rails_blob_path(image, disposition: "inline"), target: "_blank", rel: "noopener" do %>
+              <%= image_tag image, alt: "#{label} – #{@business.business_name}", class: "aspect-square w-full rounded-lg object-cover", loading: "lazy" %>
+            <% end %>
+            <figcaption class="mt-2 text-xs text-base-content/50"><%= label %></figcaption>
+          </figure>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-4 text-sm text-base-content/40">Noch keine Bilder hochgeladen.</p>
     <% end %>
-    <p class="admin-subtitle mt-2 text-xs">Änderungen am Status werden sofort gespeichert.</p>
-  </div>
+  </section>
 </div>

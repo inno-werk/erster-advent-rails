@@ -1,0 +1,35 @@
+<% items = print_order.items.reject(&:marked_for_destruction?) %>
+<section class="admin-card mt-6 overflow-hidden" aria-labelledby="print-order-summary-heading">
+  <header class="border-b border-base-content/10 p-6">
+    <h2 id="print-order-summary-heading" class="text-xl font-bold">Ihre Bestellung im Überblick</h2>
+    <% if items.any? %>
+      <p class="mt-2 text-sm text-base-content/65"><%= items.size %> <%= items.size == 1 ? 'Materialart' : 'Materialarten' %> · <%= items.sum(&:quantity) %> Bündel insgesamt</p>
+      <p class="mt-1 text-sm text-base-content/65">Zuletzt aktualisiert am <time datetime="<%= print_order.updated_at.iso8601 %>"><%= l(print_order.updated_at.in_time_zone("Europe/Zurich"), format: "%d.%m.%Y, %H:%M") %></time></p>
+    <% end %>
+  </header>
+  <% if items.any? %>
+    <ul class="divide-y divide-base-content/10">
+      <% items.each do |item| %>
+        <% product = item.print_product %>
+        <li class="flex flex-wrap items-start gap-5 p-6">
+          <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-base-200">
+            <% if product.image.attached? %>
+              <%= image_tag product.image, alt: product.title, class: "h-full w-full object-contain rounded-xl" %>
+            <% else %>
+              <%= heroicon "document-text", variant: :outline, options: { class: "h-8 w-8 text-base-content/35", "aria-hidden": true } %>
+            <% end %>
+          </div>
+          <div class="min-w-0 flex-1 basis-48">
+            <h3 class="font-semibold text-lg"><%= product.title %></h3>
+            <div class="mt-1 text-sm leading-relaxed text-base-content/65"><%= simple_format product.description %></div>
+            <% unless product.active? %><p class="mt-2 text-xs text-base-content/60">Nicht mehr im Sortiment. Ihre Bestellung bleibt bestehen.</p><% end %>
+          </div>
+          <p class="shrink-0 text-right font-semibold"><span data-bundle-quantity><%= item.quantity %></span> Bündel</p>
+        </li>
+      <% end %>
+    </ul>
+    <p class="border-t border-base-content/10 px-6 py-4 text-sm text-base-content/60">Die Anzahl bezeichnet Bündel. Der Inhalt pro Bündel ist beim jeweiligen Material beschrieben.</p>
+  <% else %>
+    <p class="p-6 text-base-content/65">Sie haben noch kein Printmaterial bestellt.</p>
+  <% end %>
+</section>

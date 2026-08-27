@@ -1,0 +1,61 @@
+<% content_for :title, "Briefe vorbereiten" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [["Printbestellungen", admin_print_orders_path(year: @year)], ["Briefe vorbereiten", nil]] %>
+<% end %>
+
+<div class="grid items-start gap-8 xl:grid-cols-[minmax(280px,1fr)_minmax(0,2fr)]">
+  <section>
+    <h1 class="text-2xl font-semibold tracking-tight">Briefe vorbereiten</h1>
+    <p class="mt-3 text-sm leading-relaxed text-base-content/60">Eine A4-Seite pro Geschäft mit Lieferadresse, Kontaktdaten und bestellten Printmaterialien. Ihre Mitteilung steht ohne Überschrift über der Bestellübersicht.</p>
+    <p class="mt-3 text-sm font-medium"><%= @export.orders.size %> Bestellungen mit Material · <%= @year %></p>
+    <p class="mt-1 text-xs text-base-content/50">Alle Bestellungen des Jahres, unabhängig von Suchfiltern.</p>
+
+    <% if @export.errors.any? %>
+      <div role="alert" class="mt-6 border-l-2 border-error pl-4 text-sm text-error">
+        <% @export.errors.full_messages.each do |error| %><p><%= error %></p><% end %>
+      </div>
+    <% end %>
+    <% if @export.missing_addresses.any? %>
+      <div class="mt-6 border-l-2 border-warning pl-4 text-sm">
+        <p class="font-medium">Fehlende Lieferadressen</p>
+        <p class="mt-1 text-base-content/60">Für Adressetiketten müssen diese Angaben ergänzt werden. Briefe können trotzdem erstellt werden.</p>
+        <ul class="mt-2 space-y-1">
+          <% @export.missing_addresses.each do |order| %>
+            <li><%= link_to @export.store_name(order), order.user.business ? edit_admin_store_path(order.user.business) : admin_user_path(order.user), class: "admin-action-link" %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%= form_with url: preview_admin_print_order_export_path, method: :post, authenticity_token: form_authenticity_token, id: "print-letter-form", target: "letter-preview", data: { turbo: false }, class: "mt-8 space-y-6" do %>
+      <%= hidden_field_tag :year, @year %>
+      <div>
+        <%= label_tag :message, "Persönliche Mitteilung", class: "field-label" %>
+        <%= text_area_tag :message, @export.message, rows: 9, maxlength: PrintOrderExport::MAX_MESSAGE_LENGTH, class: "field-input resize-y", aria: { describedby: "message-help" } %>
+        <p id="message-help" class="mt-2 text-xs text-base-content/50">Optional · maximal <%= PrintOrderExport::MAX_MESSAGE_LENGTH %> Zeichen. Gilt für alle Briefe und wird nicht dauerhaft gespeichert.</p>
+      </div>
+      <div>
+        <%= label_tag :order_id, "Geschäft für die Vorschau", class: "field-label" %>
+        <%= select_tag :order_id, options_for_select(@export.orders.map { |order| [@export.store_name(order), order.id] }, params[:order_id]), class: "field-input", disabled: @export.orders.empty? %>
+      </div>
+      <button type="submit" class="admin-list-button" <%= "disabled" if @export.orders.empty? %>>Vorschau aktualisieren</button>
+      <p class="text-xs leading-relaxed text-base-content/50">Nach einer Änderung die Vorschau aktualisieren. Der Download übernimmt immer den aktuellen Text für alle Geschäfte.</p>
+    <% end %>
+  </section>
+  <section aria-label="Druckvorschau">
+    <% if @export.orders.any? && @export.errors.empty? %>
+      <iframe name="letter-preview" title="PDF-Vorschau des ausgewählten Geschäfts" class="admin-letter-preview" src="<%= preview_admin_print_order_export_path(year: @year) %>"></iframe>
+    <% else %>
+      <iframe name="letter-preview" title="PDF-Vorschau" class="admin-letter-preview" src="about:blank"></iframe>
+    <% end %>
+  </section>
+</div>
+
+<% content_for :bottombar do %>
+  <% actions = capture do %>
+    <%= link_to "Zurück", admin_print_orders_path(year: @year), class: "admin-list-button" %>
+    <button type="submit" form="print-letter-form" formaction="<%= download_admin_print_order_export_path %>" formtarget="_self" name="document_format" value="zip" class="admin-list-button" <%= "disabled" if @export.orders.empty? %>>Einzelne PDFs (ZIP)</button>
+    <button type="submit" form="print-letter-form" formaction="<%= download_admin_print_order_export_path %>" formtarget="_self" name="document_format" value="pdf" class="btn btn-primary rounded-lg" <%= "disabled" if @export.orders.empty? %>>Alle Briefe als PDF</button>
+  <% end %>
+  <%= render "app/shared/bottombar", actions: actions, hint: "A4 · eine Seite pro Geschäft" %>
+<% end %>

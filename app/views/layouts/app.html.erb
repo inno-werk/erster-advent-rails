@@ -17,7 +17,6 @@
     page body between the app shell's bars does. %>
   <body class="h-screen overflow-hidden">
 
-    <%= render "layouts/flash", { flash: flash } %>
 
     <div class="flex h-full min-h-0 flex-col">
 
@@ -30,7 +29,12 @@
           class="drawer-content flex h-full min-h-0 flex-col overflow-hidden"
           data-controller="unsaved-changes"
         >
-          <%= render "shared/business_status_header", { business: current_user.business } %>
+          <div class="flex items-center gap-3 bg-primary px-4 py-3 text-primary-content lg:hidden">
+            <label for="my-drawer" aria-label="Menü öffnen" class="btn btn-ghost btn-square btn-sm">
+              <%= heroicon "bars-3", options: { class: "h-6 w-6" } %>
+            </label>
+            <span class="font-bold">Mein Geschäft</span>
+          </div>
           <%= yield :topbar %>
           <div class="min-h-0 flex-1 overflow-y-auto">
             <div class="app-container py-8">
@@ -64,15 +68,12 @@
                 </div>
               </div>
               <ul class="menu flex-1 gap-1 w-full">
-                <%= render "layouts/menu_item",
-                link: app_products_path,
-                text: "Print-Produkte bestellen" %>
-                <%= render "layouts/menu_item", link: app_myorders_path, text: "Meine Bestellungen" %>
-                <%= render "layouts/menu_item", link: app_transactions_path, text: "Transaktionen" %>
-                <%= render "layouts/menu_item",
-                link: edit_app_mystore_path,
-                text: "Geschäft bearbeiten" %>
-                <%= render "layouts/menu_item", link: app_mystore_path, text: "Mein Geschäft" %>
+                <%= render "layouts/menu_item", link: app_participation_path, text: "Mitgliedschaft", active: controller_name == "participations",
+                  attention: current_user.current_participation&.paid? && !current_user.current_participation.payment_due? ? nil : "Teilnahme oder Zahlung noch offen" %>
+                <%= render "layouts/menu_item", link: app_print_order_path, text: "Meine Printbestellung", active: controller_name == "print_orders" %>
+                <%= render "layouts/menu_item", link: app_mystore_path, text: "Mein Geschäft", active: controller_name == "mystore",
+                  attention: !current_user.business_editing_allowed? || current_user.business&.confirmed? ? nil : "Geschäft noch nicht freigegeben" %>
+                <%= render "layouts/menu_item", link: edit_user_registration_path, text: "Kontoeinstellungen", active: controller_path == "users/registrations" %>
               </ul>
               <div class="space-y-3">
                 <%= button_to "Logout",

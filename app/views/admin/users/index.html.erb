@@ -1,32 +1,8 @@
-<%= content_for :title, "Benutzer" %>
-
-<div class="flex h-full min-h-0 flex-col overflow-hidden">
-  <div class="shrink-0">
-    <%= render "admin/shared/page_header",
-    title: "Benutzer",
-    subtitle: "Alle registrierten Benutzerkonten verwalten.",
-    actions: (current_user.superadmin? ? link_to("Benutzer hinzufügen", new_admin_user_path, class: "btn btn-primary rounded-full") : nil) %>
-  </div>
-
-  <%= form_with url: admin_users_path,
-  method: :get,
-  class: "mb-4 flex shrink-0 flex-wrap items-center justify-between gap-4" do %>
-    <label class="admin-search max-w-xl flex-1">
-      <%= heroicon "magnifying-glass",
-      options: {
-        class: "w-5 h-5 shrink-0 text-black/40",
-      } %>
-      <input type="search" name="q" value="<%= @q %>" placeholder="Benutzer suchen..." />
-    </label>
-
-    <span class="whitespace-nowrap font-jakarta font-light text-sm text-base-content/50">
-      <%= @users.size %> von <%= @pagy.count %> Benutzern
-    </span>
-  <% end %>
-
-  <div class="min-h-0 flex-1 overflow-y-auto">
-    <% if @users.any? %>
-      <div class="overflow-x-auto">
+<%= render layout: "admin/shared/list", locals: { title: "Benutzer", path: admin_users_path, filters: [
+  { name: :role, label: "Rolle", value: @role, options: [["Alle Rollen", ""], ["Benutzer", "0"], ["Admin", "1"], ["Superadmin", "2"]] },
+  { name: :confirmation, label: "E-Mail-Bestätigung", value: @confirmation, options: [["Alle", ""], ["Bestätigt", "confirmed"], ["Ausstehend", "pending"]] }
+], actions: (current_user.superadmin? ? link_to("Benutzer hinzufügen", new_admin_user_path, class: "btn btn-primary btn-sm rounded-lg") : nil) } do %>
+  <% if @users.any? %>
         <table class="admin-table table">
           <thead>
             <tr>
@@ -61,18 +37,7 @@
             <% end %>
           </tbody>
         </table>
-      </div>
-    <% else %>
-      <p class="p-8 text-center font-jakarta font-light text-base-content/60">
-        Keine Benutzer gefunden.
-      </p>
-    <% end %>
-  </div>
-
-  <div class="shrink-0">
-    <%= render "admin/shared/pagination_bar",
-    pagy: @pagy,
-    path: admin_users_path,
-    extra_params: { q: @q } %>
-  </div>
-</div>
+  <% else %>
+    <p class="admin-list-empty">Keine Benutzer gefunden.</p>
+  <% end %>
+<% end %>

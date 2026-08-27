@@ -1,0 +1,9 @@
+<% content_for :title, "Vorschau · #{@business.business_name}" %>
+<section class="h-[200px] md:h-[300px] xl:h-[480px] bg-primary"></section>
+<div class="page-container pt-6 text-sm text-base-content/60">
+  <p>Vorschau des Geschäftseintrags · nur für Administratoren</p>
+  <%= link_to "Zurück zur Geschäftsübersicht", admin_store_path(@business), class: "admin-detail-link mt-2 inline-block" %>
+</div>
+<div data-nav-boundary>
+  <%= render "shared/business_profile", business: @business, images: @images %>
+</div>

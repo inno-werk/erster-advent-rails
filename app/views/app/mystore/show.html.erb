@@ -1,6 +1,28 @@
 <%= content_for :title, "Mein Geschäft" %>
 
-<% if @business&.persisted? %>
+<% if !current_user.business_editing_allowed? %>
+  <% content_for :topbar do %>
+    <%= render "app/shared/topbar", crumbs: [ [ "Dashboard", app_root_path ], [ "Mein Geschäft" ] ] %>
+  <% end %>
+  <h1 class="admin-heading">Mein Geschäft</h1>
+  <section class="admin-card mt-8 p-6 md:p-8 max-w-3xl" aria-labelledby="no-listing-heading">
+    <h2 id="no-listing-heading" class="text-xl font-bold">Ihre Mitgliedschaft beinhaltet keinen Website-Eintrag</h2>
+    <p class="mt-4 text-base-content/75">Sie haben für <%= EventConfiguration.year %> die Mitgliedschaft «Kein Eintrag» gewählt. Ihr Geschäft wird deshalb nicht auf der Website, im Online-Stadtplan oder im gedruckten Stadtplan aufgeführt.</p>
+    <p class="mt-3 text-base-content/75">Die Bearbeitung der Geschäftsangaben ist mit dieser Mitgliedschaft nicht verfügbar. Bereits hinterlegte Angaben bleiben erhalten.</p>
+    <% if current_participation.pending? %>
+      <p class="mt-5 text-sm text-base-content/65">Solange Ihre Mitgliedschaft noch nicht bezahlt ist, können Sie eine Mitgliedschaft mit Eintrag wählen.</p>
+      <%= link_to "Mitgliedschaft ändern", edit_app_participation_path(setup: 0), class: "btn btn-primary mt-4" %>
+    <% elsif current_participation.pending_upgrade %>
+      <p class="mt-5 text-sm text-base-content/65">Ihre Erhöhung ist vorgemerkt. Nach Bestätigung der Differenzzahlung können Sie Ihre Geschäftsangaben bearbeiten.</p>
+      <%= link_to "Differenz bezahlen", payment_app_participation_path, class: "btn btn-primary mt-4" %>
+    <% elsif current_participation.upgrade_available? %>
+      <p class="mt-5 text-sm text-base-content/65">Sie können zu einer Mitgliedschaft mit Eintrag wechseln und bezahlen nur die Differenz.</p>
+      <%= link_to "Mitgliedschaft erhöhen", edit_app_participation_path(setup: 0), class: "btn btn-primary mt-4" %>
+    <% else %>
+      <p class="mt-5 text-sm text-base-content/65">Für Fragen zu Ihrer Mitgliedschaft <%= mail_to "info@erster-advent-bern.ch", "kontaktieren Sie bitte das Team", class: "link" %>.</p>
+    <% end %>
+  </section>
+<% elsif @business&.persisted? %>
   <% categories = Array(@business.categories).compact_blank %>
   <% gallery_images = [
     [ "Hauptbild", @business.main_image ],
@@ -13,7 +35,7 @@
     <%= render "app/shared/topbar",
     crumbs: [ [ "Dashboard", app_root_path ], [ "Mein Geschäft" ] ],
     actions: capture {
-      if @business.confirmed?
+      if @business.publicly_visible?
         concat(
         link_to(marketing_store_path(@business),
         target: "_blank",
@@ -24,12 +46,6 @@
         end
         )
       end
-      concat(
-      link_to(edit_app_mystore_path, class: "btn btn-primary gap-2") do
-        concat heroicon("pencil-square", options: { class: "h-5 w-5" })
-        concat "Geschäft bearbeiten"
-      end
-      )
     } %>
   <% end %>
 
@@ -41,20 +57,28 @@
       <h1 class="admin-heading font-jakarta font-bold">
         <%= @business.business_name.presence || "Ihr Geschäft" %>
       </h1>
-      <%= render "shared/business_status_badge", status: @business.status %>
     </div>
     <p class="admin-subtitle mt-2 max-w-3xl">
-      So sind Ihre Angaben hinterlegt. Über „Geschäft bearbeiten“ können Sie
+      So sind Ihre Angaben hinterlegt. Über „Informationen bearbeiten“ können Sie
       jederzeit alles anpassen.
     </p>
   </header>
+
+  <%= render "app/mystore/approval_status", business: @business %>
+
+  <div class="mt-8">
+    <%= link_to edit_app_mystore_path, class: "btn btn-primary gap-2" do %>
+      <%= heroicon "pencil-square", options: { class: "h-5 w-5" } %>
+      Informationen bearbeiten
+    <% end %>
+  </div>
 
   <div class="mt-10">
     <%# --- Geschäftsinformationen ------------------------------------- %>
     <section class="form-section">
       <h2 class="form-section-title">Geschäftsinformationen</h2>
       <p class="form-section-subtitle">
-        Diese Angaben werden auf der Website des ersten Advents öffentlich gelistet.
+        Diese Angaben werden bei abgeschlossener Teilnahme mit Eintrag und bestätigtem Geschäft öffentlich gelistet.
       </p>
 
       <div class="data-grid">

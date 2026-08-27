@@ -1,0 +1,23 @@
+<%= render layout: "admin/shared/list", locals: { title: "Zahlungen", path: admin_participations_path, filters: [
+  { name: :year, label: "Teilnahmejahr", type: :year, value: @year, default: EventConfiguration.year },
+  { name: :payment_status, label: "Zahlungsstatus", value: @payment_status, options: [["Alle Zahlungen", ""], ["Zahlung offen", "pending"], ["Vollständig bezahlt", "paid"], ["Differenzzahlung offen", "upgrade_pending"]] },
+  { name: :category, label: "Mitgliedschaft", value: @category, options: [["Alle Mitgliedschaften", ""]] + Participation::CATEGORIES.map { |key, details| [details[:title], key] } }
+] } do %>
+  <% if @participations.any? %>
+<table class="table admin-table">
+  <thead><tr><th>Benutzer / Geschäft</th><th>Jahr</th><th>Aktive Kategorie</th><th>Beitrag</th><th>Offener Betrag</th><th>Zahlung</th><th>Letzte Zahlung am</th></tr></thead>
+  <tbody><% @participations.each do |participation| %><tr>
+    <td><%= link_to participation.user.email, admin_user_path(participation.user), class: "link link-primary" %><br><%= participation.user.business&.business_name || 'Geschäft noch nicht erfasst' %></td>
+    <td><%= participation.year %></td>
+    <td><%= participation.category_title %></td>
+    <td><%= participation_amount(participation.amount_cents) %></td>
+    <td><%= participation_amount(participation.amount_due_cents) %></td>
+    <td><%= participation_payment_label(participation) %></td>
+    <% last_payment_at = participation.last_payment_at %>
+    <td><%= last_payment_at ? l(last_payment_at, format: :short) : '–' %></td>
+  </tr><% end %></tbody>
+</table>
+  <% else %>
+    <p class="admin-list-empty">Keine Zahlungen gefunden.</p>
+  <% end %>
+<% end %>

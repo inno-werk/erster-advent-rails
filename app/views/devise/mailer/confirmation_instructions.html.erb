@@ -1,6 +1,6 @@
-<p>Willkommen zum Ersten Avent Bern
-  <%= @email %>!</p>
-
-<p>Du kannst deine Registrierung über den folgenden Link bestätigen:</p>
-
-<p><%= link_to "Konto bestätigen", user_confirmation_url(confirmation_token: @token) %></p>
+<% content_for :heading, "Willkommen beim Ersten Advent Bern" %>
+<% content_for :preheader, "Bestätigen Sie Ihre E-Mail-Adresse und richten Sie Ihre Teilnahme ein." %>
+<p style="margin:0 0 16px;">Guten Tag <%= @resource.name.presence || @email %></p>
+<p style="margin:0 0 16px;">Schön, dass Sie dabei sind. Bitte bestätigen Sie Ihre E-Mail-Adresse, damit Sie Ihre Teilnahme einrichten können.</p>
+<%= render "mailers/button", label: "E-Mail-Adresse bestätigen", url: user_confirmation_url(confirmation_token: @token, locale: nil) %>
+<p style="margin:0;color:#647078;font-size:14px;">Danach wählen Sie Ihre Mitgliedschaft, prüfen den Zahlungsstatus und ergänzen auf Wunsch Printmaterialien und Ihre Geschäftsangaben.</p>

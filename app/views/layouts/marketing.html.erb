@@ -145,7 +145,9 @@ button:has(+ #popover-1:popover-open) .icon-up {
                 >
                   <% if !current_user.adminish? %>
                     <li><%= link_to "Mein Geschäft", app_mystore_path, class: "menu-item-nav" %></li>
-                    <li><%= link_to "Transaktionen", app_transactions_path, class: "menu-item-nav" %></li>
+                    <li><%= link_to "Mitgliedschaft", app_participation_path, class: "menu-item-nav" %></li>
+                    <li><%= link_to "Meine Printbestellung", app_print_order_path, class: "menu-item-nav" %></li>
+                    <li><%= link_to "Kontoeinstellungen", edit_user_registration_path, class: "menu-item-nav" %></li>
                   <% else %>
                     <li><%= link_to "Admin Dashboard", admin_root_path, class: "menu-item-nav" %></li>
                   <% end %>
@@ -173,7 +175,6 @@ button:has(+ #popover-1:popover-open) .icon-up {
 
     <main class="min-h-screen flex flex-col relative">
 
-      <%= render "layouts/flash", { flash: flash } %>
 
       <%= yield %>
 

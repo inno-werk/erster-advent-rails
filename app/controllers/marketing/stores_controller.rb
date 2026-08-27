@@ -8,9 +8,9 @@ class Marketing::StoresController < Marketing::BaseController
     @page = [ params[:page].to_i, 1 ].max
 
     scope = if @search_term.present?
-      Business.confirmed.search(@search_term)
+      Business.publicly_visible.search(@search_term)
     else
-      Business.confirmed
+      Business.publicly_visible
     end
 
     @businesses = scope
@@ -42,7 +42,7 @@ class Marketing::StoresController < Marketing::BaseController
   private
 
   def load_store
-    @business = Business.confirmed.includes(:user).find_by(id: params[:id])
+    @business = Business.publicly_visible.includes(:user).find_by(id: params[:id])
 
     return if @business
 

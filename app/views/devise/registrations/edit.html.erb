@@ -1,43 +1,96 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
-
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
-
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
-
-  <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-    <div>Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
-  <% end %>
-
-  <div class="field">
-    <%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-    <% if @minimum_password_length %>
-      <br />
-      <em><%= @minimum_password_length %> characters minimum</em>
-    <% end %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i><br />
-    <%= f.password_field :current_password, autocomplete: "current-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Update" %>
-  </div>
+<% content_for :title, "Kontoeinstellungen" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ [ "Dashboard", app_root_path ], [ "Kontoeinstellungen" ] ] %>
 <% end %>
 
-<h3>Cancel my account</h3>
+<div class="max-w-5xl">
+  <header class="mb-10">
+    <p class="admin-eyebrow mb-3">Ihr Benutzerkonto</p>
+    <h1 class="admin-heading">Kontoeinstellungen</h1>
+    <p class="admin-subtitle mt-3">Verwalten Sie Ihre Kontaktdaten und den Zugang zu Ihrem Konto.</p>
+  </header>
 
-<div>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete %></div>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: {
+    method: :put, id: "account-settings-form",
+    data: { unsaved_changes_target: "form", action: "input->unsaved-changes#markDirty change->unsaved-changes#markDirty" }
+  }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
 
-<%= link_to "Back", :back %>
+    <section class="form-section">
+      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
+        <div>
+          <h2 class="form-section-title">Persönliche Angaben</h2>
+          <p class="form-section-subtitle">So kann das Team Sie erreichen. Ihre öffentlichen Geschäftsangaben bearbeiten Sie unter «Mein Geschäft».</p>
+        </div>
+        <div class="md:col-span-2 grid gap-5 sm:grid-cols-2">
+          <div>
+            <%= f.label :name, "Vor- und Nachname", class: "field-label" %>
+            <%= f.text_field :name, autocomplete: "name", class: "field-input" %>
+          </div>
+          <div>
+            <%= f.label :phone, "Telefonnummer", class: "field-label" %>
+            <%= f.telephone_field :phone, autocomplete: "tel", class: "field-input" %>
+          </div>
+          <div class="sm:col-span-2">
+            <%= f.label :email, "E-Mail-Adresse", class: "field-label" %>
+            <%= f.email_field :email, autocomplete: "email", class: "field-input", required: true %>
+            <p class="field-hint">Diese Adresse verwenden Sie zur Anmeldung. Eine neue Adresse muss per E-Mail bestätigt werden.</p>
+            <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+              <p class="mt-3 text-sm text-base-content/70">Die Bestätigung für <strong><%= resource.unconfirmed_email %></strong> steht noch aus.</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
+        <div>
+          <h2 class="form-section-title">Passwort ändern</h2>
+          <p class="form-section-subtitle">Lassen Sie diese Felder leer, wenn Sie Ihr bisheriges Passwort behalten möchten.</p>
+        </div>
+        <div class="md:col-span-2 grid gap-5 sm:grid-cols-2">
+          <div>
+            <%= f.label :password, "Neues Passwort", class: "field-label" %>
+            <%= f.password_field :password, autocomplete: "new-password", class: "field-input" %>
+            <% if @minimum_password_length %><p class="field-hint">Mindestens <%= @minimum_password_length %> Zeichen.</p><% end %>
+          </div>
+          <div>
+            <%= f.label :password_confirmation, "Neues Passwort bestätigen", class: "field-label" %>
+            <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "field-input" %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
+        <div>
+          <h2 class="form-section-title">Änderungen bestätigen</h2>
+          <p class="form-section-subtitle">Zu Ihrer Sicherheit benötigen wir Ihr aktuelles Passwort, um Änderungen zu speichern.</p>
+        </div>
+        <div class="md:col-span-2">
+          <%= f.label :current_password, "Aktuelles Passwort", class: "field-label" %>
+          <%= f.password_field :current_password, autocomplete: "current-password", class: "field-input", required: true %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="form-section mb-6">
+    <div class="grid gap-6 md:grid-cols-3 md:gap-10">
+      <div>
+        <h2 class="form-section-title">Konto löschen</h2>
+        <p class="form-section-subtitle">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+      </div>
+      <div class="md:col-span-2">
+        <p class="text-sm text-base-content/65 mb-4">Ihr Konto und die zugehörigen Daten werden dauerhaft gelöscht.</p>
+        <%= button_to "Konto löschen", registration_path(resource_name), data: { turbo_confirm: "Möchten Sie Ihr Konto und die zugehörigen Daten wirklich löschen?" }, method: :delete, class: "btn btn-error btn-outline" %>
+      </div>
+    </div>
+  </section>
+</div>
+
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", hint: "Bestätigen Sie Ihre Änderungen mit Ihrem aktuellen Passwort.", actions: button_tag("Änderungen speichern", type: "submit", form: "account-settings-form", class: "btn btn-primary") %>
+<% end %>

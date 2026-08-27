@@ -69,6 +69,7 @@ group :development do
 end
 
 group :test do
+  gem "pdf-reader", "~> 2.15"
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
@@ -81,6 +82,11 @@ gem "pg", "~> 1.6"
 gem "pg_search", "~> 2.3.7"
 
 gem "pagy", "~> 6.5"
+
+# Generate print labels and store letters without an external browser runtime.
+gem "prawn", "~> 2.5"
+gem "prawn-svg", "~> 0.38"
+gem "rubyzip", "~> 3.0", require: "zip"
 
 # Authenticaiton
 

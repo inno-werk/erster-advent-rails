@@ -17,7 +17,7 @@ export default class extends Controller {
     };
 
     connect() {
-        this.dirty = false;
+        this.dirty = this.hasFormTarget && this.formTarget.dataset.invalid === "true";
         if (!this.hasFormTarget) return;
 
         this.formTarget.addEventListener("submit", this.markSaved);

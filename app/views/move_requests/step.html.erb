@@ -9,15 +9,6 @@
   </ul>
 
   <%= form_with url: update_moverequest_step_path(id: @move_request.id, step: @current_step), method: :patch, local: true, class: "space-y-4" do |f| %>
-    <% if flash.now[:alert].present? %>
-      <div class="alert alert-error">
-        <span><%= simple_format(flash.now[:alert]) %></span>
-      </div>
-    <% elsif flash[:notice].present? %>
-      <div class="alert alert-success">
-        <span><%= flash[:notice] %></span>
-      </div>
-    <% end %>
     <% case @step_key
        when :umzug %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,0 +1,59 @@
+<% content_for :title, title %>
+<% filters = local_assigns.fetch(:filters, []) %>
+<% active_filters = filters.count { |filter| filter[:value].present? && filter[:value].to_s != filter[:default].to_s } %>
+<% content_for :admin_list_header do %>
+  <header class="admin-list-header" data-controller="admin-list" data-action="turbo:before-cache@document->admin-list#close">
+    <div class="admin-list-titlebar">
+      <h1><%= title %></h1>
+      <% unless local_assigns[:overview].present? %>
+        <div class="flex items-center gap-3"><%= local_assigns[:actions] %></div>
+      <% end %>
+    </div>
+    <%= local_assigns[:overview].presence || local_assigns[:summary] %>
+    <% if local_assigns[:overview].present? %><div class="admin-list-controls"><% end %>
+    <%= form_with url: path, method: :get, class: "admin-list-toolbar", role: "search" do %>
+      <label class="admin-list-search">
+        <%= heroicon "magnifying-glass", variant: :outline, options: { class: "h-4 w-4 shrink-0", "aria-hidden": true } %>
+        <span class="sr-only"><%= title %> durchsuchen</span>
+        <%= search_field_tag :q, @q, placeholder: local_assigns.fetch(:placeholder, "Suchen …"), data: { admin_list_target: "search", action: "input->admin-list#searchChanged search->admin-list#searchChanged" } %>
+      </label>
+      <%= hidden_field_tag :per, @per %>
+      <button type="submit" class="admin-list-button">Suchen</button>
+      <button type="button" class="admin-list-button admin-filter-trigger" data-action="admin-list#open" aria-label="Filter öffnen" aria-haspopup="dialog" aria-controls="admin-list-filters">
+        <%= heroicon "funnel", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+        <% if active_filters.positive? %><span class="admin-filter-count"><%= active_filters %></span><% end %>
+      </button>
+      <span class="admin-list-count"><%= @pagy.count %> Ergebnisse</span>
+      <dialog id="admin-list-filters" class="admin-filter-dialog" aria-labelledby="admin-filter-title" data-admin-list-target="dialog" data-action="click->admin-list#closeBackdrop">
+        <div class="flex items-center justify-between gap-4 mb-6">
+          <h2 id="admin-filter-title" class="text-lg font-semibold">Filter</h2>
+          <button type="button" class="admin-list-button" aria-label="Filter schließen" data-action="admin-list#close">
+            <%= heroicon "x-mark", options: { class: "h-4 w-4", "aria-hidden": true } %>
+          </button>
+        </div>
+        <div class="space-y-5">
+          <% filters.each do |filter| %>
+            <div>
+              <%= label_tag filter[:name], filter[:label], class: "field-label" %>
+              <% if filter[:type] == :year %>
+                <%= number_field_tag filter[:name], filter[:value], min: 2000, max: 9999, class: "field-input" %>
+              <% else %>
+                <%= select_tag filter[:name], options_for_select(filter[:options], filter[:value]), class: "field-input" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+        <div class="mt-7 flex items-center justify-between gap-3 border-t border-base-300 pt-5">
+          <%= link_to "Zurücksetzen", "#{path}?#{ { q: @q.presence, per: @per }.compact.to_query }", class: "admin-action-link" %>
+          <button type="submit" class="btn btn-primary btn-sm rounded-lg">Anwenden</button>
+        </div>
+      </dialog>
+    <% end %>
+    <% if local_assigns[:overview].present? %></div><% end %>
+  </header>
+<% end %>
+<% content_for :admin_list_footer do %>
+  <%= render "admin/shared/pagination_bar", pagy: @pagy, path: path,
+    extra_params: filters.to_h { |filter| [filter[:name], filter[:value]] }.merge(q: @q) %>
+<% end %>
+<%= yield %>

@@ -1,0 +1,75 @@
+<% content_for :title, "Adressetiketten vorbereiten" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [["Printbestellungen", admin_print_orders_path(year: @year)], ["Adressetiketten vorbereiten", nil]] %>
+<% end %>
+
+<div class="grid items-start gap-8 xl:grid-cols-[minmax(280px,1fr)_minmax(0,2fr)]">
+  <section>
+    <h1 class="text-2xl font-semibold tracking-tight">Adressetiketten vorbereiten</h1>
+    <p class="mt-3 text-sm leading-relaxed text-base-content/60">Passen Sie das Raster an Ihren Etikettenbogen an. Papierformat: A4 hochkant (210 × 297 mm). Alle Abstände in Millimetern.</p>
+    <p class="mt-3 text-sm font-medium"><%= @export.orders.size %> Adressen · <%= @year %></p>
+    <p class="mt-1 text-xs text-base-content/50">Alle Bestellungen mit Material, unabhängig von Suchfiltern.</p>
+
+    <% if @export.errors.any? %>
+      <div role="alert" class="mt-6 border-l-2 border-error pl-4 text-sm text-error">
+        <% @export.errors.full_messages.each do |error| %><p><%= error %></p><% end %>
+      </div>
+    <% end %>
+    <% if @export.missing_addresses.any? %>
+      <ul class="mt-3 space-y-1 text-sm" aria-label="Fehlende Lieferadressen">
+        <% @export.missing_addresses.each do |order| %>
+          <li><%= link_to @export.store_name(order), order.user.business ? edit_admin_store_path(order.user.business) : admin_user_path(order.user), class: "admin-action-link" %></li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <%= form_with url: address_preview_admin_print_order_export_path, method: :post, authenticity_token: form_authenticity_token,
+      id: "print-label-form", target: "label-preview", data: { turbo: false }, class: "mt-8 space-y-7" do %>
+      <%= hidden_field_tag :year, @year %>
+      <% {
+        "Raster" => %i[columns rows],
+        "Seitenränder (mm)" => %i[margin_top margin_bottom margin_left margin_right],
+        "Abstände zwischen Etiketten (mm)" => %i[gap_horizontal gap_vertical],
+        "Text innerhalb der Etiketten" => %i[padding_horizontal padding_vertical font_size]
+      }.each do |heading, fields| %>
+        <fieldset class="border-t border-base-300 pt-5">
+          <legend class="pr-3 text-sm font-semibold"><%= heading %></legend>
+          <div class="grid grid-cols-2 gap-4">
+            <% fields.each do |field| %>
+              <% options = PrintLabelLayout::FIELDS.fetch(field) %>
+              <div>
+                <%= label_tag "label_layout_#{field}", "#{options[:label]}#{field == :font_size ? ' (pt)' : (field.to_s.start_with?('padding') ? ' (mm)' : '')}", class: "field-label" %>
+                <%= number_field_tag "label_layout[#{field}]", @label_layout.public_send(field), id: "label_layout_#{field}",
+                  min: options[:min], max: options[:max], step: options[:step], required: true, class: "field-input" %>
+              </div>
+            <% end %>
+          </div>
+        </fieldset>
+      <% end %>
+      <p class="text-xs leading-relaxed text-base-content/50">Die Etikettengrösse ergibt sich aus Raster, Seitenrändern und Zwischenräumen. Lange Adressen werden bei Bedarf auf bis zu 8 pt verkleinert. Die Einstellungen gelten für diesen Druckauftrag.</p>
+      <div class="flex flex-wrap items-center gap-4">
+        <button type="submit" class="admin-list-button" <%= "disabled" if @export.orders.empty? || @export.missing_addresses.any? %>>Vorschau aktualisieren</button>
+        <%= link_to "Standard wiederherstellen", addresses_admin_print_order_export_path(year: @year), class: "admin-action-link text-xs" %>
+      </div>
+      <p class="text-xs leading-relaxed text-base-content/50">Nach Änderungen die Vorschau aktualisieren. Der Download verwendet immer die aktuellen Einstellungen. Bitte mit 100 % und ohne Seitenanpassung drucken.</p>
+    <% end %>
+  </section>
+
+  <section aria-label="Etikettenvorschau" class="xl:sticky xl:top-0">
+    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-sm font-medium">Druckvorschau</h2>
+      <p class="text-xs text-base-content/50">Hilfslinien nur in der Vorschau</p>
+    </div>
+    <iframe name="label-preview" title="PDF-Vorschau der Adressetiketten" class="admin-letter-preview"
+      src="<%= @export.errors.empty? ? address_preview_admin_print_order_export_path(year: @year, label_layout: PrintLabelLayout::FIELDS.keys.to_h { |field| [field, @label_layout.public_send(field)] }) : 'about:blank' %>"></iframe>
+  </section>
+</div>
+
+<% content_for :bottombar do %>
+  <% actions = capture do %>
+    <%= link_to "Zurück", admin_print_orders_path(year: @year), class: "admin-list-button" %>
+    <button type="submit" form="print-label-form" formaction="<%= download_addresses_admin_print_order_export_path %>" formtarget="_self"
+      class="btn btn-primary rounded-lg" <%= "disabled" if @export.orders.empty? || @export.missing_addresses.any? %>>Adressetiketten als PDF</button>
+  <% end %>
+  <%= render "app/shared/bottombar", actions: actions, hint: "A4 · bei 100 % drucken · ohne Hilfslinien" %>
+<% end %>

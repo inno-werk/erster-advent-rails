@@ -724,6 +724,22 @@ button:has(+ #popover-1:popover-open) .icon-up {
       shadow-[0_-2px_12px_rgba(0,0,0,0.04)];
   }
 
+  [data-layout="setup"] .app-bottombar .app-container {
+    @apply max-w-7xl px-6;
+  }
+
+  [data-layout="setup"] .app-bottombar .btn {
+    @apply whitespace-normal h-auto min-h-10 py-2;
+  }
+
+  [data-layout="payment"] .app-bottombar .app-container {
+    @apply max-w-4xl px-6;
+  }
+
+  [data-layout="payment"] .app-bottombar .btn {
+    @apply whitespace-normal h-auto min-h-10 py-2;
+  }
+
   /* A titled group of fields; rules separate consecutive groups */
   .form-section {
     @apply border-t border-base-content/10 pt-10 mt-10;
@@ -860,6 +876,174 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .admin-row-icon {
     @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg
       bg-base-200 text-base-content/50;
+  }
+
+  .admin-shell {
+    height: 100dvh;
+    @apply overflow-hidden bg-base-100;
+  }
+  .admin-shell .app-container {
+    @apply max-w-none px-4 sm:px-6;
+  }
+  .admin-list-header {
+    @apply shrink-0 border-b border-base-300 bg-base-100 px-4 py-5 sm:px-6;
+  }
+  .admin-list-titlebar {
+    @apply mb-5 flex items-center justify-between gap-4;
+  }
+  .admin-list-titlebar h1 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  .admin-list-toolbar {
+    @apply flex items-center gap-2;
+  }
+  .admin-list-search {
+    @apply flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg border border-base-300
+      bg-white px-3 text-sm text-base-content/50 sm:max-w-md focus-within:border-primary;
+  }
+  .admin-list-search input {
+    @apply min-w-0 w-full bg-transparent text-base-content outline-none;
+  }
+  .admin-list-button {
+    @apply inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg
+      border border-base-300 bg-base-100 px-3 text-xs font-medium text-base-content/70
+      transition-colors hover:bg-base-200 focus-visible:outline-2 focus-visible:outline-primary
+      disabled:cursor-default disabled:opacity-30 disabled:hover:bg-base-100;
+  }
+  .admin-filter-count {
+    @apply flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-primary-content;
+  }
+  .admin-list-count {
+    @apply ml-auto hidden whitespace-nowrap pl-3 text-xs text-base-content/50 sm:block;
+  }
+  .admin-filter-dialog {
+    @apply m-auto w-[calc(100%-2rem)] max-w-sm max-h-[85dvh] overflow-y-auto rounded-2xl
+      border border-base-300 bg-base-100 p-6 text-base-content shadow-xl;
+  }
+  .admin-filter-dialog::backdrop {
+    background: rgb(0 0 0 / 20%);
+  }
+  .admin-list-scroll {
+    @apply min-h-0 min-w-0 flex-1 overflow-auto px-4 sm:px-6;
+    scrollbar-gutter: stable;
+  }
+  .admin-list-scroll .admin-table {
+    @apply w-full text-sm;
+  }
+  .admin-list-scroll .admin-table thead th {
+    @apply bg-base-100 py-3 text-[11px] tracking-wide text-base-content/50;
+  }
+  .admin-list-scroll .admin-table tbody td {
+    @apply py-4 font-normal;
+  }
+  .admin-list-scroll .admin-table tbody tr {
+    @apply border-base-200 hover:bg-base-200/50;
+  }
+  .admin-list-scroll .admin-table th:first-child,
+  .admin-list-scroll .admin-table td:first-child {
+    @apply pl-0;
+  }
+  .admin-list-scroll .admin-table th:last-child,
+  .admin-list-scroll .admin-table td:last-child {
+    @apply pr-0;
+  }
+  .admin-list-empty {
+    @apply py-16 text-center text-sm text-base-content/50;
+  }
+  .admin-list-footer {
+    @apply flex shrink-0 items-center justify-between gap-3 border-t border-base-300
+      bg-base-100 px-4 py-3 sm:px-6;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  .admin-page-size {
+    @apply h-9 rounded-lg border border-base-300 bg-base-100 px-2 text-xs;
+  }
+  .admin-order-summary {
+    @apply shrink-0 overflow-y-auto border-b border-base-300 bg-base-100 px-4 py-4 sm:px-6;
+    max-height: 25dvh;
+  }
+
+  .admin-list-overview {
+    @apply -mx-4 border-y border-base-300 bg-base-200/30 px-4 py-4 sm:-mx-6 sm:px-6;
+  }
+
+  .admin-list-overview-content {
+    @apply flex flex-wrap items-start justify-between gap-5;
+  }
+
+  .admin-list-overview .admin-order-summary {
+    @apply border-0 bg-transparent p-0;
+    max-height: none;
+  }
+
+  .admin-list-overview-actions {
+    @apply shrink-0;
+  }
+
+  .admin-list-controls {
+    @apply mt-4 border-t border-base-300 pt-4;
+  }
+
+  .admin-orders-section {
+    @apply pb-4;
+  }
+
+  .admin-orders-section-header {
+    @apply flex items-baseline justify-between gap-3 border-b border-base-300 py-4;
+  }
+
+  .admin-orders-section-header h2 {
+    @apply text-sm font-semibold;
+  }
+
+  .admin-orders-section-header p {
+    @apply text-xs text-base-content/50;
+  }
+  .admin-letter-preview {
+    @apply w-full rounded-lg border border-base-300 bg-white;
+    height: 76dvh;
+    min-height: 480px;
+  }
+  .admin-detail-header {
+    @apply flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-base-300 bg-base-100 px-4 py-4 sm:px-6;
+  }
+  .admin-detail-scroll {
+    @apply min-h-0 flex-1 overflow-y-auto bg-base-200/50 px-4 py-6 sm:px-6;
+  }
+  .admin-detail-section {
+    @apply min-w-0 rounded-xl border border-base-300 bg-base-100 p-5 sm:p-6;
+  }
+  .admin-detail-section h2 {
+    @apply text-base font-semibold tracking-tight;
+  }
+  .admin-detail-grid {
+    @apply mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2;
+  }
+  .admin-detail-field dt {
+    @apply mb-1 text-xs text-base-content/50;
+  }
+  .admin-detail-field dd {
+    @apply break-words text-sm leading-relaxed;
+    overflow-wrap: anywhere;
+  }
+  .admin-detail-link {
+    @apply font-medium text-primary underline-offset-4 hover:underline;
+  }
+  .admin-detail-table {
+    @apply w-full text-left text-sm;
+  }
+  .admin-detail-table th {
+    @apply border-b border-base-300 py-3 pr-5 text-xs font-medium text-base-content/50;
+  }
+  .admin-detail-table td {
+    @apply border-b border-base-200 py-4 pr-5 align-top;
+  }
+  .admin-detail-table tr:last-child td {
+    @apply border-b-0;
+  }
+  .admin-detail-table th:last-child,
+  .admin-detail-table td:last-child {
+    @apply pr-0;
   }
 }
 

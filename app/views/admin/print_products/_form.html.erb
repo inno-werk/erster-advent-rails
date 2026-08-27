@@ -1,0 +1,75 @@
+<% title = @product.persisted? ? "Printprodukt bearbeiten" : "Printprodukt hinzufügen" %>
+<% submit_label = @product.persisted? ? "Änderungen speichern" : "Printprodukt erstellen" %>
+<% content_for :title, title %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [["Printprodukte", admin_print_products_path], [title]] %>
+<% end %>
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", hint: capture { %>
+    <span data-unsaved-changes-target="status" data-clean-text="<%= @product.persisted? ? 'Alle Änderungen gespeichert.' : 'Neues Printprodukt' %>" data-dirty-text="Sie haben ungespeicherte Änderungen."></span>
+  <% }, actions: capture { %>
+    <%= link_to "Abbrechen", admin_print_products_path, class: "btn btn-ghost" %>
+    <%= button_tag submit_label, type: "submit", form: "print-product-form",
+      class: @product.persisted? ? "btn btn-primary hidden" : "btn btn-primary",
+      data: @product.persisted? ? { unsaved_changes_target: "save" } : {} %>
+  <% } %>
+<% end %>
+
+<%= form_with model: [:admin, @product], html: { id: "print-product-form", multipart: true, data: {
+  unsaved_changes_target: "form", invalid: @product.errors.any?,
+  action: "input->unsaved-changes#markDirty change->unsaved-changes#markDirty"
+} } do |form| %>
+  <header class="border-b border-base-content/10 pb-6">
+    <h1 class="text-2xl font-semibold tracking-tight"><%= @product.title.presence || title %></h1>
+    <p class="mt-2 text-sm text-base-content/60">Bündelinhalt, Beschreibung und Verfügbarkeit für die Printbestellung festlegen.</p>
+  </header>
+  <div class="mt-6"><%= render "shared/form_errors", record: @product %></div>
+
+  <div class="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
+    <section aria-labelledby="product-details-heading">
+      <h2 id="product-details-heading" class="form-section-title">Produktinformationen</h2>
+      <div class="mt-6 space-y-5">
+        <div>
+          <%= form.label :title, "Name / Bündelinhalt", class: "field-label" %>
+          <%= form.text_field :title, required: true, class: "field-input", placeholder: "z. B. 3 × Plakate" %>
+        </div>
+        <div>
+          <%= form.label :description, "Beschreibung", class: "field-label" %>
+          <%= form.text_area :description, required: true, rows: 6, class: "field-input" %>
+          <p class="field-hint">Beschreiben Sie Inhalt, Format und Stückzahl eines Bündels.</p>
+        </div>
+      </div>
+    </section>
+    <section aria-labelledby="product-image-heading">
+      <h2 id="product-image-heading" class="form-section-title">Produktbild</h2>
+      <% if @product.image.attached? && @product.image.persisted? %>
+        <%= image_tag @product.image, alt: @product.title, class: "mt-6 h-48 w-full object-contain object-left" %>
+      <% else %>
+        <p class="mt-6 text-sm text-base-content/40">Noch kein Produktbild hinterlegt.</p>
+      <% end %>
+      <div class="mt-5">
+        <%= form.label :image, "Bild hochladen oder ersetzen", class: "field-label" %>
+        <%= form.file_field :image, accept: "image/jpeg,image/png,image/webp,image/gif", class: "file-input file-input-bordered w-full rounded-lg" %>
+        <p class="field-hint">JPEG, PNG, WebP oder GIF · maximal 10 MB.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="mt-10 border-t border-base-content/10 pt-8" aria-labelledby="product-availability-heading">
+    <h2 id="product-availability-heading" class="form-section-title">Verfügbarkeit und Reihenfolge</h2>
+    <div class="form-grid">
+      <div>
+        <%= form.label :position, "Reihenfolge", class: "field-label" %>
+        <%= form.number_field :position, min: 0, required: true, class: "field-input max-w-40" %>
+        <p class="field-hint">Kleinere Zahlen erscheinen weiter oben in der Auswahl.</p>
+      </div>
+      <div>
+        <label class="flex items-center gap-3 text-sm font-medium">
+          <%= form.check_box :active, class: "checkbox checkbox-primary" %>
+          Für neue Bestellungen verfügbar
+        </label>
+        <p class="field-hint">Deaktivierte Produkte bleiben in bestehenden Bestellungen erhalten.</p>
+      </div>
+    </div>
+  </section>
+<% end %>

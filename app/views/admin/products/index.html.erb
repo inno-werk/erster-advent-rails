@@ -1,24 +1,6 @@
-<%= content_for :title, "Produkte" %>
-
-<%= render "admin/shared/page_header",
-title: "Produkte",
-subtitle: "Alle Produkte der registrierten Geschäfte" %>
-
-<section class="w-full space-y-6">
-  <%= form_with url: admin_products_path, method: :get do %>
-    <label class="admin-search max-w-xl">
-      <%= heroicon "magnifying-glass",
-      options: {
-        class: "w-5 h-5 shrink-0 text-black/40",
-      } %>
-      <%= text_field_tag :q, @q, placeholder: "Produkt oder Geschäft suchen...", type: :search %>
-    </label>
-  <% end %>
-
-  <div class="admin-card">
-    <% if @products.any? %>
-      <div class="overflow-x-auto">
-      <table class="table">
+<%= render layout: "admin/shared/list", locals: { title: "Produkte", path: admin_products_path, filters: [{ name: :sort, label: "Sortierung", value: @sort, default: "newest", options: [["Neueste zuerst", "newest"], ["Preis aufsteigend", "price_asc"], ["Preis absteigend", "price_desc"]] }] } do %>
+  <% if @products.any? %>
+      <table class="table admin-table">
         <thead>
           <tr>
             <th>Titel</th>
@@ -40,15 +22,7 @@ subtitle: "Alle Produkte der registrierten Geschäfte" %>
           <% end %>
         </tbody>
       </table>
-      </div>
-    <% else %>
-      <p class="p-8 text-center font-jakarta font-light text-base-content/60">
-        Keine Produkte gefunden.
-      </p>
-    <% end %>
-  </div>
-
-  <div class="flex justify-center">
-    <%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>
-  </div>
-</section>
+  <% else %>
+    <p class="admin-list-empty">Keine Produkte gefunden.</p>
+  <% end %>
+<% end %>

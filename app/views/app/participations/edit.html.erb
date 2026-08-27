@@ -1,0 +1,40 @@
+<% upgrading = @participation.paid? %>
+<% content_for :title, upgrading ? "Mitgliedschaft erhöhen" : (setup_flow? ? "Mitgliedschaft auswählen" : "Mitgliedschaft ändern") %>
+<%= render "app/shared/onboarding_steps", step: 1 if setup_flow? %>
+<% unless setup_flow? %>
+  <% content_for :topbar do %>
+    <%= render "app/shared/topbar", crumbs: [ [ "Mitgliedschaft", app_participation_path ], [ upgrading ? "Mitgliedschaft erhöhen" : "Mitgliedschaft ändern" ] ] %>
+  <% end %>
+<% end %>
+<header class="mb-8 max-w-3xl">
+  <p class="admin-eyebrow mb-3">Gemeinsam am Ersten Advent</p>
+  <h1 class="admin-heading">Ihre Mitgliedschaft <%= EventConfiguration.year %></h1>
+  <p class="admin-subtitle mt-3">Wählen Sie den passenden Teilnahmebeitrag für Ihr Geschäft. Die Mitgliedschaft gilt für dieses Veranstaltungsjahr.</p>
+  <% if upgrading %>
+    <p class="mt-4 text-base-content/70">Bereits bezahlt: <strong><%= participation_amount(@participation.amount_cents) %></strong> für «<%= @participation.category_title %>». Sie können nur einen höheren Beitrag wählen und bezahlen ausschliesslich die Differenz. Ihre bisherige Mitgliedschaft bleibt bis zur Bestätigung der Differenzzahlung bestehen.</p>
+  <% end %>
+</header>
+<%= form_with model: @participation, url: app_participation_path(setup: setup_flow? ? nil : 0), method: :patch, id: "participation-form" do |form| %>
+  <%= render "shared/form_errors", record: @participation %>
+  <%= render "shared/form_errors", record: @upgrade if @upgrade %>
+  <fieldset class="grid gap-6 lg:grid-cols-3">
+    <legend class="sr-only">Teilnahmekategorie auswählen</legend>
+    <% (upgrading ? @participation.upgrade_categories : Participation::CATEGORIES).each do |key, category| %>
+      <label class="admin-card bg-base-100 p-6 md:p-8 cursor-pointer space-y-5 border-2 border-transparent has-[:checked]:border-primary">
+        <div class="flex gap-3 items-center">
+          <%= form.radio_button :category, key, required: true, class: "radio radio-primary" %>
+          <span class="font-bold text-xl"><%= category[:title] %></span>
+        </div>
+        <p class="font-bold text-3xl"><%= participation_amount(category[:amount_cents]) %></p>
+        <% if upgrading %><p class="font-semibold text-primary">Noch zu bezahlen: <%= participation_amount(category[:amount_cents] - @participation.amount_cents) %></p><% end %>
+        <p class="text-sm leading-relaxed text-base-content/75"><%= category[:description] %></p>
+      </label>
+    <% end %>
+  </fieldset>
+<% end %>
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", hint: "Es wird noch keine Zahlung ausgelöst.", actions: capture {
+    concat link_to("Abbrechen", app_participation_path, class: "btn btn-ghost") unless setup_flow?
+    concat button_tag(upgrading ? "Erhöhung wählen und zur Zahlung" : (setup_flow? ? "Weiter zum Zahlungsstatus" : "Änderungen speichern"), type: "submit", form: "participation-form", class: "btn btn-primary")
+  } %>
+<% end %>

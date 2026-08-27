@@ -1,0 +1,38 @@
+<%= render layout: "admin/shared/list", locals: { title: "Printprodukte", path: admin_print_products_path,
+  actions: link_to("Printprodukt hinzufügen", new_admin_print_product_path, class: "btn btn-primary btn-sm rounded-lg"), filters: [
+    { name: :active, label: "Verfügbarkeit", value: @active, options: [["Alle Produkte", ""], ["Verfügbar", "true"], ["Deaktiviert", "false"]] }
+  ] } do %>
+<details class="border-b border-base-300 py-4" <%= "open" if @distribution.errors.any? %>>
+  <summary class="cursor-pointer text-sm font-medium text-base-content/70">Verteilung und Bestellschluss <%= EventConfiguration.year %></summary>
+  <section class="py-5" aria-labelledby="distribution-heading">
+  <h2 id="distribution-heading" class="text-xl font-bold mb-2">Verteilung <%= EventConfiguration.year %></h2>
+  <p class="text-sm text-base-content/60 mb-5">Bis und mit Bestellschluss (Schweizer Zeit) können Teilnehmende ihre Bestellung ändern. Beide Daten werden in ihrer Bestellübersicht angezeigt. Ohne Bestellschluss bleiben Änderungen möglich.</p>
+  <%= form_with model: @distribution, url: admin_print_distribution_path, method: :patch do |form| %>
+    <%= render "shared/form_errors", record: @distribution %>
+    <div class="flex flex-wrap items-end gap-4">
+      <div>
+        <%= form.label :order_deadline_on, "Bestellschluss", class: "field-label" %>
+        <%= form.date_field :order_deadline_on, class: "field-input" %>
+      </div>
+      <div>
+        <%= form.label :distribution_on, "Verteildatum", class: "field-label" %>
+        <%= form.date_field :distribution_on, class: "field-input" %>
+      </div>
+      <%= form.submit "Daten speichern", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</section>
+</details>
+  <% if @products.any? %>
+<table class="table admin-table">
+  <thead><tr><th>Produkt</th><th>Beschreibung</th><th>Verfügbar</th><th>Position</th><th></th></tr></thead>
+  <tbody><% @products.each do |product| %><tr>
+    <td><% if product.image.attached? %><%= image_tag product.image, alt: "", class: "h-16 w-16 object-contain" %><% end %><%= product.title %></td>
+    <td><%= product.description %></td><td><%= product.active? ? 'Ja' : 'Nein' %></td><td><%= product.position %></td>
+    <td><%= link_to "Bearbeiten", edit_admin_print_product_path(product), class: "link link-primary" %></td>
+  </tr><% end %></tbody>
+</table>
+  <% else %>
+    <p class="admin-list-empty">Keine Printprodukte gefunden.</p>
+  <% end %>
+<% end %>

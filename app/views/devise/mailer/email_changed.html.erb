@@ -1,7 +1,9 @@
-<p>Hallo <%= @email %>!</p>
-
+<% content_for :heading, "Ihre E-Mail-Adresse wurde geändert" %>
+<% content_for :preheader, "Information zur E-Mail-Adresse Ihres Kontos." %>
+<p style="margin:0 0 16px;">Guten Tag <%= @resource.name.presence || @email %></p>
 <% if @resource.try(:unconfirmed_email?) %>
-  <p>Wir möchten dich darüber informieren, dass deine E-Mail-Adresse zu <%= @resource.unconfirmed_email %> geändert wird.</p>
+  <p style="margin:0 0 16px;">Für Ihr Konto wurde die neue E-Mail-Adresse <strong><%= @resource.unconfirmed_email %></strong> hinterlegt. Die Bestätigung dieser Adresse steht noch aus.</p>
 <% else %>
-  <p>Wir möchten dich darüber informieren, dass deine E-Mail-Adresse auf <%= @resource.email %> geändert wurde.</p>
+  <p style="margin:0 0 16px;">Die E-Mail-Adresse Ihres Kontos lautet jetzt <strong><%= @resource.email %></strong>.</p>
 <% end %>
+<p style="margin:0;color:#647078;font-size:14px;">Falls Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie uns bitte.</p>

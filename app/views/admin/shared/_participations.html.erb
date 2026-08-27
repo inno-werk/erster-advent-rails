@@ -1,0 +1,27 @@
+<section class="mt-8 border-t border-base-200 pt-6">
+  <h2 class="text-xl font-bold mb-4">Teilnahme und Zahlung</h2>
+  <% unless user.current_participation %><p class="alert alert-warning mb-4">Keine Teilnahme für <%= EventConfiguration.year %> ausgewählt.</p><% end %>
+  <% user.participations.order(year: :desc).each do |participation| %>
+    <div class="admin-card p-6 mb-4">
+      <%= render "shared/participation_details", participation: participation %>
+      <% if participation.upgrades.empty? %>
+        <%= form_with model: participation, url: admin_participation_path(participation), method: :patch, class: "mt-6 flex flex-wrap gap-3 items-end" do |form| %>
+        <div><%= form.label :payment_status, "Zahlungsstatus manuell setzen", class: "field-label" %>
+        <%= form.select :payment_status, [["Offen", "pending"], ["Bezahlt", "paid"]], {}, class: "select select-bordered" %></div>
+        <%= form.submit "Status speichern", class: "btn btn-primary", data: { turbo_confirm: "Zahlungsstatus manuell ändern? Es wird keine Online-Zahlung ausgelöst." } %>
+        <% end %>
+      <% end %>
+      <% participation.upgrades.order(:created_at).each do |upgrade| %>
+        <div class="mt-6 border-t border-base-300 pt-6">
+          <%= render "shared/participation_upgrade", upgrade: upgrade %>
+          <% if upgrade.payable? %>
+            <%= button_to "Differenzzahlung bestätigen", admin_participation_upgrade_path(upgrade), method: :patch, class: "btn btn-primary mt-4", data: { turbo_confirm: "Eingang von #{participation_amount(upgrade.difference_cents)} bestätigen und die höhere Mitgliedschaft aktivieren? Es wird keine Online-Zahlung ausgelöst." } %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+  <% user.print_orders.order(year: :desc).each do |order| %>
+    <p class="mt-3"><%= link_to "Printbestellung #{order.year} ansehen", admin_print_order_path(order), class: "link link-primary" %></p>
+  <% end %>
+</section>

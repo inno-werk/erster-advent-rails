@@ -1,0 +1,14 @@
+<section aria-label="Mitgliedschaftserhöhung">
+  <h2 class="text-xl font-bold mb-4">Erhöhung auf «<%= upgrade.category_title %>»</h2>
+  <dl class="grid gap-4 sm:grid-cols-3">
+    <div><dt class="admin-eyebrow">Neuer Gesamtbeitrag</dt><dd><%= participation_amount(upgrade.amount_cents) %></dd></div>
+    <div><dt class="admin-eyebrow">Bereits bezahlt</dt><dd><%= participation_amount(upgrade.previous_amount_cents) %></dd></div>
+    <div><dt class="admin-eyebrow"><%= upgrade.paid? ? 'Bezahlte Differenz' : 'Offene Differenz' %></dt><dd class="font-bold"><%= participation_amount(upgrade.difference_cents) %></dd></div>
+  </dl>
+  <% if upgrade.pending? %>
+    <p class="mt-4 text-sm text-base-content/65">Die erhöhte Mitgliedschaft wird nach Bestätigung dieser Differenzzahlung aktiv. Bis dahin gilt Ihre bisherige bezahlte Mitgliedschaft.</p>
+  <% else %>
+    <p class="mt-4 text-sm text-base-content/65">Differenzzahlung bestätigt am <%= l(upgrade.paid_at, format: :short) %>.</p>
+    <% if upgrade.payment_provider == "dummy" %><p class="mt-2 text-sm font-semibold text-base-content/65">Testzahlung · kein echter Geldfluss.</p><% end %>
+  <% end %>
+</section>

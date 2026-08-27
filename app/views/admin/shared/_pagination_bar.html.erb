@@ -1,23 +1,27 @@
-<%# Pagination footer shared by admin index pages: page nav on the left,
-  a "per page" selector on the right that resubmits the current filters.
-  Parameters:
-  - pagy
-  - path: the index path the per-page form submits to
-  - extra_params: hash of other query params to preserve (optional) %>
-
-<div class="mt-6 flex flex-wrap items-center justify-between gap-4">
-  <div><%== pagy_nav(pagy) if pagy.pages > 1 %></div>
-
+<footer class="admin-list-footer">
+  <nav aria-label="Seitennavigation" class="flex items-center gap-2">
+    <% query = (local_assigns[:extra_params] || {}).merge(per: pagy.items) %>
+    <% if pagy.prev %>
+      <%= link_to "#{path}?#{query.merge(page: pagy.prev).to_query}", class: "admin-list-button", aria: { label: "Vorherige Seite" }, rel: "prev" do %>
+        <%= heroicon "chevron-left", options: { class: "h-4 w-4", "aria-hidden": true } %>
+      <% end %>
+    <% else %>
+      <button class="admin-list-button" disabled aria-label="Vorherige Seite"><%= heroicon "chevron-left", options: { class: "h-4 w-4", "aria-hidden": true } %></button>
+    <% end %>
+    <span class="px-2 text-xs text-base-content/60" aria-live="polite">Seite <%= pagy.page %> von <%= pagy.pages %></span>
+    <% if pagy.next %>
+      <%= link_to "#{path}?#{query.merge(page: pagy.next).to_query}", class: "admin-list-button", aria: { label: "Nächste Seite" }, rel: "next" do %>
+        <%= heroicon "chevron-right", options: { class: "h-4 w-4", "aria-hidden": true } %>
+      <% end %>
+    <% else %>
+      <button class="admin-list-button" disabled aria-label="Nächste Seite"><%= heroicon "chevron-right", options: { class: "h-4 w-4", "aria-hidden": true } %></button>
+    <% end %>
+  </nav>
   <%= form_with url: path, method: :get, class: "flex items-center gap-2" do %>
     <% (local_assigns[:extra_params] || {}).each do |key, value| %>
       <%= hidden_field_tag key, value if value.present? %>
     <% end %>
-    <label class="flex items-center gap-2 font-jakarta font-light text-sm text-base-content/60">
-      <%= select_tag :per,
-      options_for_select([ 10, 20, 50 ], pagy.vars[:items]),
-      class: "select select-bordered select-sm rounded-full",
-      onchange: "this.form.requestSubmit()" %>
-      pro Seite
-    </label>
+    <label for="list-per-page" class="text-xs text-base-content/60">Pro Seite</label>
+    <%= select_tag :per, options_for_select([10, 20, 50], pagy.items), id: "list-per-page", class: "admin-page-size", onchange: "this.form.requestSubmit()" %>
   <% end %>
-</div>
+</footer>

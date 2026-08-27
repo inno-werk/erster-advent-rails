@@ -1,14 +1,6 @@
-<%= content_for :title, "Bestellungen" %>
-
-<%= render "admin/shared/page_header",
-title: "Bestellungen",
-subtitle: "Alle Bestellungen im Überblick" %>
-
-<%= render "shared/under_construction" do %>
-  <section class="w-full space-y-6">
-    <div class="admin-card">
-    <div class="overflow-x-auto">
-      <table class="table">
+<%= render layout: "admin/shared/list", locals: { title: "Bestellungen", path: admin_orders_path, filters: [{ name: :status, label: "Status", value: @status, options: [["Alle Status", ""]] + @statuses.map { |status| [status, status] } }] } do %>
+  <% if @orders.any? %>
+      <table class="table admin-table">
         <thead>
           <tr>
             <th>#</th>
@@ -34,11 +26,7 @@ subtitle: "Alle Bestellungen im Überblick" %>
           <% end %>
         </tbody>
       </table>
-    </div>
-    </div>
-
-    <div class="flex justify-center">
-      <%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>
-    </div>
-  </section>
+  <% else %>
+    <p class="admin-list-empty">Keine Bestellungen gefunden.</p>
+  <% end %>
 <% end %>

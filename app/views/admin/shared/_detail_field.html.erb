@@ -1,0 +1,16 @@
+<div class="admin-detail-field">
+  <dt><%= label %></dt>
+  <dd>
+    <% if local_assigns[:content].present? %>
+      <%= content %>
+    <% elsif local_assigns[:value].present? %>
+      <% if local_assigns[:url].present? %>
+        <%= link_to value, url, class: "admin-detail-link" %>
+      <% else %>
+        <span class="whitespace-pre-line"><%= value %></span>
+      <% end %>
+    <% else %>
+      <span class="text-base-content/40">Nicht angegeben</span>
+    <% end %>
+  </dd>
+</div>

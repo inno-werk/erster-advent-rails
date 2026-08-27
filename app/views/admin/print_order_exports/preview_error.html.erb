@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vorschau prüfen</title></head>
+  <body style="margin: 32px; font: 15px/1.6 system-ui, sans-serif; color: #243b36;">
+    <h1 style="font-size: 20px;">Vorschau konnte nicht erstellt werden</h1>
+    <% @export.errors.full_messages.each do |error| %><p><%= error %></p><% end %>
+    <p>Bitte passen Sie die Angaben an und aktualisieren Sie die Vorschau erneut.</p>
+  </body>
+</html>

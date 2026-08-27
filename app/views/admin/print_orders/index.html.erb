@@ -1,0 +1,74 @@
+<% print_menu = capture do %>
+  <details class="dropdown dropdown-end">
+    <summary class="admin-list-button">
+      <%= heroicon "printer", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+      Drucken
+      <%= heroicon "chevron-down", options: { class: "h-3 w-3", "aria-hidden": true } %>
+    </summary>
+    <ul class="dropdown-content menu z-30 mt-2 w-64 rounded-xl border border-base-300 bg-base-100 p-2 shadow-lg" aria-label="Druckauswahl">
+      <li><%= link_to addresses_admin_print_order_export_path(year: @year) do %>
+        <span><span class="block font-medium">Adressen</span><span class="text-xs text-base-content/50">Etiketten einrichten & Vorschau</span></span>
+      <% end %></li>
+      <li><%= link_to letters_admin_print_order_export_path(year: @year) do %>
+        <span><span class="block font-medium">Briefe</span><span class="text-xs text-base-content/50">Vorschau mit persönlichem Text</span></span>
+      <% end %></li>
+    </ul>
+  </details>
+<% end %>
+<% annual_summary = capture do %>
+  <div class="admin-order-summary">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h2 id="order-summary-title" class="text-sm font-semibold">Gesamtmengen <%= @year %></h2>
+      <p class="text-xs text-base-content/50"><%= @ordered_count %> Bestellungen mit Material · unabhängig von Suchfiltern</p>
+    </div>
+    <table class="mt-3 w-full max-w-3xl text-left text-sm" aria-labelledby="order-summary-title">
+      <thead>
+        <tr class="border-b border-base-300 text-xs text-base-content/50">
+          <th scope="col" class="pb-2 pr-6 font-medium">Produkt</th>
+          <th scope="col" class="pb-2 text-right font-medium">Anzahl</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @totals.each do |(_id, title), quantity| %>
+          <tr class="border-b border-base-200 last:border-0">
+            <th scope="row" class="py-2 pr-6 font-normal"><%= title %></th>
+            <td class="whitespace-nowrap py-2 text-right tabular-nums"><strong class="font-semibold"><%= quantity %> Bündel</strong></td>
+          </tr>
+        <% end %>
+        <% if @totals.empty? %>
+          <tr><td colspan="2" class="py-3 text-base-content/50">Noch keine Printmaterialien bestellt.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+<% annual_overview = capture do %>
+  <section class="admin-list-overview" aria-labelledby="order-summary-title">
+    <div class="admin-list-overview-content">
+      <div class="min-w-0 flex-1"><%= annual_summary %></div>
+      <div class="admin-list-overview-actions"><%= print_menu %></div>
+    </div>
+  </section>
+<% end %>
+<%= render layout: "admin/shared/list", locals: { title: "Printbestellungen", path: admin_print_orders_path, overview: annual_overview, filters: [
+  { name: :year, label: "Teilnahmejahr", type: :year, value: @year, default: EventConfiguration.year },
+  { name: :product_id, label: "Printmaterial", value: @product_id, options: [["Alle Materialien", ""]] + @filter_products.map { |product| [product.title, product.id] } },
+  { name: :contents, label: "Bestellinhalt", value: @contents, options: [["Alle Bestellungen", ""], ["Mit Material", "ordered"], ["Ohne Material", "empty"]] }
+] } do %>
+  <section class="admin-orders-section" aria-labelledby="all-orders-title">
+    <div class="admin-orders-section-header">
+      <h2 id="all-orders-title">Alle Bestellungen</h2>
+      <p><%= @pagy.count %> Einträge</p>
+    </div>
+    <% if @print_orders.any? %>
+      <table class="table admin-table">
+        <thead><tr><th>Geschäft</th><th>Benutzer</th><th>Jahr</th><th>Aktualisiert</th><th></th></tr></thead>
+        <tbody><% @print_orders.each do |order| %><tr>
+          <td><%= order.user.business&.business_name || 'Noch nicht erfasst' %></td><td><%= link_to order.user.email, admin_user_path(order.user), class: "admin-action-link" %></td><td><%= order.year %></td><td><%= l order.updated_at, format: :short %></td><td><%= link_to "Bestellung ansehen", admin_print_order_path(order), class: "admin-action-link" %></td>
+        </tr><% end %></tbody>
+      </table>
+    <% else %>
+      <p class="admin-list-empty">Keine Printbestellungen gefunden.</p>
+    <% end %>
+  </section>
+<% end %>

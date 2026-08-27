@@ -1,0 +1,52 @@
+<section class="admin-detail-section" aria-labelledby="store-payments-heading">
+  <h2 id="store-payments-heading">Zahlungen</h2>
+  <p class="mt-1 text-xs text-base-content/50">Mitgliedschaftsbeiträge und Differenzzahlungen aller Teilnahmejahre.</p>
+  <% if participations.any? %>
+    <div class="mt-4 overflow-x-auto">
+      <table class="admin-detail-table">
+        <thead><tr><th scope="col">Zahlung</th><th scope="col">Betrag</th><th scope="col">Status</th><th scope="col">Bezahlt am</th><th scope="col">Zahlungsquelle / Referenz</th><th scope="col"><span class="sr-only">Aktion</span></th></tr></thead>
+        <tbody>
+          <% participations.each do |participation| %>
+            <% store_payment_entries(participation).each do |entry| %>
+              <% payment = entry[:record] %>
+              <tr>
+                <td>
+                  <span class="font-medium"><%= participation.year %></span>
+                  <p class="mt-1 min-w-48 text-xs text-base-content/60"><%= entry[:title] %></p>
+                </td>
+                <td class="whitespace-nowrap font-medium tabular-nums"><%= participation_amount(entry[:amount_cents]) %></td>
+                <td class="whitespace-nowrap">
+                  <% if payment.paid? %>
+                    Bezahlt
+                  <% elsif payment.is_a?(ParticipationUpgrade) && !entry[:changeable] %>
+                    Nicht mehr verfügbar
+                  <% else %>
+                    Offen
+                  <% end %>
+                </td>
+                <td class="whitespace-nowrap text-base-content/60"><%= payment.paid_at ? l(payment.paid_at, format: :short) : "–" %></td>
+                <td class="max-w-56 break-words text-xs text-base-content/60">
+                  <%= payment.payment_provider == "dummy" ? "Testzahlung · kein echter Geldfluss" : payment.payment_provider.presence || (payment.paid? ? "Manuell bestätigt" : "–") %>
+                  <% if payment.payment_reference.present? %><p class="mt-1 break-all"><%= payment.payment_reference %></p><% end %>
+                </td>
+                <td class="text-right">
+                  <% if entry[:changeable] %>
+                    <% if payment.is_a?(ParticipationUpgrade) %>
+                      <%= button_to "Differenzzahlung bestätigen", admin_participation_upgrade_path(payment), method: :patch, class: "admin-action-link whitespace-nowrap cursor-pointer", data: { turbo_confirm: "Eingang von #{participation_amount(entry[:amount_cents])} bestätigen?" } %>
+                    <% else %>
+                      <%= button_to payment.paid? ? "Zahlung zurücksetzen" : "Als bezahlt markieren", admin_participation_path(payment), method: :patch,
+                        params: { participation: { payment_status: payment.paid? ? "pending" : "paid" } },
+                        class: "admin-action-link whitespace-nowrap cursor-pointer", data: { turbo_confirm: "Zahlungsstatus manuell ändern? Es wird keine Online-Zahlung ausgelöst." } %>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="mt-4 text-sm text-base-content/40"><%= local_assigns.fetch(:empty_message, "Für dieses Geschäft sind noch keine Zahlungen erfasst.") %></p>
+  <% end %>
+</section>

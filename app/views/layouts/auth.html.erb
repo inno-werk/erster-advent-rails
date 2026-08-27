@@ -39,12 +39,6 @@ button:has(+ #popover-1:popover-open) .icon-up {
         <% end %>
       </div>
 
-      <div class="toast toast-top toast-end">
-        <% flash.each do |k, v| %>
-          <div class="alert alert-info <%= k %>"><%= v %></div>
-        <% end %>
-      </div>
-
       <%= yield %>
 
     </main>

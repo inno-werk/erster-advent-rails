@@ -1,0 +1,9 @@
+<section class="mt-8 border-t border-base-content/10 pt-5 text-sm text-base-content/65" aria-labelledby="print-delivery-heading">
+  <h2 id="print-delivery-heading" class="font-semibold text-base-content/80 mb-2">Verteilung und Lieferung</h2>
+  <% if (date = PrintDistribution.current.distribution_on) %>
+    <p>Die Printmaterialien werden am <time datetime="<%= date.iso8601 %>"><%= l(date, format: "%d.%m.%Y") %></time> verteilt.</p>
+  <% else %>
+    <p>Das Datum wird noch bekannt gegeben.</p>
+  <% end %>
+  <p class="mt-2"><%= EventConfiguration.print_delivery_information %></p>
+</section>

@@ -1,0 +1,37 @@
+<section class="admin-detail-section" aria-labelledby="store-orders-heading">
+  <div class="flex items-center justify-between gap-4">
+    <h2 id="store-orders-heading">Bestellungen</h2>
+    <span class="text-xs text-base-content/50"><%= orders.size %> Printbestellungen</span>
+  </div>
+  <% if orders.any? %>
+    <div class="mt-4 overflow-x-auto">
+      <table class="admin-detail-table">
+        <thead><tr><th scope="col">Bestellung</th><th scope="col">Material</th><th scope="col">Gesamtmenge</th><th scope="col">Aktualisiert</th><th scope="col"><span class="sr-only">Aktion</span></th></tr></thead>
+        <tbody>
+          <% orders.each do |order| %>
+            <tr>
+              <td class="whitespace-nowrap">
+                <%= link_to "Printbestellung #{order.year}", admin_print_order_path(order), class: "admin-detail-link" %>
+                <p class="mt-1 text-xs text-base-content/40">#<%= order.id %></p>
+              </td>
+              <td>
+                <% if order.items.any? %>
+                  <ul class="space-y-1">
+                    <% order.items.each do |item| %><li><%= item.quantity %> Bündel × <%= item.print_product.title %></li><% end %>
+                  </ul>
+                <% else %>
+                  <span class="text-base-content/40">Kein Material ausgewählt</span>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap"><%= order.items.sum(&:quantity) %> Bündel</td>
+              <td class="whitespace-nowrap text-base-content/60"><%= l(order.updated_at, format: :short) %></td>
+              <td class="text-right"><%= link_to "Ansehen", admin_print_order_path(order), class: "admin-action-link", aria: { label: "Printbestellung #{order.year} ansehen" } %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="mt-4 text-sm text-base-content/40"><%= local_assigns.fetch(:empty_message, "Für dieses Geschäft liegen noch keine Printbestellungen vor.") %></p>
+  <% end %>
+</section>

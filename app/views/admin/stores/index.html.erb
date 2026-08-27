@@ -1,49 +1,8 @@
-<%= content_for :title, "Geschäfte" %>
-
-<div class="flex h-full min-h-0 flex-col overflow-hidden">
-  <div class="shrink-0">
-    <%= render "admin/shared/page_header",
-    title: "Geschäfte",
-    subtitle: "Alle registrierten Geschäfte verwalten und prüfen." %>
-  </div>
-
-  <%= form_with url: admin_stores_path,
-  method: :get,
-  class: "mb-4 flex shrink-0 flex-wrap items-center justify-between gap-4" do %>
-    <label class="admin-search max-w-xl flex-1">
-      <%= heroicon "magnifying-glass",
-      options: {
-        class: "w-5 h-5 shrink-0 text-black/40",
-      } %>
-      <%= text_field_tag :q, @q, placeholder: "Geschäfte suchen...", type: :search %>
-    </label>
-
-    <div class="flex flex-wrap items-center gap-2">
-      <%= select_tag :status,
-      options_for_select(
-        [ [ "Status: Alle", "" ] ] + Business.statuses.keys.map { |s| [ "Status: #{s.humanize}", s ] },
-        @status
-      ),
-      class: "select select-bordered rounded-full bg-base-100",
-      onchange: "this.form.requestSubmit()" %>
-
-      <%= select_tag :sort,
-      options_for_select(
-        [ [ "Sortieren: Name (A-Z)", "name_asc" ], [ "Sortieren: Name (Z-A)", "name_desc" ] ],
-        @sort
-      ),
-      class: "select select-bordered rounded-full bg-base-100",
-      onchange: "this.form.requestSubmit()" %>
-
-      <span class="whitespace-nowrap font-jakarta font-light text-sm text-base-content/50">
-        <%= @businesses.size %> von <%= @pagy.count %> Geschäften
-      </span>
-    </div>
-  <% end %>
-
-  <div class="min-h-0 flex-1 overflow-y-auto">
-    <% if @businesses.any? %>
-      <div class="overflow-x-auto">
+<%= render layout: "admin/shared/list", locals: { title: "Geschäfte", path: admin_stores_path, filters: [
+  { name: :status, label: "Freigabe", value: @status, options: [["Alle Status", ""], ["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Gelöscht", "deleted"]] },
+  { name: :sort, label: "Sortierung", value: @sort, default: "name_asc", options: [["Name A–Z", "name_asc"], ["Name Z–A", "name_desc"]] }
+] } do %>
+  <% if @businesses.any? %>
         <table class="admin-table table">
           <thead>
             <tr>
@@ -76,18 +35,7 @@
             <% end %>
           </tbody>
         </table>
-      </div>
-    <% else %>
-      <p class="p-8 text-center font-jakarta font-light text-base-content/60">
-        Keine Geschäfte gefunden.
-      </p>
-    <% end %>
-  </div>
-
-  <div class="shrink-0">
-    <%= render "admin/shared/pagination_bar",
-    pagy: @pagy,
-    path: admin_stores_path,
-    extra_params: { q: @q, status: @status, sort: @sort } %>
-  </div>
-</div>
+  <% else %>
+    <p class="admin-list-empty">Keine Geschäfte gefunden.</p>
+  <% end %>
+<% end %>

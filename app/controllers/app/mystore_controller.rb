@@ -1,7 +1,8 @@
 class App::MystoreController < App::BaseController
+  before_action :require_business_editing, except: :show
   before_action :set_business, except: :create
   before_action :initialize_business, only: [ :edit, :create, :update ]
-  before_action :set_categories, only: [ :edit, :update ]
+  before_action :set_categories, only: [ :edit, :create, :update ]
 
 
   def show
@@ -64,6 +65,10 @@ end
 
   private
 
+  def require_business_editing
+    redirect_to app_mystore_path, status: :see_other unless current_user.business_editing_allowed?
+  end
+
 
   def set_categories
   @categories = BUSINESS_CATEGORIES
@@ -75,15 +80,15 @@ end
   end
 
   def initialize_business
-    puts current_user.email
     @business ||= current_user.build_business
 
     @business.business_name ||= current_user.business_name
     @business.phone ||= current_user.phone
     @business.address ||= current_user.address
     @business.billing_address ||= current_user.address
+    @business.map_link ||= ""
     @business.email = @business.email.presence || current_user.email
-    @business.contact_name = @business.contact_name.presence || current_user.name
+    @business.contact_name = @business.contact_name.presence || current_user.name.to_s
   end
 
   def business_params

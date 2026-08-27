@@ -1,113 +1,118 @@
-<%= content_for :title, @user.email %>
-
-<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-  <%= link_to admin_users_path,
-  class: "inline-flex items-center gap-1 link-more text-sm md:text-base" do %>
-    <%= heroicon "chevron-left", options: { class: "w-4 h-4" } %>
-    Zurück zu allen Benutzern
-  <% end %>
-
-  <% unless @user.deleted? %>
-    <%= button_to "Als Benutzer anmelden",
-    impersonate_admin_user_path(@user),
-    method: :post,
-    class: "btn btn-primary rounded-full",
-    data: {
-      turbo_confirm: "Möchten Sie sich wirklich als #{@user.email} anmelden?",
-    } %>
-  <% end %>
-</div>
-
-<div class="w-full max-w-2xl">
-  <% if @user.deleted? %>
-    <div class="alert alert-warning mb-8 rounded-2xl" data-controller="dismiss">
-      <%= heroicon "exclamation-triangle", options: { class: "w-5 h-5 shrink-0" } %>
-      <span>Dieser Benutzer ist deaktiviert und kann nicht angemeldet werden.</span>
-      <button
-        type="button"
-        data-action="dismiss#close"
-        class="btn btn-ghost btn-square btn-sm"
-        aria-label="Schliessen"
-      >
-        <%= heroicon "x-mark", options: { class: "w-4 h-4" } %>
-      </button>
+<% content_for :title, @user.name.presence || @user.email %>
+<% content_for :admin_detail_header do %>
+  <header class="admin-detail-header">
+    <div class="min-w-0">
+      <%= link_to "Alle Benutzer", admin_users_path, class: "admin-action-link text-xs" %>
+      <h1 class="mt-1 break-words text-xl font-semibold tracking-tight"><%= @user.name.presence || @user.email %></h1>
+      <p class="mt-1 text-xs text-base-content/50">Benutzer #<%= @user.id %> · <%= @user.role_name %></p>
     </div>
-  <% end %>
+    <% unless @user.deleted? || @user == current_user %>
+      <%= button_to "Als Benutzer anmelden", impersonate_admin_user_path(@user), method: :post, class: "btn btn-primary btn-sm rounded-lg", data: { turbo_confirm: "Möchten Sie sich wirklich als #{@user.email} anmelden?" } %>
+    <% end %>
+  </header>
+<% end %>
 
-  <h1 class="font-jakarta font-bold text-2xl break-all"><%= @user.email %></h1>
-  <p class="admin-subtitle mt-1">Benutzer #<%= @user.id %> · <%= @user.role_name %></p>
+<%= render "shared/form_errors", record: @user %>
+<div class="grid items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+  <div class="min-w-0 space-y-6">
+    <section class="admin-detail-section" aria-labelledby="user-account-heading">
+      <h2 id="user-account-heading">Benutzerinformationen</h2>
+      <dl class="admin-detail-grid">
+        <%= render "admin/shared/detail_field", label: "Name", value: @user.name %>
+        <%= render "admin/shared/detail_field", label: "E-Mail", value: @user.email, url: "mailto:#{@user.email}" %>
+        <%= render "admin/shared/detail_field", label: "Rolle", value: @user.role_name %>
+        <%= render "admin/shared/detail_field", label: "Kontostatus", value: @user.deleted? ? "Deaktiviert" : "Aktiv" %>
+        <%= render "admin/shared/detail_field", label: "E-Mail bestätigt am", value: @user.confirmed_at ? l(@user.confirmed_at, format: :short) : "Noch nicht bestätigt" %>
+        <%= render "admin/shared/detail_field", label: "Ausstehende E-Mail-Änderung", value: @user.unconfirmed_email.presence || "Keine" %>
+        <%= render "admin/shared/detail_field", label: "Registriert am", value: l(@user.created_at, format: :short) %>
+        <%= render "admin/shared/detail_field", label: "Geändert am", content: time_tag(@user.updated_at, l(@user.updated_at, format: :short)) %>
+      </dl>
+    </section>
 
-  <div class="mt-8 border-t border-base-200 pt-6">
-    <p class="admin-eyebrow mb-3">Benutzerinformationen</p>
-    <dl class="divide-y divide-base-200 font-jakarta">
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">Name</dt>
-        <dd><%= @user.name.presence || "-" %></dd>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">Email</dt>
-        <dd class="break-all"><%= @user.email %></dd>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">Rolle</dt>
-        <dd><%= @user.role_name %></dd>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">Geschäft</dt>
-        <dd>
-          <% if @user.business.present? %>
-            <%= link_to admin_store_path(@user.business),
-            class: "link-more inline-flex items-center gap-1 text-sm md:text-base" do %>
-              <%= @user.business.business_name %>
-              <%= heroicon "arrow-top-right-on-square", options: { class: "w-4 h-4 shrink-0" } %>
-            <% end %>
-          <% else %>
-            -
-          <% end %>
-        </dd>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-3">
-        <dt class="font-light text-base-content/60">Registriert am</dt>
-        <dd><%= l @user.created_at, format: :short %></dd>
-      </div>
-    </dl>
+    <section class="admin-detail-section" aria-labelledby="user-contact-heading">
+      <h2 id="user-contact-heading">Hinterlegte Kontaktdaten</h2>
+      <dl class="admin-detail-grid">
+        <% { "Geschäftsname bei Registrierung" => :business_name, "Telefon" => :phone, "Adresse" => :address, "Kontakt / Geschäftsführung" => :management_name }.each do |label, field| %>
+          <%= render "admin/shared/detail_field", label: label, value: @user.public_send(field) %>
+        <% end %>
+      </dl>
+    </section>
+
+    <% if [@user.category, @user.package_plan, @user.payment_method].any?(&:present?) || @user.is_verified? %>
+      <section class="admin-detail-section" aria-labelledby="user-legacy-heading">
+        <h2 id="user-legacy-heading">Frühere Kontodaten</h2>
+        <p class="mt-1 text-xs text-base-content/50">Historische Angaben, unabhängig von der aktuellen Mitgliedschaft.</p>
+        <dl class="admin-detail-grid">
+          <%= render "admin/shared/detail_field", label: "Kategorie", value: @user.category %>
+          <%= render "admin/shared/detail_field", label: "Paket", value: @user.package_plan %>
+          <%= render "admin/shared/detail_field", label: "Zahlungsart", value: @user.payment_method %>
+          <%= render "admin/shared/detail_field", label: "Frühere Verifizierung", value: @user.is_verified? ? "Ja" : "Nein" %>
+        </dl>
+      </section>
+    <% end %>
+
+    <section class="admin-detail-section" aria-labelledby="user-activity-heading">
+      <h2 id="user-activity-heading">Anmeldung und Sicherheit</h2>
+      <dl class="admin-detail-grid">
+        <%= render "admin/shared/detail_field", label: "Anmeldungen", value: @user.sign_in_count %>
+        <%= render "admin/shared/detail_field", label: "Fehlgeschlagene Versuche", value: @user.failed_attempts %>
+        <% { "Letzte Anmeldung" => :current_sign_in_at, "Vorherige Anmeldung" => :last_sign_in_at, "Bestätigung versendet am" => :confirmation_sent_at, "Passwort-Zurücksetzung angefordert am" => :reset_password_sent_at }.each do |label, field| %>
+          <% value = @user.public_send(field) %>
+          <%= render "admin/shared/detail_field", label: label, value: value ? l(value, format: :short) : "–" %>
+        <% end %>
+        <%= render "admin/shared/detail_field", label: "Letzte Anmelde-IP", value: @user.current_sign_in_ip %>
+        <%= render "admin/shared/detail_field", label: "Vorherige Anmelde-IP", value: @user.last_sign_in_ip %>
+        <%= render "admin/shared/detail_field", label: "Anmeldesperre", value: @user.access_locked? ? "Gesperrt" : "Nicht gesperrt" %>
+        <%= render "admin/shared/detail_field", label: "Gesperrt am", value: @user.locked_at ? l(@user.locked_at, format: :short) : "–" %>
+      </dl>
+    </section>
   </div>
 
-  <% if current_user.superadmin? %>
-    <div class="mt-8 border-t border-base-200 pt-6">
-      <p class="admin-eyebrow mb-3">Rolle ändern</p>
-      <%= form_with model: @user,
-      url: admin_user_path(@user),
-      method: :patch,
-      local: true,
-      class: "flex flex-wrap items-center gap-2" do |f| %>
-        <%= f.select :role,
-        [ [ "Benutzer", 0 ], [ "Admin", 1 ], [ "Superadmin", 2 ] ],
-        { selected: @user.role },
-        class: "select select-bordered rounded-full w-48" %>
-        <%= f.submit "Aktualisieren", class: "btn btn-primary rounded-full" %>
+  <aside class="min-w-0 space-y-6">
+    <section class="admin-detail-section" aria-labelledby="user-store-heading">
+      <h2 id="user-store-heading">Geschäft</h2>
+      <% if @business %>
+        <%= link_to admin_store_path(@business), class: "mt-5 flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3 hover:bg-base-200/50" do %>
+          <span class="min-w-0">
+            <span class="block break-words text-sm font-medium"><%= @business.business_name %></span>
+            <span class="mt-1 block whitespace-pre-line text-xs text-base-content/60"><%= @business.address %></span>
+          </span>
+          <%= heroicon "arrow-up-right", options: { class: "h-4 w-4 shrink-0", "aria-hidden": true } %>
+        <% end %>
+        <dl class="mt-4"><%= render "admin/shared/detail_field", label: "Öffentlich sichtbar", value: @business.publicly_visible? ? "Ja" : "Nein" %></dl>
+      <% else %>
+        <p class="mt-4 text-sm text-base-content/40">Noch kein Geschäft erfasst.</p>
       <% end %>
-      <p class="admin-subtitle mt-2 text-xs">
-        Nur Superadmins können die Rolle eines Benutzers ändern.
-      </p>
-    </div>
-  <% end %>
+    </section>
 
-  <% unless @user.deleted? || @user == current_user %>
-    <div class="mt-8 border-t border-error/20 pt-6">
-      <p class="admin-eyebrow mb-3 text-error/70">Gefahrenzone</p>
-      <p class="admin-subtitle mb-4">
-        Der Benutzer wird deaktiviert und kann sich nicht mehr anmelden.
-      </p>
-      <%= link_to admin_user_path(@user),
-      class: "btn btn-error btn-outline rounded-full gap-2",
-      data: {
-        turbo_confirm: "Soll der Benutzer wirklich gelöscht werden?",
-        turbo_method: :delete,
-      } do %>
-        <%= heroicon "trash", options: { class: "w-4 h-4" } %>
-        Benutzer löschen
+    <section class="admin-detail-section" aria-labelledby="user-membership-heading">
+      <h2 id="user-membership-heading">Mitgliedschaft <%= EventConfiguration.year %></h2>
+      <dl class="mt-5 space-y-4">
+        <%= render "admin/shared/detail_field", label: "Kategorie", value: @current_participation&.category_title || "Noch nicht ausgewählt" %>
+        <%= render "admin/shared/detail_field", label: "Status", value: @current_participation ? participation_payment_label(@current_participation) : "Keine Mitgliedschaft ausgewählt" %>
+        <% if @current_participation %>
+          <%= render "admin/shared/detail_field", label: "Aktueller Beitrag", value: participation_amount(@current_participation.amount_cents) %>
+          <%= render "admin/shared/detail_field", label: "Offener Betrag", value: participation_amount(@current_participation.amount_due_cents) %>
+        <% end %>
+      </dl>
+    </section>
+
+    <section class="admin-detail-section" aria-labelledby="user-management-heading">
+      <h2 id="user-management-heading">Kontoverwaltung</h2>
+      <% if current_user.superadmin? && @user.admin? %>
+        <%= button_to "Zum Superadmin ernennen", admin_user_path(@user), method: :patch, params: { user: { role: 2 } }, class: "admin-list-button mt-5", data: { turbo_confirm: "Diesen Admin wirklich zum Superadmin ernennen?" } %>
       <% end %>
-    </div>
-  <% end %>
+      <% unless @user.deleted? || @user == current_user %>
+        <p class="mt-5 text-sm text-base-content/60">Ein deaktiviertes Konto kann sich nicht mehr anmelden. Die Daten bleiben erhalten.</p>
+        <%= button_to "Benutzer deaktivieren", admin_user_path(@user), method: :delete, class: "btn btn-error btn-outline btn-sm rounded-lg mt-4", data: { turbo_confirm: "Soll dieser Benutzer wirklich deaktiviert werden?" } %>
+      <% else %>
+        <p class="mt-4 text-sm text-base-content/40"><%= @user.deleted? ? "Dieses Konto ist deaktiviert." : "Sie sind mit diesem Konto angemeldet." %></p>
+      <% end %>
+    </section>
+  </aside>
+</div>
+
+<div class="mt-6 space-y-6">
+  <%= render "admin/stores/orders", orders: @print_orders, empty_message: "Für diesen Benutzer liegen noch keine Printbestellungen vor." %>
+  <%= render "admin/stores/payments", participations: @participations, empty_message: "Für diesen Benutzer sind noch keine Zahlungen erfasst." %>
 </div>

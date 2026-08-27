@@ -1,0 +1,12 @@
+<dl class="grid gap-4 sm:grid-cols-2">
+  <div><dt class="admin-eyebrow">Teilnahmejahr</dt><dd><%= participation.year %></dd></div>
+  <div><dt class="admin-eyebrow">Kategorie</dt><dd><%= participation.category_title %></dd></div>
+  <div><dt class="admin-eyebrow">Teilnahmebeitrag</dt><dd><%= participation_amount(participation.amount_cents) %></dd></div>
+  <div><dt class="admin-eyebrow">Zahlungsstatus</dt><dd class="font-semibold <%= participation.paid? ? 'text-success' : 'text-warning' %>"><%= participation_payment_label(participation) %></dd></div>
+  <% last_payment_at = participation.last_payment_at %>
+  <div><dt class="admin-eyebrow">Letzte Zahlung am</dt><dd><%= last_payment_at ? l(last_payment_at, format: :short) : '–' %></dd></div>
+  <div><dt class="admin-eyebrow">Kommunikationsmittel</dt><dd><%= participation.permits_listing? ? 'Eintrag nach Zahlung und Geschäftsbestätigung' : 'Kein Eintrag auf Website, Online-Stadtplan oder gedrucktem Stadtplan' %></dd></div>
+</dl>
+<% if participation.simulated_payment? %>
+  <p class="mt-4 text-sm font-semibold text-base-content/65">Enthält eine Testzahlung · kein echter Geldfluss.</p>
+<% end %>

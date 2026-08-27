@@ -1,0 +1,11 @@
+<% unless business.confirmed? %>
+  <section class="mt-6 border-l-2 border-warning pl-4 text-sm text-base-content/75" aria-label="Freigabestatus">
+    <% if business.pending? %>
+      <h2 class="font-semibold text-base-content">Freigabe noch ausstehend</h2>
+      <p class="mt-1">Das Team prüft Ihr Geschäft. Nach der Freigabe und mit bezahlter Teilnahme mit Eintrag kann es öffentlich angezeigt werden.</p>
+    <% else %>
+      <h2 class="font-semibold text-base-content">Geschäft nicht freigegeben</h2>
+      <p class="mt-1">Ihr Geschäft wurde nicht freigegeben. Bitte kontaktieren Sie das Team.</p>
+    <% end %>
+  </section>
+<% end %>

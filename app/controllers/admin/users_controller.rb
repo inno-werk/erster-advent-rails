@@ -3,14 +3,17 @@ class Admin::UsersController < Admin::BaseController
   before_action :require_superadmin!, only: [ :new, :create, :update ]
 
   def index
-    @q = params[:q].to_s.strip
-    scope = @q.present? ? User.search(@q) : User.all
-    scope = scope.includes(:business)
-    scope = scope.active.order(id: :asc)
-    @pagy, @users = pagy(scope, items: params[:per]&.to_i || 10)
+    @role = list_choice(:role, [ 0, 1, 2 ])
+    @confirmation = list_choice(:confirmation, %w[confirmed pending])
+    scope = search_list(User.active.left_joins(:business), "users.name", "users.email", "businesses.business_name", "users.business_name")
+    scope = scope.where(role: @role) if @role
+    scope = scope.where.not(confirmed_at: nil) if @confirmation == "confirmed"
+    scope = scope.where(confirmed_at: nil) if @confirmation == "pending"
+    @users = paginate_list(scope.includes(:business).order(id: :asc))
   end
 
   def show
+    prepare_details
   end
 
   def new
@@ -31,10 +34,12 @@ class Admin::UsersController < Admin::BaseController
   end
 
   def update
-    if @user.update(role_params)
-      redirect_to admin_user_path(@user), notice: "Rolle wurde aktualisiert."
+    if @user.with_lock { @user.update(role_params) }
+      redirect_to admin_user_path(@user), status: :see_other
     else
-      redirect_to admin_user_path(@user), alert: @user.errors.full_messages.to_sentence, status: :unprocessable_entity
+      @user.restore_attributes([ :role ])
+      prepare_details
+      render :show, status: :unprocessable_entity
     end
   end
 
@@ -69,6 +74,13 @@ class Admin::UsersController < Admin::BaseController
   end
 
   private
+
+  def prepare_details
+    @business = @user.business
+    @participations = @user.participations.includes(:upgrades).order(year: :desc).to_a
+    @current_participation = @participations.find { |participation| participation.year == EventConfiguration.year }
+    @print_orders = @user.print_orders.includes(items: :print_product).order(year: :desc)
+  end
 
   def set_user
     @user = User.find(params[:id])

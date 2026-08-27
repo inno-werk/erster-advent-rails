@@ -1,0 +1,38 @@
+<% form_id = "print-order-form" %>
+<%= form_with url: url, method: :patch, id: form_id do |form| %>
+  <%= render "shared/form_errors", record: print_order %>
+  <p class="my-6 text-sm text-base-content/65">Wählen Sie die Anzahl <strong>Bündel</strong>: 2 × «3 Plakate» bedeutet zwei Bündel mit je 3 Plakaten. <%= local_assigns[:quantity_dropdown] ? 'Mit «Keine» entfernen Sie ein Produkt aus Ihrer Bestellung.' : 'Mit 0 entfernen Sie ein Produkt aus Ihrer Bestellung.' %></p>
+  <div class="grid auto-rows-fr gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <% products.each do |product| %>
+      <% item = print_order.items.find { |entry| entry.print_product_id == product.id } %>
+      <div class="admin-card h-full p-6 flex flex-col gap-4">
+        <% if product.image.attached? %><%= image_tag product.image, alt: product.title, class: "w-full h-40 object-contain" %><% end %>
+        <h2 class="text-xl font-bold"><%= product.title %></h2>
+        <div class="flex-1"><%= simple_format product.description %></div>
+        <% unless product.active? %><p class="text-sm text-base-content/60">Nicht mehr verfügbar</p><% end %>
+        <%= label_tag "quantities_#{product.id}", "Anzahl Bündel", class: "field-label" %>
+        <% if local_assigns[:quantity_dropdown] %>
+          <% quantity = item&.quantity_before_type_cast || 0 %>
+          <% options = [ [ "Keine", 0 ] ] + (1..10).map { |number| [ number, number ] } %>
+          <% invalid_quantity = !(0..10).map(&:to_s).include?(quantity.to_s) %>
+          <% options << [ "Bitte 1–10 auswählen (bisher: #{quantity})", quantity ] if invalid_quantity %>
+          <%= select_tag "quantities[#{product.id}]", options_for_select(options, selected: quantity, disabled: invalid_quantity ? quantity : nil), id: "quantities_#{product.id}", class: "select w-full", aria: { label: "Anzahl Bündel: #{product.title}" } %>
+        <% else %>
+          <%= number_field_tag "quantities[#{product.id}]", item&.quantity_before_type_cast || 0, id: "quantities_#{product.id}", min: 0, max: 100_000, step: 1, class: "field-input", required: true %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <% if products.empty? %><p>Aktuell sind keine Printprodukte verfügbar.</p><% end %>
+  <% unless local_assigns[:bottom_actions] %>
+    <div class="mt-8"><%= form.submit submit_label, class: "btn btn-primary" %></div>
+  <% end %>
+<% end %>
+<% if local_assigns[:bottom_actions] %>
+  <% content_for :bottombar do %>
+    <%= render "app/shared/bottombar", actions: capture {
+      concat link_to("Abbrechen", app_print_order_path(setup: setup_flow? ? 1 : nil), class: "btn btn-ghost")
+      concat button_tag(submit_label, type: "submit", form: form_id, class: "btn btn-primary")
+    } %>
+  <% end %>
+<% end %>

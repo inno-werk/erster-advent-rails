@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_25_130000) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_27_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -110,6 +110,45 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_25_130000) do
     t.index ["product_id"], name: "index_orders_on_product_id"
   end
 
+  create_table "participation_upgrades", force: :cascade do |t|
+    t.bigint "participation_id", null: false
+    t.string "previous_category", null: false
+    t.integer "previous_amount_cents", null: false
+    t.string "category", null: false
+    t.integer "amount_cents", null: false
+    t.integer "difference_cents", null: false
+    t.string "payment_status", default: "pending", null: false
+    t.datetime "paid_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "payment_provider"
+    t.string "payment_reference"
+    t.index ["participation_id"], name: "index_participation_upgrades_on_participation_id"
+    t.index ["participation_id"], name: "one_pending_upgrade_per_participation", unique: true, where: "((payment_status)::text = 'pending'::text)"
+    t.check_constraint "payment_status::text = 'pending'::text AND paid_at IS NULL OR payment_status::text = 'paid'::text AND paid_at IS NOT NULL", name: "participation_upgrades_payment_state"
+    t.check_constraint "previous_amount_cents >= 0 AND difference_cents > 0 AND amount_cents = (previous_amount_cents + difference_cents)", name: "participation_upgrades_valid_difference"
+  end
+
+  create_table "participations", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "year", null: false
+    t.string "category", null: false
+    t.integer "amount_cents", null: false
+    t.string "payment_status", default: "pending", null: false
+    t.datetime "selected_at", null: false
+    t.datetime "paid_at"
+    t.string "payment_provider"
+    t.string "payment_reference"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "year"], name: "index_participations_on_user_id_and_year", unique: true
+    t.index ["user_id"], name: "index_participations_on_user_id"
+    t.check_constraint "amount_cents >= 0", name: "participations_nonnegative_amount"
+    t.check_constraint "category::text = ANY (ARRAY['leist_member'::character varying, 'non_leist_member'::character varying, 'no_listing'::character varying]::text[])", name: "participations_valid_category"
+    t.check_constraint "payment_status::text = 'pending'::text AND paid_at IS NULL OR payment_status::text = 'paid'::text AND paid_at IS NOT NULL", name: "participations_payment_state"
+    t.check_constraint "year >= 2000 AND year <= 9999", name: "participations_valid_year"
+  end
+
   create_table "payments", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "payment_image", null: false
@@ -120,6 +159,49 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_25_130000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_payments_on_user_id"
+  end
+
+  create_table "print_distributions", force: :cascade do |t|
+    t.integer "year", null: false
+    t.date "distribution_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "order_deadline_on"
+    t.index ["year"], name: "index_print_distributions_on_year", unique: true
+  end
+
+  create_table "print_order_items", force: :cascade do |t|
+    t.bigint "print_order_id", null: false
+    t.bigint "print_product_id", null: false
+    t.integer "quantity", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["print_order_id", "print_product_id"], name: "index_print_order_items_on_print_order_id_and_print_product_id", unique: true
+    t.index ["print_order_id"], name: "index_print_order_items_on_print_order_id"
+    t.index ["print_product_id"], name: "index_print_order_items_on_print_product_id"
+    t.check_constraint "quantity > 0", name: "print_order_items_positive_quantity"
+  end
+
+  create_table "print_orders", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "year", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "year"], name: "index_print_orders_on_user_id_and_year", unique: true
+    t.index ["user_id"], name: "index_print_orders_on_user_id"
+    t.check_constraint "year >= 2000 AND year <= 9999", name: "print_orders_valid_year"
+  end
+
+  create_table "print_products", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description", null: false
+    t.boolean "active", default: true, null: false
+    t.integer "position", default: 0, null: false
+    t.string "seed_key"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["seed_key"], name: "index_print_products_on_seed_key", unique: true
+    t.check_constraint "\"position\" >= 0", name: "print_products_nonnegative_position"
   end
 
   create_table "products", force: :cascade do |t|
@@ -310,7 +392,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_25_130000) do
   add_foreign_key "businesses", "users"
   add_foreign_key "orders", "products"
   add_foreign_key "orders", "users", column: "id_of_user"
+  add_foreign_key "participation_upgrades", "participations"
+  add_foreign_key "participations", "users"
   add_foreign_key "payments", "users"
+  add_foreign_key "print_order_items", "print_orders"
+  add_foreign_key "print_order_items", "print_products"
+  add_foreign_key "print_orders", "users"
   add_foreign_key "products", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

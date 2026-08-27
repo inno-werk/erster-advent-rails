@@ -36,13 +36,27 @@ Rails.application.routes.draw do
 
       get "login", to: "sessions#new", as: :login
 
-      resources :stores, only: [ :index, :show, :update ] do
+      resources :stores, only: [ :index, :show, :edit, :update ] do
         member do
+          get :preview
           patch :confirm
         end
       end
       resources :products, only: [ :index ]
       resources :orders, only: [ :index ]
+      resources :participations, only: [ :index, :update ]
+      resources :participation_upgrades, only: :update
+      resources :print_products, except: [ :show, :destroy ]
+      resource :print_distribution, only: :update
+      resources :print_orders, only: [ :index, :show, :edit, :update ]
+      resource :print_order_export, only: [], controller: "print_order_exports" do
+        get :addresses
+        match :address_preview, via: [ :get, :post ]
+        post :download_addresses
+        get :letters
+        match :preview, via: [ :get, :post ]
+        post :download
+      end
       resources :emails, only: [ :index ]
       resources :requests, only: [ :index ]
       resources :transactions, only: [ :index ]
@@ -63,6 +77,11 @@ Rails.application.routes.draw do
 
     namespace :app do
       root "base#index"
+      resource :participation, only: [ :show, :edit, :update ] do
+        get :payment
+      end
+      resource :test_payment, only: [ :show, :create ]
+      resource :print_order, only: [ :show, :edit, :update ]
       resource :mystore, only: [ :show, :edit, :create, :update ], controller: "mystore" do
           delete :purge_image
       end

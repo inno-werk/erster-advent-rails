@@ -1,7 +1,5 @@
-<p>Hallo <%= @resource.email %>!</p>
-
-<p>Dein Konto wurde wegen zu vieler fehlgeschlagener Anmeldeversuche gesperrt.</p>
-
-<p>Klicke auf den folgenden Link, um dein Konto zu entsperren:</p>
-
-<p><%= link_to 'Mein Konto entsperren', unlock_url(@resource, unlock_token: @token) %></p>
+<% content_for :heading, "Ihr Konto wieder freischalten" %>
+<% content_for :preheader, "Entsperren Sie Ihr Konto nach mehreren fehlgeschlagenen Anmeldeversuchen." %>
+<p style="margin:0 0 16px;">Guten Tag <%= @resource.name.presence || @resource.email %></p>
+<p style="margin:0 0 16px;">Ihr Konto wurde nach mehreren fehlgeschlagenen Anmeldeversuchen vorübergehend gesperrt. Sie können es über den folgenden Link entsperren.</p>
+<%= render "mailers/button", label: "Konto entsperren", url: user_unlock_url(unlock_token: @token, locale: nil) %>

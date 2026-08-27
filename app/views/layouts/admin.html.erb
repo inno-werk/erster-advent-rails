@@ -13,20 +13,18 @@
     <%= render "layouts/head" %>
   </head>
 
-  <body class="h-screen bg-base-200">
-    <%= render "layouts/flash", { flash: flash } %>
+  <body class="admin-shell" data-layout="admin">
 
     <div class="flex h-full flex-col">
 
-      <div class="drawer relative flex-1 lg:drawer-open">
+      <div class="drawer relative min-h-0 flex-1 overflow-hidden lg:drawer-open">
         <input id="my-drawer" type="checkbox" class="drawer-toggle"/>
-        <div class="drawer-content h-full overflow-y-auto bg-base-200">
-          <div class="mx-auto flex min-h-full w-full flex-col">
+        <div class="drawer-content flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-base-100" data-controller="unsaved-changes">
 
             <!-- Mobile top bar with drawer toggle -->
             <div
               class="
-                sticky top-0 z-10 flex items-center gap-3 bg-primary px-4 py-3
+                shrink-0 z-10 flex items-center gap-3 bg-primary px-4 py-3
                 text-primary-content lg:hidden
               "
             >
@@ -41,15 +39,28 @@
               <span class="font-jakarta font-bold"><%= content_for(:title) || "Admin" %></span>
             </div>
 
-            <div
-              class="
-                mx-auto min-h-0 w-full max-w-[1400px] flex-1 px-5 py-8 sm:px-8
-                lg:px-12 lg:py-10
-              "
-            >
+          <% if content_for?(:admin_list_header) %>
+            <%= yield :admin_list_header %>
+            <main class="admin-list-scroll" tabindex="0" aria-label="Liste">
               <%= yield %>
-            </div>
-          </div>
+            </main>
+            <%= yield :admin_list_footer %>
+          <% elsif content_for?(:admin_detail_header) %>
+            <%= yield :admin_detail_header %>
+            <main class="admin-detail-scroll" tabindex="0" aria-label="Detailübersicht">
+              <%= yield %>
+            </main>
+          <% elsif content_for?(:topbar) %>
+            <%= yield :topbar %>
+            <main class="min-h-0 flex-1 overflow-y-auto">
+              <div class="app-container py-8"><%= yield %></div>
+            </main>
+            <%= yield :bottombar %>
+          <% else %>
+            <main class="min-h-0 flex-1 overflow-y-auto bg-base-200 px-4 py-6 sm:px-6">
+              <%= yield %>
+            </main>
+          <% end %>
         </div>
         <div class="drawer-side z-20">
           <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
@@ -94,10 +105,9 @@
                 text: "Benutzer",
                 icon: "users",
                 active: controller.controller_name == "users" %>
-                <%= render "layouts/menu_item",
-                link: admin_emails_path,
-                text: "E-Mails",
-                icon: "envelope" %>
+                <%= render "layouts/menu_item", link: admin_participations_path, text: "Teilnahmen / Zahlungen", icon: "credit-card" %>
+                <%= render "layouts/menu_item", link: admin_print_products_path, text: "Printprodukte", icon: "photo" %>
+                <%= render "layouts/menu_item", link: admin_print_orders_path, text: "Printbestellungen", icon: "document-text", active: %w[print_orders print_order_exports].include?(controller.controller_name) %>
                 <%= render "layouts/menu_item",
                 link: edit_admin_cms_path,
                 text: "Frontpage CMS",

@@ -1,0 +1,26 @@
+<% content_for :title, "Informationen bearbeiten" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ ["Geschäfte", admin_stores_path], [@business.business_name, admin_store_path(@business)], ["Angaben"] ], actions: capture { %>
+    <%= link_to "Geschäftseintrag ansehen", @business.publicly_visible? ? marketing_store_path(@business) : preview_admin_store_path(@business), target: "_blank", rel: "noopener", class: "btn btn-outline gap-2" %>
+    <%= button_tag "Änderungen speichern", type: "submit", form: "business-form", class: "btn btn-primary hidden", data: { unsaved_changes_target: "save" } %>
+  <% } %>
+<% end %>
+
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", hint: capture { %>
+    <span data-unsaved-changes-target="status" data-clean-text="Alle Änderungen gespeichert." data-dirty-text="Sie haben ungespeicherte Änderungen.">Alle Änderungen gespeichert.</span>
+  <% }, actions: capture { %>
+    <%= link_to "Abbrechen", admin_store_path(@business), class: "btn btn-ghost" %>
+    <%= button_tag "Änderungen speichern", type: "submit", form: "business-form", class: "btn btn-primary hidden", data: { unsaved_changes_target: "save" } %>
+  <% } %>
+<% end %>
+
+<%= form_with model: @business, url: admin_store_path(@business), local: true,
+  html: { id: "business-form", multipart: true, data: {
+    unsaved_changes_target: "form", invalid: @business.errors.any?,
+    action: "input->unsaved-changes#markDirty change->unsaved-changes#markDirty trix-change->unsaved-changes#markDirty"
+  } } do |form| %>
+  <%= render "shared/business_form_fields", form: form, business: @business,
+    categories: BUSINESS_CATEGORIES, selected_categories: Array(@business.categories).compact_blank,
+    image_delete_paths: {} %>
+<% end %>

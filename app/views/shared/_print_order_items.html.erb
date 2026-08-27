@@ -1,0 +1,13 @@
+<% items = print_order.items.reject(&:marked_for_destruction?) %>
+<% if items.any? %>
+  <div class="overflow-x-auto">
+    <table class="table admin-table">
+      <thead><tr><th>Printprodukt / Bündel</th><th>Anzahl Bündel</th></tr></thead>
+      <tbody><% items.each do |item| %>
+        <tr><td><%= item.print_product.title %><%= ' (nicht mehr verfügbar)' unless item.print_product.active? %></td><td><%= item.quantity %></td></tr>
+      <% end %></tbody>
+    </table>
+  </div>
+<% else %>
+  <p>Noch kein Printmaterial ausgewählt.<% if local_assigns.fetch(:can_edit, true) %> Sie können Ihre Bestellung über «Bestellung bearbeiten» ergänzen.<% end %></p>
+<% end %>

@@ -1,0 +1,15 @@
+<% content_for :title, "Printbestellung bearbeiten" %>
+<%= render "app/shared/onboarding_steps", step: 3 if setup_flow? %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ [ "Dashboard", app_root_path ], [ "Meine Printbestellung", app_print_order_path ], [ "Bearbeiten" ] ] %>
+<% end %>
+<h1 class="admin-heading">Printbestellung <%= EventConfiguration.year %> bearbeiten</h1>
+<%= render "app/print_orders/deadline", distribution: PrintDistribution.current %>
+<% inactive_items = @print_order.items.select { |item| !item.print_product.active? } %>
+<% if inactive_items.any? %>
+  <div class="alert mb-6"><p>Nicht mehr verfügbare, bereits bestellte Produkte bleiben erhalten: <%= inactive_items.map { |item| "#{item.quantity} × #{item.print_product.title}" }.join(', ') %>. Für Änderungen kontaktieren Sie die Administration.</p></div>
+<% end %>
+<%= render "shared/print_order_form", print_order: @print_order, products: @products,
+  url: app_print_order_path(setup: setup_flow? ? 1 : nil), submit_label: "Printbestellung speichern",
+  quantity_dropdown: true, bottom_actions: true %>
+<%= render "shared/print_delivery" %>

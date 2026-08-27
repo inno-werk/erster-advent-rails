@@ -1,0 +1,18 @@
+member:
+  user: member
+  business_name: Testgeschäft
+  phone: 031 123 45 67
+  address: Kramgasse 1, Bern
+  billing_address: Kramgasse 1, Bern
+  map_link: https://maps.google.com/?q=Bern
+  status: 1
+  categories: <%= ['Einzelhandel'].to_json %>
+
+other:
+  user: other
+  business_name: Anderes Geschäft
+  phone: 031 765 43 21
+  address: Kramgasse 2, Bern
+  billing_address: Kramgasse 2, Bern
+  map_link: https://maps.google.com/?q=Bern
+  status: 1

@@ -25,11 +25,33 @@ To set up the development environment, follow these steps:
    bin/rails db:migrate
    ```
 
-   5. If you want: Seed the db to get some data in.
+   5. For a fresh disposable database only: seed the base shops and accounts.
+      **Warning: this deletes existing users, shops, orders and CMS content.**
 
    ```bash
    bin/rails db:seed
    ```
+
+### Add demo activity to existing shops
+
+To populate the admin membership/payment and print-order screens without
+replacing shops, accounts or existing records:
+
+```bash
+bin/rails print_materials:seed # Only needed if the print catalogue is empty.
+bin/rails demo_data:seed
+```
+
+This development/test-only task adds five years of varied memberships, simulated
+payments, pending/paid upgrades and print orders for existing active shops.
+It preserves existing user/year records, shop details, passwords, roles, images,
+catalogue entries and distribution dates. Reruns do not duplicate or reset data.
+Added payments use the dummy provider and `DEMO-...` references; no money moves
+and no emails are sent. Some shops intentionally have no current membership or
+an empty/missing order, so those dashboard states remain available for testing.
+
+Optional: `YEAR=2026 YEARS=3 bin/rails demo_data:seed` limits the history. Do not
+use the destructive `db:seed` command to add activity to an existing database.
 
 ## Live server
 
@@ -66,6 +88,9 @@ credentials for local dev database:
 - password: postgres
 
 ## Deployment
+
+For annual membership, print-material setup, rollout implications and future
+payment integration, see [Participation and print materials](docs/participation-and-print-materials.md).
 
 The app is deployed to [Dokploy](https://dokploy.com) from the `Dockerfile`. Set the
 variables below in the app's **Environment** tab.

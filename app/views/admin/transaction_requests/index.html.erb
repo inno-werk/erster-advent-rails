@@ -1,14 +1,6 @@
-<%= content_for :title, "Transaktionsanfragen" %>
-
-<%= render "admin/shared/page_header",
-title: "Anfragen",
-subtitle: "Zahlungen, die noch auf eine Freigabe warten" %>
-
-<%= render "shared/under_construction" do %>
-  <section class="w-full space-y-6">
-    <div class="admin-card">
-    <div class="overflow-x-auto">
-      <table class="table">
+<%= render layout: "admin/shared/list", locals: { title: "Transaktionsanfragen", path: admin_transaction_requests_path, filters: [{ name: :sort, label: "Sortierung", value: @sort, default: "newest", options: [["Neueste zuerst", "newest"], ["Älteste zuerst", "oldest"]] }] } do %>
+  <% if @payments.any? %>
+      <table class="table admin-table">
         <thead>
           <tr>
             <th>#</th>
@@ -34,11 +26,7 @@ subtitle: "Zahlungen, die noch auf eine Freigabe warten" %>
           <% end %>
         </tbody>
       </table>
-    </div>
-    </div>
-
-    <div class="flex justify-center">
-      <%== pagy_nav(@pagy) if defined?(@pagy) && @pagy.pages > 1 %>
-    </div>
-  </section>
+  <% else %>
+    <p class="admin-list-empty">Keine Transaktionsanfragen gefunden.</p>
+  <% end %>
 <% end %>

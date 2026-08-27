@@ -1,0 +1,5 @@
+<%= render "admin/shared/page_header", title: "Printbestellung #{@print_order.year}", actions: link_to("Bestellung korrigieren", edit_admin_print_order_path(@print_order), class: "btn btn-primary") %>
+<p><%= link_to @print_order.user.email, admin_user_path(@print_order.user), class: "link link-primary" %></p>
+<% if @print_order.user.business %><p><%= link_to @print_order.user.business.business_name, admin_store_path(@print_order.user.business), class: "link link-primary" %></p><% end %>
+<div class="admin-card p-6 mt-6"><%= render "shared/print_order_items", print_order: @print_order %></div>
+<%= link_to "Alle Printbestellungen", admin_print_orders_path(year: @print_order.year), class: "btn btn-ghost mt-6" %>

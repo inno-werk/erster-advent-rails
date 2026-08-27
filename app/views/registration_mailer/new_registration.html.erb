@@ -1,0 +1,10 @@
+<% content_for :heading, "Ein neues Geschäft hat sich registriert" %>
+<% content_for :preheader, "Eine neue Registrierung wartet im Adminbereich auf Sie." %>
+<p style="margin:0 0 24px;">Ein neues Benutzerkonto wurde erstellt. Die Angaben zur Teilnahme und zum Geschäft können Sie im Adminbereich einsehen.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7f7;border-radius:8px;">
+  <% { "Kontaktperson" => @user.name.presence || "Noch nicht angegeben", "Geschäft" => @user.business_name.presence || "Noch nicht angegeben", "E-Mail" => @user.email }.each do |label, value| %>
+    <tr><td style="padding:12px 16px;font-size:13px;color:#647078;vertical-align:top;"><%= label %></td><td style="padding:12px 16px;font-size:14px;font-weight:bold;word-break:break-word;"><%= value %></td></tr>
+  <% end %>
+</table>
+<%= render "mailers/button", label: "Registrierung ansehen", url: admin_user_url(id: @user.id, locale: nil) %>
+<p style="margin:0;color:#647078;font-size:14px;">Die Registrierung allein bestätigt noch keine Teilnahme oder Zahlung.</p>

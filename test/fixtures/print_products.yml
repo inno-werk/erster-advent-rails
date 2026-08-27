@@ -1,0 +1,17 @@
+posters:
+  title: 3 × Plakate
+  description: Ein Bündel mit 3 Plakaten im Format A2.
+  active: true
+  position: 0
+
+postcards:
+  title: 50 × Postkarten
+  description: Ein Bündel mit 50 Postkarten im Format A6.
+  active: true
+  position: 1
+
+inactive:
+  title: Altes Material
+  description: Nicht mehr verfügbar.
+  active: false
+  position: 2

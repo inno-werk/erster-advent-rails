@@ -1,0 +1,11 @@
+<div class="mt-4 text-sm text-base-content/65" data-order-deadline>
+  <% if distribution.order_deadline_on %>
+    <% if distribution.orders_open? %>
+      <p>Sie können Ihre Bestellung bis und mit <time datetime="<%= distribution.order_deadline_on.iso8601 %>"><%= l(distribution.order_deadline_on, format: "%d.%m.%Y") %></time> bearbeiten.</p>
+    <% else %>
+      <p>Der Bestellschluss war am <time datetime="<%= distribution.order_deadline_on.iso8601 %>"><%= l(distribution.order_deadline_on, format: "%d.%m.%Y") %></time>. Ihre Bestellung kann nicht mehr geändert werden. Bei Fragen kontaktieren Sie bitte das Team.</p>
+    <% end %>
+  <% else %>
+    <p>Der Bestellschluss wird noch bekannt gegeben. Bis dahin können Sie Ihre Bestellung bearbeiten.</p>
+  <% end %>
+</div>

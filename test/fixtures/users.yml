@@ -1,0 +1,24 @@
+member:
+  email: member@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  confirmed_at: <%= Time.current %>
+  name: Member Person
+  business_name: Testgeschäft
+  address: Kramgasse 1, Bern
+  phone: 031 123 45 67
+  role: 0
+  deleted: false
+
+other:
+  email: other@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  confirmed_at: <%= Time.current %>
+  role: 0
+  deleted: false
+
+admin:
+  email: admin@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  confirmed_at: <%= Time.current %>
+  role: 1
+  deleted: false

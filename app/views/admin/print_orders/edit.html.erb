@@ -1,0 +1,2 @@
+<%= render "admin/shared/page_header", title: "Printbestellung #{@print_order.year} korrigieren", subtitle: @print_order.user.email %>
+<%= render "shared/print_order_form", print_order: @print_order, products: @products, url: admin_print_order_path(@print_order), submit_label: "Korrektur speichern" %>

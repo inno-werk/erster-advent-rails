@@ -1,0 +1,8 @@
+Neue Registrierung
+
+<%= @user.name %> hat sich bei Erster Advent Bern registriert.
+Geschäft: <%= @user.business_name.presence || "Noch nicht angegeben" %>
+E-Mail: <%= @user.email %>
+
+Benutzer und Teilnahme im Admin ansehen:
+<%= admin_user_url(id: @user.id, locale: nil) %>
