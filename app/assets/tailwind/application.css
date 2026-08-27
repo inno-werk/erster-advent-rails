@@ -305,6 +305,24 @@ button:has(+ #popover-1:popover-open) .icon-up {
     line-height: 1.2;
   }
 
+  /*
+   * The labels are CMS copy, and the longest of them ("Teilnehmende Geschäfte
+   * entdecken", 293px at the mobile type size) needs 343px with the desktop
+   * padding against the 335px a phone has to give. The padding comes in to
+   * the point where that label fits, and the pill is allowed to wrap and grow
+   * beyond that, so an editor writing a longer label gets two lines rather
+   * than a section whose text no longer lines up with the rest of the page.
+   */
+  @media (max-width: 767px) {
+    .btn-cta {
+      padding-inline: 1.25rem;
+      white-space: normal;
+      height: auto;
+      min-height: clamp(3rem, 4.06vw, 4.875rem);
+      padding-block: 0.5rem;
+    }
+  }
+
   /* White header/nav pill: 56px tall, radius full, 1px #C6C6C6 border,
      Plus Jakarta Sans Light 25/36 */
   .btn-navbar {
@@ -542,6 +560,16 @@ button:has(+ #popover-1:popover-open) .icon-up {
      two equal columns with the design's 80px wide gutter */
   .split-section {
     @apply grid items-start gap-y-8 md:grid-cols-2 gap-x-gutter-wide;
+  }
+  /*
+   * A grid track can never be narrower than its items' min-content, so one
+   * nowrap child - the CTA pill - was widening the column past the container
+   * and dragging the heading and body copy out with it, which read as a
+   * smaller padding on the right than on the left. min-width lets the items
+   * be as narrow as the track instead of the other way round.
+   */
+  .split-section > * {
+    min-width: 0;
   }
 
   /*
