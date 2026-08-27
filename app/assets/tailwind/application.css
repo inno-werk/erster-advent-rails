@@ -867,22 +867,36 @@ button:has(+ #popover-1:popover-open) .icon-up {
    rules live in a later cascade layer than @layer components, so layered
    overrides would lose regardless of specificity.
 
-   Geometry taken 1:1 from the XD file (component "akkord", "Pfad 10"):
-   31.2549 x 16.1 box, two 45 degree legs, 1px black stroke with butt caps
-   and mitred join, inset 32px from the right end of the rule, centred in
-   the 110px row. All values are the 1920px artboard sizes, expressed in vw
-   so they scale with the rest of the page. */
+   Geometry is the XD path ("akkord" > "Pfad 10") verbatim: two 45 degree
+   legs, 1px black stroke, butt caps and a mitred join. The viewBox is the
+   STROKED bounds, not the path's: butt caps on a 45 degree leg reach
+   0.3536 past each end and the 90 degree mitre reaches 0.7071 below the
+   apex, so the box is 31.4898 x 16.452 starting at -0.1175,-0.1171. The
+   previous 31.2549 x 16.1 box was the path's own extent, which cut 0.352
+   off the point of the chevron and 0.235 off the right leg, and left the
+   aspect 1.9413 against the true 1.9140 so the mask stretch skewed it.
+
+   Vertically the artboard centres the chevron on the text's cap band, not
+   on the row: in the master the chevron centres on 8245.11 against a cap
+   band centred on 8246.05. A line box is taller than its caps and the
+   extra sits below the baseline, so centring on the row hangs the chevron
+   about an eighth of an em high - 3.83px at the 30px artboard size. The em
+   offset holds at every breakpoint because line-height is a fixed ratio.
+
+   Sizes are the 1920px artboard values in vw so they scale with the page;
+   the 32px inset from the right end of the rule is unchanged. */
 .collapse.collapse-arrow > .collapse-title.accordion-title::after {
-  width: clamp(1.125rem, 1.6278vw, 1.9534rem);
-  height: clamp(0.5795rem, 0.8385vw, 1.00625rem);
+  width: clamp(1.125rem, 1.64vw, 1.96811rem);
+  height: clamp(0.58778rem, 0.85688vw, 1.02825rem);
   inset-inline-end: clamp(1rem, 1.6667vw, 2rem);
+  top: calc(50% + 0.1277em);
   box-shadow: none;
   background-color: #000;
   transform-origin: center;
   transform: translateY(-50%) rotate(0deg);
   -webkit-mask: var(--accordion-chevron) center / 100% 100% no-repeat;
   mask: var(--accordion-chevron) center / 100% 100% no-repeat;
-  --accordion-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31.2549 16.1' fill='none' stroke='%23000' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='10'%3E%3Cpath d='M31.0187 0.2364 L15.6274 15.6278 L0.2360 0.2364'/%3E%3C/svg%3E");
+  --accordion-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-0.1175 -0.1171 31.4898 16.452' fill='none' stroke='%23000' stroke-width='1' stroke-linecap='butt' stroke-linejoin='miter' stroke-miterlimit='10'%3E%3Cpath d='M31.0187 0.2364 L15.6274 15.6278 L0.2360 0.2364'/%3E%3C/svg%3E");
 }
 .collapse.collapse-open.collapse-arrow > .collapse-title.accordion-title::after,
 .collapse.collapse-arrow:focus:not(.collapse-close)
