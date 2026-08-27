@@ -320,6 +320,15 @@ button:has(+ #popover-1:popover-open) .icon-up {
       height: auto;
       min-height: clamp(3rem, 4.06vw, 4.875rem);
       padding-block: 0.5rem;
+      /* Wrapping only helps where there is a space to wrap at, and German
+         compounds run long enough to pass the pill's 295px of inner width on
+         their own ("Weihnachtsmarktbesucherinnenanmeldung" is 37 characters).
+         Hyphenation breaks those properly - lang="de" on <html> gives it the
+         dictionary - and anywhere is the backstop for a word it cannot split,
+         so nothing escapes the border. */
+      -webkit-hyphens: auto;
+      hyphens: auto;
+      overflow-wrap: anywhere;
     }
   }
 
