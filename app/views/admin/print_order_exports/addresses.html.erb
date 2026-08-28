@@ -24,7 +24,7 @@
     <% end %>
 
     <%= form_with url: address_preview_admin_print_order_export_path, method: :post, authenticity_token: form_authenticity_token,
-      id: "print-label-form", target: "label-preview", data: { turbo: false }, class: "mt-8 space-y-7" do %>
+      id: "print-label-form", html: { target: "label-preview" }, data: { turbo: false }, class: "mt-8 space-y-7" do %>
       <%= hidden_field_tag :year, @year %>
       <% {
         "Raster" => %i[columns rows],
@@ -48,7 +48,6 @@
       <% end %>
       <p class="text-xs leading-relaxed text-base-content/50">Die Etikettengrösse ergibt sich aus Raster, Seitenrändern und Zwischenräumen. Lange Adressen werden bei Bedarf auf bis zu 8 pt verkleinert. Die Einstellungen gelten für diesen Druckauftrag.</p>
       <div class="flex flex-wrap items-center gap-4">
-        <button type="submit" class="admin-list-button" <%= "disabled" if @export.orders.empty? || @export.missing_addresses.any? %>>Vorschau aktualisieren</button>
         <%= link_to "Standard wiederherstellen", addresses_admin_print_order_export_path(year: @year), class: "admin-action-link text-xs" %>
       </div>
       <p class="text-xs leading-relaxed text-base-content/50">Nach Änderungen die Vorschau aktualisieren. Der Download verwendet immer die aktuellen Einstellungen. Bitte mit 100 % und ohne Seitenanpassung drucken.</p>
@@ -66,10 +65,13 @@
 </div>
 
 <% content_for :bottombar do %>
+  <% left_actions = capture do %>
+    <button type="submit" form="print-label-form" class="admin-list-button" <%= "disabled" if @export.orders.empty? || @export.missing_addresses.any? %>>Vorschau aktualisieren</button>
+  <% end %>
   <% actions = capture do %>
     <%= link_to "Zurück", admin_print_orders_path(year: @year), class: "admin-list-button" %>
     <button type="submit" form="print-label-form" formaction="<%= download_addresses_admin_print_order_export_path %>" formtarget="_self"
       class="btn btn-primary rounded-lg" <%= "disabled" if @export.orders.empty? || @export.missing_addresses.any? %>>Adressetiketten als PDF</button>
   <% end %>
-  <%= render "app/shared/bottombar", actions: actions, hint: "A4 · bei 100 % drucken · ohne Hilfslinien" %>
+  <%= render "app/shared/bottombar", left_actions: left_actions, actions: actions, hint: "A4 · bei 100 % drucken · ohne Hilfslinien" %>
 <% end %>

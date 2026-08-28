@@ -27,7 +27,7 @@
       </div>
     <% end %>
 
-    <%= form_with url: preview_admin_print_order_export_path, method: :post, authenticity_token: form_authenticity_token, id: "print-letter-form", target: "letter-preview", data: { turbo: false }, class: "mt-8 space-y-6" do %>
+    <%= form_with url: preview_admin_print_order_export_path, method: :post, authenticity_token: form_authenticity_token, id: "print-letter-form", html: { target: "letter-preview" }, data: { turbo: false }, class: "mt-8 space-y-6" do %>
       <%= hidden_field_tag :year, @year %>
       <div>
         <%= label_tag :message, "Persönliche Mitteilung", class: "field-label" %>
@@ -38,7 +38,6 @@
         <%= label_tag :order_id, "Geschäft für die Vorschau", class: "field-label" %>
         <%= select_tag :order_id, options_for_select(@export.orders.map { |order| [@export.store_name(order), order.id] }, params[:order_id]), class: "field-input", disabled: @export.orders.empty? %>
       </div>
-      <button type="submit" class="admin-list-button" <%= "disabled" if @export.orders.empty? %>>Vorschau aktualisieren</button>
       <p class="text-xs leading-relaxed text-base-content/50">Nach einer Änderung die Vorschau aktualisieren. Der Download übernimmt immer den aktuellen Text für alle Geschäfte.</p>
     <% end %>
   </section>
@@ -52,10 +51,13 @@
 </div>
 
 <% content_for :bottombar do %>
+  <% left_actions = capture do %>
+    <button type="submit" form="print-letter-form" class="admin-list-button" <%= "disabled" if @export.orders.empty? %>>Vorschau aktualisieren</button>
+  <% end %>
   <% actions = capture do %>
     <%= link_to "Zurück", admin_print_orders_path(year: @year), class: "admin-list-button" %>
     <button type="submit" form="print-letter-form" formaction="<%= download_admin_print_order_export_path %>" formtarget="_self" name="document_format" value="zip" class="admin-list-button" <%= "disabled" if @export.orders.empty? %>>Einzelne PDFs (ZIP)</button>
     <button type="submit" form="print-letter-form" formaction="<%= download_admin_print_order_export_path %>" formtarget="_self" name="document_format" value="pdf" class="btn btn-primary rounded-lg" <%= "disabled" if @export.orders.empty? %>>Alle Briefe als PDF</button>
   <% end %>
-  <%= render "app/shared/bottombar", actions: actions, hint: "A4 · eine Seite pro Geschäft" %>
+  <%= render "app/shared/bottombar", left_actions: left_actions, actions: actions, hint: "A4 · eine Seite pro Geschäft" %>
 <% end %>

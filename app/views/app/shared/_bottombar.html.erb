@@ -2,11 +2,13 @@
   via content_for.
 
   Locals:
+  - left_actions: optional markup for buttons before the hint (left aligned)
   - actions: markup for the buttons (right aligned)
   - hint: optional text shown on the left %>
 
 <div class="app-bottombar">
   <div class="app-container flex flex-wrap items-center justify-between gap-3">
+    <%= local_assigns[:left_actions] %>
     <p class="font-jakarta text-sm font-light text-base-content/50">
       <%= local_assigns[:hint] %>
     </p>

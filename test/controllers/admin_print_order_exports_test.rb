@@ -114,8 +114,12 @@ class AdminPrintOrderExportsTest < ActionDispatch::IntegrationTest
     assert_select "textarea[name=message][maxlength='1000']", text: PrintOrderExport::DEFAULT_MESSAGE
     assert_select "select[name=order_id] option", count: 2
     assert_select "iframe[name=letter-preview][src=?]", preview_admin_print_order_export_path(year: @year)
-    assert_select "button[form=print-letter-form][value=zip]"
-    assert_select "button[form=print-letter-form][value=pdf]"
+    assert_select "form#print-letter-form[method=post][action=?][target=letter-preview][data-turbo=false]", preview_admin_print_order_export_path do
+      assert_select "button[type=submit]", count: 0
+    end
+    assert_select ".app-bottombar .app-container > button[form=print-letter-form][type=submit]:not([formaction]):not([formtarget]):not([disabled]):first-child", text: "Vorschau aktualisieren", count: 1
+    assert_select ".app-bottombar .ml-auto > button[form=print-letter-form][value=zip][formtarget=_self][formaction=?]", download_admin_print_order_export_path
+    assert_select ".app-bottombar .ml-auto > button[form=print-letter-form][value=pdf][formtarget=_self][formaction=?]", download_admin_print_order_export_path
   end
 
   test "preview has only the selected store and current text while download includes every store" do
@@ -259,6 +263,11 @@ class AdminPrintOrderExportsTest < ActionDispatch::IntegrationTest
     assert_select "#label_layout_rows[value='8']"
     assert_select "#print-label-form input[type=number]", count: 11
     assert_select "iframe[name=label-preview]"
+    assert_select "form#print-label-form[method=post][action=?][target=label-preview][data-turbo=false]", address_preview_admin_print_order_export_path do
+      assert_select "button[type=submit]", count: 0
+    end
+    assert_select ".app-bottombar .app-container > button[form=print-label-form][type=submit]:not([formaction]):not([formtarget]):not([disabled]):first-child", text: "Vorschau aktualisieren", count: 1
+    assert_select ".app-bottombar .ml-auto > button[form=print-label-form][formtarget=_self][formaction=?]", download_addresses_admin_print_order_export_path
     token = css_select("#print-label-form input[name=authenticity_token]").sole["value"]
     custom = { columns: 2, rows: 7, margin_top: 12.5, gap_vertical: 2 }
 

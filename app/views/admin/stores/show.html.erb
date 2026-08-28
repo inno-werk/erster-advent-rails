@@ -29,18 +29,6 @@
       </dl>
     </section>
 
-    <section class="admin-detail-section" aria-labelledby="store-contact-heading">
-      <h2 id="store-contact-heading">Kontakt und Abrechnung</h2>
-      <p class="mt-1 text-xs text-base-content/50">Interne Angaben für die Administration.</p>
-      <dl class="admin-detail-grid">
-        <%= render "admin/shared/detail_field", label: "Kontaktperson", value: @business.contact_name %>
-        <%= render "admin/shared/detail_field", label: "Rechnungsadresse", value: @business.billing_address %>
-      </dl>
-    </section>
-
-  </div>
-
-  <aside class="min-w-0 space-y-6">
     <section class="admin-detail-section" aria-labelledby="store-user-heading">
       <h2 id="store-user-heading">Benutzer</h2>
       <%= link_to admin_user_path(@owner), class: "mt-5 flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3 hover:bg-base-200/50" do %>
@@ -50,13 +38,24 @@
         </span>
         <%= heroicon "arrow-up-right", options: { class: "h-4 w-4 shrink-0 text-base-content/50", "aria-hidden": true } %>
       <% end %>
-      <dl class="mt-5 space-y-4">
+      <dl class="mt-5 grid gap-5 sm:grid-cols-3">
         <%= render "admin/shared/detail_field", label: "Kontostatus", value: @owner.deleted? ? "Deaktiviert" : "Aktiv" %>
         <%= render "admin/shared/detail_field", label: "E-Mail bestätigt", value: @owner.confirmed_at ? l(@owner.confirmed_at, format: :short) : "Noch nicht bestätigt" %>
         <%= render "admin/shared/detail_field", label: "Registriert am", value: l(@owner.created_at, format: :short) %>
       </dl>
     </section>
 
+    <section class="admin-detail-section" aria-labelledby="store-contact-heading">
+      <h2 id="store-contact-heading">Kontakt und Abrechnung</h2>
+      <p class="mt-1 text-xs text-base-content/50">Interne Angaben für die Administration.</p>
+      <dl class="admin-detail-grid">
+        <%= render "admin/shared/detail_field", label: "Kontaktperson", value: @business.contact_name %>
+        <%= render "admin/shared/detail_field", label: "Rechnungsadresse", value: @business.billing_address %>
+      </dl>
+    </section>
+  </div>
+
+  <aside class="min-w-0 space-y-6">
     <section class="admin-detail-section" aria-labelledby="store-administration-heading">
       <h2 id="store-administration-heading">Verwaltung</h2>
       <dl class="mt-5 space-y-4">
