@@ -110,7 +110,7 @@ class Participation < ApplicationRecord
 
   # Future payment integration: after verifying an authenticated provider event
   # and matching its amount/currency/reference, call this under a record lock.
-  # The only user-facing exception is the development/test-only dummy payment.
+  # The only user-facing exception is the explicitly enabled dummy payment.
   def mark_paid!
     with_lock { update!(payment_status: :paid, paid_at: paid_at || Time.current) }
   end

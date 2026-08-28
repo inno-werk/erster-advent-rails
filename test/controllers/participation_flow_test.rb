@@ -2,6 +2,54 @@ require "test_helper"
 require "minitest/mock"
 
 class ParticipationFlowTest < ActionDispatch::IntegrationTest
+  setup do
+    @original_prod_payment = ENV.delete("PROD_PAYMENT")
+  end
+
+  teardown do
+    ENV["PROD_PAYMENT"] = @original_prod_payment
+  end
+
+  test "payment mode honors explicit false in every environment and rejects invalid values" do
+    %w[development test production staging].each do |environment|
+      Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new(environment)) do
+        { nil => %w[development test].include?(environment), "false" => true,
+          "true" => false, "" => false, "invalid" => false }.each do |value, expected|
+          ENV["PROD_PAYMENT"] = value
+          assert_equal expected, EventConfiguration.dummy_payments_enabled?, "#{environment}: #{value.inspect}"
+        end
+      end
+    end
+  end
+
+  [ true, false ].each do |setup_flow|
+    test "PROD_PAYMENT false permits production #{setup_flow ? 'setup' : 'dashboard'} checkout and confirmation" do
+      ENV["PROD_PAYMENT"] = "false"
+      participation = participation_for
+      sign_in users(:member)
+
+      Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
+        checkout_path = setup_flow ? app_setup_test_payment_path : app_test_payment_path
+        get setup_flow ? app_setup_payment_path : payment_app_participation_path
+        assert_response :success
+        assert_select "a[href=?]", checkout_path
+        get checkout_path
+        assert_response :success
+        assert_select "body[data-layout=checkout]"
+        assert participation.reload.pending?
+        token = Nokogiri::HTML(response.body).at_css("input[name=token]")["value"]
+        post checkout_path, params: { token: token }
+        assert_redirected_to(setup_flow ? app_setup_payment_path(status: "success") : payment_app_participation_path(status: "success"))
+        assert participation.reload.paid?
+        assert_equal "dummy", participation.payment_provider
+        follow_redirect!
+        assert_response :success
+        assert_select "h1", text: "Bezahlung erfolgreich"
+        assert_select "p", text: "Testzahlung bestätigt · kein echter Geldfluss."
+      end
+    end
+  end
+
   test "setup owns its screens and renders one stepper independently of dashboard query parameters" do
     participation_for
     sign_in users(:member)
@@ -292,11 +340,13 @@ class ParticipationFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_user_session_path
   end
 
-  test "dummy payment is unavailable in production for both pages and direct confirmation" do
+  test "PROD_PAYMENT true blocks production pages and confirmation even with an existing mock token" do
+    ENV["PROD_PAYMENT"] = "false"
     participation = participation_for
     sign_in users(:member)
     get app_test_payment_path
     token = Nokogiri::HTML(response.body).at_css("input[name=token]")["value"]
+    ENV["PROD_PAYMENT"] = "true"
     Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
       assert_not EventConfiguration.dummy_payments_enabled?
       get payment_app_participation_path

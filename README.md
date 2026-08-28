@@ -133,6 +133,18 @@ same `PGDATABASE`, so Solid Queue / Cache / Cable tables live alongside the app 
 Do not set `DATABASE_URL`. Rails would apply it to the `primary` database only and leave
 the other three on the `PG*` values.
 
+### Payment mode
+
+Set `PROD_PAYMENT=false` to enable the mock checkout, including on production.
+Mock payments activate memberships/upgrades and are saved as test payments; no
+money is transferred. Set `PROD_PAYMENT=true` to disable both mock checkout pages
+and confirmation endpoints. This does not activate Stripe: real online payments
+are not integrated yet, so payment confirmation remains an admin action.
+
+When unset, the mock is enabled only in development/test. Blank or invalid values
+disable it. Set the variable in the deployment environment and redeploy/restart
+the app for changes to take effect; a local `.env` file is not loaded automatically.
+
 ### Active Storage (S3)
 
 `config.active_storage.service = :amazon` is set in production, so uploads fail without

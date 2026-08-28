@@ -157,16 +157,16 @@ entry points leave their originating layout for the same standalone checkout.
 | `/app/setup/participation` | Select and save the current annual membership. |
 | `/app/setup/payment` | Pay now or continue without payment. |
 | `/app/setup/payment?status=success` | Confirm recorded payment on the same step. |
-| `/app/setup/test_payment` | Development/test-only payment confirmation. |
+| `/app/setup/test_payment` | Mock payment confirmation when test mode is enabled. |
 | `/app/setup/print_order` | Select product quantities and continue. |
 | `/app/setup/business` | Short handoff to «Mein Geschäft» in the app. |
 
 The payment introduction names the chosen membership, event year and amount due,
 without a separate membership details block. Both below the price and in the bottom
 bar, it offers «Jetzt bezahlen» (primary) and «Später bezahlen» (neutral outline).
-In development/test, «Jetzt bezahlen» opens the explicitly labelled test-payment
-confirmation; the setup payment screen itself has no test-payment section. Other
-environments explain that online payment is unavailable and disable the button.
+With mock payments enabled, «Jetzt bezahlen» opens the explicitly labelled test-payment
+confirmation; the setup payment screen itself has no test-payment section. When
+disabled, it explains that online payment is unavailable and disables the button.
 No real transaction occurs. Paid memberships cannot be changed through setup;
 outstanding upgrades are handled by the separate dashboard payment screen.
 
@@ -309,9 +309,9 @@ parameter, and duplicate browser clear events do not cause duplicate submissions
 Print-product creation and editing use open form sections without a card, with
 fixed navigation/save bars and the same validation/unsaved-change behavior.
 
-### Dummy payment for local testing
+### Dummy payment for testing, including production
 
-In development and test, choose **Jetzt bezahlen → CHF … testweise bezahlen**
+With `PROD_PAYMENT=false`, choose **Jetzt bezahlen → CHF … testweise bezahlen**
 during setup, or **Zur Zahlung → Testzahlung öffnen → CHF … testweise bezahlen**
 from the dashboard. Both `/app/setup/test_payment` and `/app/test_payment` use the
 standalone `checkout` layout, with a Stripe-like two-column summary and payment
@@ -333,8 +333,15 @@ The success screen returns to «Bezahlung» in the setup stepper and offers
 paid with no outstanding upgrade; the query parameter never changes payment state
 or serves as proof of payment. Refreshing the confirmation is safe.
 
-`EventConfiguration.dummy_payments_enabled?` permits only Rails development/test.
-Both GET and POST return 404 in production and other environments. Authentication,
+`EventConfiguration.dummy_payments_enabled?` honors `PROD_PAYMENT=false` in every
+environment, including production. `true`, blank or invalid values disable the
+mock; when unset, only development/test enable it. Both GET and POST return 404
+when disabled, including confirmation with a previously issued token. Set this in
+the deployment environment and restart/redeploy the app. `PROD_PAYMENT=true` does
+not enable a real provider; manual admin confirmation remains available.
+Simulated payments activate real membership records and remain marked as paid
+after the flag changes; enabling the mock in production is an explicit opt-in.
+Authentication,
 normal CSRF protection, current-user/current-year scoping, and an expiring signed
 quote protect the action. The quote binds the membership, upgrade ID, amount and
 selection version. Changed or expired quotes are rejected. Repeated confirmation
@@ -346,7 +353,7 @@ There is no real money transfer or external payment provider.
 
 User and Business detail pages share a participation/payment history with year,
 category, amount, status and paid date. `/admin/participations` provides an overview.
-Outside the development/test-only dummy payment, only Admin/Superadmin controllers
+Outside the enabled dummy payment, only Admin/Superadmin controllers
 can invoke payment confirmation. `Participation#mark_unpaid!` remains admin-only.
 The UI labels these as manual status changes, not transactions.
 Upgrade payments have a separate «Differenzzahlung bestätigen» action keyed by
@@ -372,9 +379,9 @@ Future payment integration points:
    confirmation to settle an upgrade. A success redirect alone must never mark
    payment complete.
 4. Extend explicit states if failed/refunded provider events require them; do not
-   route print orders through payment. No provider SDK, external checkout, public
-   production user-paid action or automatic renewal is included now. The dummy
-   confirmation is strictly a development/test simulation.
+   route print orders through payment. No provider SDK, external checkout, real
+   online payment or automatic renewal is included now. The dummy confirmation
+   remains a simulation even when explicitly enabled in production.
 
 ## Verification and remaining legacy code
 
@@ -435,7 +442,7 @@ enforcement, navigation warnings, quantity dropdown limits, detailed order
 summaries, account-settings password verification/reconfirmation, and
 in-app payment versus guided-setup navigation, no-listing business access restrictions,
 upgrade pricing, repeated confirmations, preserved entitlements and admin-only
-differential payment confirmation, simulated payments, production blocking,
+differential payment confirmation, simulated payments, production mock opt-in and blocking,
 expired/stale quote rejection and safe repeat submissions.
 Print export tests cover admin permissions, year isolation, 16/17-label page
 boundaries and grid positions, missing addresses, inactive products, shared

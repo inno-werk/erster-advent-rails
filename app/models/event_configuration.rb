@@ -14,6 +14,9 @@ class EventConfiguration
   end
 
   def self.dummy_payments_enabled?
+    # Production must explicitly opt into simulated payments.
+    return ENV["PROD_PAYMENT"] == "false" if ENV.key?("PROD_PAYMENT")
+
     Rails.env.development? || Rails.env.test?
   end
 end

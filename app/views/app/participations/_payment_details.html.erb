@@ -5,7 +5,7 @@
 <% if EventConfiguration.dummy_payments_enabled? %>
   <section class="mt-6 border-t border-base-content/10 pt-6">
     <h2 class="text-xl font-bold">Testzahlung</h2>
-    <p class="mt-2 mb-4 text-sm text-base-content/65">Nur in der Entwicklungs- und Testumgebung: Simulieren Sie eine Zahlung ohne Geldfluss.</p>
+    <p class="mt-2 mb-4 text-sm text-base-content/65">Der Testmodus ist aktiviert. Simulieren Sie eine Zahlung ohne Geldfluss.</p>
     <%= link_to "Testzahlung öffnen", app_test_payment_path, class: "btn btn-primary" %>
   </section>
 <% elsif @participation.payment_due? %>
