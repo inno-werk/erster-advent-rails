@@ -2,7 +2,7 @@ module AccountEmailPreviews
   extend ActiveSupport::Concern
 
   included do
-    helper_method :account_email_preview_available?
+    helper_method :account_email_preview_available?, :account_email_preview_retryable?
   end
 
   private
@@ -39,6 +39,10 @@ module AccountEmailPreviews
 
   def account_email_preview_available?
     account_email_preview_owner && AccountEmailPreview.read(session[:account_email_preview_key]).present?
+  end
+
+  def account_email_preview_retryable?
+    account_email_preview_owner.present?
   end
 
   def clear_account_email_preview

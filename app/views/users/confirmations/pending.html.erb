@@ -9,6 +9,8 @@
         <%= link_to "E-Mail-Vorschau öffnen", email_preview_path, target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary", data: { turbo: false } %>
         <p class="mt-3 text-sm text-base-content/60">Öffnet in einem neuen Tab. Es wurde keine E-Mail versendet.</p>
       </div>
+    <% elsif account_email_preview_retryable? %>
+      <p class="mt-4 text-base-content/70" role="status">Ihre Registrierung wurde gespeichert. Die E-Mail-Vorschau ist gerade nicht verfügbar. Bitte fordern Sie die Bestätigung erneut an.</p>
     <% elsif AccountEmailPreview.enabled? %>
       <p class="mt-4 text-base-content/70">Im Testmodus werden keine E-Mails versendet. Eine Vorschau ist nur für ein in diesem Browser neu registriertes Testkonto während 30 Minuten verfügbar.</p>
     <% elsif !EmailDelivery.enabled? %>

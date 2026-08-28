@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
@@ -43,6 +44,70 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
     get link["href"]
     assert_redirected_to app_setup_participation_path
     assert User.find_by!(email: "preview@example.com").confirmed?
+  end
+
+  test "registration and preview retrieval work with the production Solid Cache backend" do
+    Rails.cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_method: :job)
+    assert_no_emails { register_test_account }
+    assert_redirected_to confirmation_pending_path
+    key = request.session[:account_email_preview_key]
+    assert AccountEmailPreview.read(key)
+
+    # A new store instance must read the shared database, not process-local memory.
+    Rails.cache = ActiveSupport::Cache.lookup_store(:solid_cache_store, expiry_method: :job)
+    follow_redirect!
+    assert_select "[data-confirmation-panel] a[href='#{email_preview_path}']"
+    get email_preview_path
+    assert_response :success
+    link = preview_document.at_css("a[href*='confirmation_token=']")
+    get link["href"]
+    assert_redirected_to app_setup_participation_path
+    assert User.find_by!(email: "preview@example.com").confirmed?
+  end
+
+  test "missing cache index does not turn successful registration into a 500 and resend can recover" do
+    failure = ->(*) { raise ArgumentError, "No unique index found for key_hash" }
+    Rails.cache.stub(:write, failure) do
+      assert_difference "User.count", 1 do
+        assert_no_emails { register_test_account }
+      end
+    end
+    assert_redirected_to confirmation_pending_path
+    assert_nil request.session[:account_email_preview_key]
+    follow_redirect!
+    assert_select "[role='status']", text: /Ihre Registrierung wurde gespeichert/
+    assert_select "a[href='#{email_preview_path}']", count: 0
+
+    post user_confirmation_path, params: { user: { email: "preview@example.com" } }
+    get email_preview_path
+    assert_response :success
+    assert preview_document.at_css("a[href*='confirmation_token=']")
+  end
+
+  test "cache read and delete failures remain private and do not crash the response" do
+    register_test_account
+    failure = ->(*) { raise ActiveRecord::StatementInvalid, "missing cache table" }
+    Rails.cache.stub(:read, failure) do
+      get confirmation_pending_path
+      assert_response :success
+      assert_select "a[href='#{email_preview_path}']", count: 0
+      get email_preview_path
+      assert_response :not_found
+    end
+    Rails.cache.stub(:delete, failure) do
+      delete destroy_user_session_path
+      assert_response :redirect
+    end
+    get email_preview_path
+    assert_response :not_found
+  end
+
+  test "a cache write returning false does not publish a broken preview key" do
+    Rails.cache.stub(:write, false) { register_test_account }
+    assert_redirected_to confirmation_pending_path
+    assert_nil request.session[:account_email_preview_key]
+    get email_preview_path
+    assert_response :not_found
   end
 
   test "the preview URL cannot be opened from another browser even with its cache key" do

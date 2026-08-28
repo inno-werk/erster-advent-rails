@@ -235,7 +235,37 @@ Links point to the deployment where the preview is opened.
 **Use only for a test/demo deployment and test accounts.** A confirmation clicked
 in a browser preview does not prove mailbox ownership. For actual users, set
 `PROD_SEND=true`, configure SMTP, and restart. Production's configured Solid Cache
-must be available; previews need no additional service or database migration.
+must be available. The regular application migrations create and index
+`solid_cache_entries` in the shared PostgreSQL database; no separate service is
+required.
+
+### Repairing a missing Solid Cache table or index
+
+`ArgumentError: No unique index found for key_hash` during registration means
+Solid Cache cannot find its required unique index. The cache table may also be
+missing entirely. This deployment shares one PostgreSQL database across primary,
+queue, cable and cache connections; having `db/cache_schema.rb` in the repository
+does not apply it to an already initialized database.
+
+Deploy the migration `20260828170000_add_solid_cache_entries.rb`. The normal
+container startup runs `bin/rails db:prepare` and applies it. If database preparation
+is disabled, run this in the updated application container:
+
+```sh
+RAILS_ENV=production bin/rails db:migrate
+```
+
+Then restart the application and workers so they discard old schema caches. The
+migration creates the cache table if missing and repairs its indexes without
+replacing existing rows. Do not use `db:cache:schema:load` to repair an existing
+database: schema loading can replace the cache table.
+
+A preview-cache failure no longer turns a saved registration into a 500. It keeps
+session ownership, shows a retry message, and logs a sanitized cache diagnostic.
+Once the database is repaired, request the confirmation again in the same browser
+within the 30-minute window. Attempts that failed before this fallback was deployed
+may already have created an account without retaining preview access; use a fresh
+test address or the normal email confirmation flow with SMTP enabled.
 
 ### Container notes
 
