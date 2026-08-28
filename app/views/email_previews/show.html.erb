@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+  <head>
+    <title>E-Mail-Vorschau · Erster Advent Bern</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <%= stylesheet_link_tag :app %>
+  </head>
+  <body class="bg-base-200 text-base-content">
+    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-8">
+      <header class="mb-6 space-y-3">
+        <p class="text-sm font-semibold uppercase tracking-widest text-primary">Testmodus · E-Mail-Vorschau</p>
+        <h1 class="text-2xl font-semibold"><%= @preview.fetch("subject") %></h1>
+        <p class="text-sm text-base-content/70">Diese E-Mail wurde nicht versendet. Sie ist nur in diesem Browser verfügbar und läuft nach 30 Minuten ab.</p>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 border-y border-base-300 py-4 text-sm">
+          <dt class="text-base-content/60">Von</dt><dd class="break-all"><%= @preview.fetch("from") %></dd>
+          <dt class="text-base-content/60">An</dt><dd class="break-all"><%= @preview.fetch("to") %></dd>
+        </dl>
+      </header>
+      <iframe title="Inhalt der E-Mail" class="w-full min-h-[720px] border-0" sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" srcdoc="<%= @email_html %>"></iframe>
+      <p class="mt-4 text-center text-sm text-base-content/60">Links in der E-Mail öffnen sich in einem neuen Tab. Sie können diese Vorschau anschliessend schliessen.</p>
+    </main>
+  </body>
+</html>

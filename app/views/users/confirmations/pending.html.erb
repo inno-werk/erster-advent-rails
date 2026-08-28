@@ -1,90 +1,22 @@
-<section
-  class="min-h-screen bg-gradient-to-br from-primary via-primary to-primary"
->
-  <div
-    class="
-      flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8
-    "
-  >
-    <div
-      class="
-        relative w-full max-w-2xl rounded-3xl bg-base-100 px-8 py-14 shadow-2xl
-      "
-    >
-      <div
-        class="
-          absolute -top-12 left-1/2 flex h-24 w-24 -translate-x-1/2 items-center
-          justify-center rounded-full border-4 border-base-100 bg-primary
-          text-primary-content shadow-xl
-        "
-      >
-        <%= heroicon "envelope", options: { class: "h-12 w-12" } %>
+<% content_for :email_preview_in_content, "true" %>
+<section class="flex flex-1 items-center justify-center bg-primary px-6 py-16" data-confirmation-panel>
+  <div class="w-full max-w-xl rounded-3xl bg-base-100 px-8 py-12 text-center shadow-xl">
+    <%= heroicon "envelope", options: { class: "mx-auto mb-6 h-10 w-10 text-primary" } %>
+    <h1 class="text-3xl font-semibold">E-Mail-Adresse bestätigen</h1>
+    <% if account_email_preview_available? %>
+      <p class="mt-4 text-base-content/70">Ihre Bestätigungs-E-Mail ist bereit. Öffnen Sie die Vorschau und bestätigen Sie dort Ihre E-Mail-Adresse, um fortzufahren.</p>
+      <div class="mt-6">
+        <%= link_to "E-Mail-Vorschau öffnen", email_preview_path, target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary", data: { turbo: false } %>
+        <p class="mt-3 text-sm text-base-content/60">Öffnet in einem neuen Tab. Es wurde keine E-Mail versendet.</p>
       </div>
-
-      <div class="space-y-4 text-center">
-        <h2 class="text-3xl font-bold text-base-content">Bestätigung gesendet</h2>
-        <p class="text-base text-base-content/80">
-          Vielen Dank für Ihre Registrierung. Wir haben Ihnen soeben eine
-          Bestätigungs-E-Mail gesendet. Bitte bestätigen Sie Ihre
-          E-Mail-Adresse, um Ihr Konto zu aktivieren.
-        </p>
-      </div>
-
-      <div class="mt-10 rounded-2xl bg-base-200/70 p-6">
-        <h3 class="text-lg font-semibold text-base-content">So geht es weiter</h3>
-        <ul class="mt-5 space-y-4 text-base text-base-content/80">
-          <li class="flex items-start gap-4">
-            <span
-              class="
-                flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10
-                text-lg font-semibold text-primary
-              "
-            >
-              1
-            </span>
-            <span>Öffnen Sie Ihr Postfach und suchen Sie nach der
-              Bestätigungsmail.</span>
-          </li>
-          <li class="flex items-start gap-4">
-            <span
-              class="
-                flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10
-                text-lg font-semibold text-primary
-              "
-            >
-              2
-            </span>
-            <span>Klicken Sie auf den Bestätigungslink in der E-Mail, um Ihr Konto
-              zu aktivieren.</span>
-          </li>
-          <li class="flex items-start gap-4">
-            <span
-              class="
-                flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10
-                text-lg font-semibold text-primary
-              "
-            >
-              3
-            </span>
-            <span>Melden Sie sich mit Ihren Zugangsdaten an und entdecken Sie alle
-              Funktionen.</span>
-          </li>
-        </ul>
-      </div>
-
-      <div class="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <%= link_to "Bestätigungsmail erneut senden",
-        new_user_confirmation_path,
-        class: "btn btn-primary sm:min-w-[220px]" %>
-        <%= link_to "Zur Anmeldung",
-        new_session_path(resource_name),
-        class: "btn btn-outline btn-primary sm:min-w-[220px]" %>
-      </div>
-
-      <p class="mt-6 text-center text-sm text-base-content/60">
-        Tipp: Prüfen Sie auch Ihren Spam- oder Promotionsordner, falls Sie
-        keine E-Mail sehen.
-      </p>
-    </div>
+    <% elsif AccountEmailPreview.enabled? %>
+      <p class="mt-4 text-base-content/70">Im Testmodus werden keine E-Mails versendet. Eine Vorschau ist nur für ein in diesem Browser neu registriertes Testkonto während 30 Minuten verfügbar.</p>
+    <% elsif !EmailDelivery.enabled? %>
+      <p class="mt-4 text-base-content/70">Der E-Mail-Versand ist derzeit deaktiviert. Bitte kontaktieren Sie uns, damit wir Ihnen bei der Aktivierung Ihres Kontos helfen können.</p>
+    <% else %>
+      <p class="mt-4 text-base-content/70">Bitte öffnen Sie die Bestätigungs-E-Mail und klicken Sie auf «E-Mail-Adresse bestätigen», um Ihre Teilnahme einzurichten.</p>
+      <p class="mt-3 text-sm text-base-content/60">Keine E-Mail erhalten? Prüfen Sie auch Ihren Spam-Ordner.</p>
+    <% end %>
+    <%= link_to "Bestätigung erneut anfordern", new_user_confirmation_path, class: "link mt-6 inline-block text-sm" %>
   </div>
 </section>

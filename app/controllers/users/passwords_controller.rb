@@ -2,6 +2,9 @@
 
 class Users::PasswordsController < Devise::PasswordsController
   layout "auth"
+  def create
+    super { |user| capture_account_email_preview(user) }
+  end
    # GET /resource/password/new
    def new
      super

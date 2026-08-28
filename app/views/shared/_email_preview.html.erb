@@ -1,0 +1,12 @@
+<% if AccountEmailPreview.enabled? %>
+  <aside class="border-b border-base-300 bg-base-100 px-6 py-4 text-center text-sm" data-email-preview-notice data-turbo-cache="false">
+    <p class="font-semibold">Testmodus: E-Mails werden nicht versendet.</p>
+    <% if account_email_preview_available? %>
+      <% unless content_for?(:email_preview_in_content) %>
+        <%= link_to "E-Mail im neuen Tab öffnen", email_preview_path, target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary btn-sm mt-3", data: { turbo: false } %>
+      <% end %>
+    <% else %>
+      <p class="mt-1 text-base-content/70">Vorschauen sind nur für Testkonten verfügbar, die Sie in diesem Browser neu registrieren.</p>
+    <% end %>
+  </aside>
+<% end %>

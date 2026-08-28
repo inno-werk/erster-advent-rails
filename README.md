@@ -163,7 +163,7 @@ need a CORS configuration.
 | `WEB_CONCURRENCY`     | Puma workers.                                                                                                                                                                                                                                                                                                      |
 | `RAILS_MAX_THREADS`   | Puma threads and DB pool size, defaults to `10`.                                                                                                                                                                                                                                                                   |
 | `RAILS_LOG_LEVEL`     | Defaults to `info`.                                                                                                                                                                                                                                                                                                |
-| `SMTP_USERNAME`       | SMTP user. Mail is not sent if unset.                                                                                                                                                                                                                                                                              |
+| `SMTP_USERNAME`       | SMTP authentication username (the full Gmail address when using Gmail).                                                                                                                                                                                                                                                                              |
 | `SMTP_PASSWORD`       | SMTP password.                                                                                                                                                                                                                                                                                                     |
 | `SMTP_ADDRESS`        | Defaults to `smtp.gmail.com`.                                                                                                                                                                                                                                                                                      |
 | `SMTP_PORT`           | Defaults to `587`.                                                                                                                                                                                                                                                                                                 |
@@ -172,6 +172,70 @@ need a CORS configuration.
 
 `RAILS_ENV` and the `BUNDLE_*` variables are already baked into the `Dockerfile` and do
 not need to be set.
+
+### Gmail for test delivery
+
+Gmail sends real emails; it is not a sandbox. Enable Google 2-Step Verification and
+create an [App Password](https://myaccount.google.com/apppasswords) for this app.
+A connected Gmail account in a coding assistant does not provide SMTP credentials
+for the Rails application.
+
+Set these variables in the deployment environment (do not commit credentials):
+
+```dotenv
+SMTP_ADDRESS=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-account@gmail.com
+SMTP_PASSWORD=<Google App Password>
+SMTP_FROM=your-account@gmail.com
+PROD_SEND=true
+```
+
+`SMTP_FROM` sets the sender for account emails and admin notifications. If unset
+or blank, it defaults to `Erster Advent Bern <info@erster-advent-bern.ch>`.
+The admin notification recipient remains `info@erster-advent-bern.ch`.
+`PROD_SEND=true` enables both account emails and admin new-shop notifications.
+Real delivery is disabled by default; no second email-mode variable is needed.
+
+Restart the app and any separate email workers after changing the environment.
+These SMTP settings apply in production; local development still uses
+`letter_opener` browser previews. A local `.env` file is not automatically loaded.
+
+### Email previews on a deployed test instance (no SMTP required)
+
+To test registration without a mail provider, explicitly set:
+
+```dotenv
+PROD_SEND=false
+```
+
+Restart the app and any separate workers. A new registration then shows
+**E-Mail-Vorschau öffnen** directly in the confirmation panel. The separate preview contains the actual account
+email and working confirmation link, with a clear notice that nothing was sent.
+Links point to the deployment where the preview is opened.
+
+- `PROD_SEND` is the only email-mode variable: `false` enables private previews
+  without sending; `true` enables account and admin emails through the configured
+  delivery method. Queued messages check the same flag before delivery.
+- If unset, `PROD_SEND` defaults to `false`: sending remains off and new test
+  registrations get private previews. Blank or invalid values disable both modes.
+  Always set `PROD_SEND=true` explicitly for real users.
+- Previews are limited to regular accounts newly registered in the same browser
+  session and expire 30 minutes after registration. Resent confirmations and
+  password resets can be previewed only for that account within that window.
+  Registrations made before preview mode was enabled have no stored preview;
+  use a fresh test registration to test the preview flow.
+- Existing accounts and admin accounts cannot have recovery emails previewed by
+  entering their address. Their recovery emails are also suppressed in preview
+  mode: use real SMTP delivery for those accounts.
+- Logging out removes preview access. URLs contain no mailbox IDs or email tokens;
+  access requires the originating session. Email content is encrypted in the
+  existing shared Rails cache and responses are marked `no-store`.
+
+**Use only for a test/demo deployment and test accounts.** A confirmation clicked
+in a browser preview does not prove mailbox ownership. For actual users, set
+`PROD_SEND=true`, configure SMTP, and restart. Production's configured Solid Cache
+must be available; previews need no additional service or database migration.
 
 ### Container notes
 

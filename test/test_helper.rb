@@ -1,4 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
+# Exercise delivery through Action Mailer's test adapter unless a test overrides it.
+ENV["PROD_SEND"] = "true"
 require_relative "../config/environment"
 require "rails/test_help"
 

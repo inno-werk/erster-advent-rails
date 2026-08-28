@@ -9,7 +9,7 @@ class Users::ConfirmationsController < Devise::ConfirmationsController
 
    # POST /resource/confirmation
    def create
-     super
+     super { |user| capture_account_email_preview(user) }
    end
 
   # GET /resource/confirmation?confirmation_token=abcdef

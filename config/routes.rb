@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
 
   scope "(:locale)", locale: /en|de|it|fr/ do
+    resource :email_preview, only: :show, controller: "email_previews"
     devise_for :users, controllers: {
         sessions: "users/sessions",
         registrations: "users/registrations",

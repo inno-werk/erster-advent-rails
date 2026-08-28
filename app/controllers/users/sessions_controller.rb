@@ -2,6 +2,7 @@
 
 class Users::SessionsController < Devise::SessionsController
   layout "auth"
+  prepend_before_action :clear_account_email_preview, only: :destroy
   # before_action :configure_sign_in_params, only: [:create]
 
   # GET /resource/sign_in

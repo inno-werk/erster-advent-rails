@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   include PgSearch::Model
+  attr_accessor :account_email_preview_message
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :confirmable, :lockable, :trackable
@@ -73,6 +74,15 @@ class User < ApplicationRecord
   end
 
   private
+
+  def send_devise_notification(notification, *args)
+    return super if EmailDelivery.enabled?
+    return unless AccountEmailPreview.enabled?
+
+    # Keep Devise's real tokens and templates, but never contact SMTP in preview mode.
+    # The controller only exposes this message after proving session ownership.
+    self.account_email_preview_message = devise_mailer.public_send(notification, self, *args).message
+  end
 
   def allowed_role_change
     return unless will_save_change_to_role?

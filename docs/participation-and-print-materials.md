@@ -199,10 +199,14 @@ have no stepper. External submit buttons target their
 forms with the HTML `form` attribute; print selection uses unsaved-change protection.
 Flash notifications are not rendered in any layout; inline validation remains visible.
 
-`SEND_PROD_EMAILS` defaults to `false`. Only the exact value `true` enables
-new-shop admin notifications; confirmation, password reset and other emails are
-unaffected. Set it in the environment of both the web process and the mail worker,
-then restart those processes. Disabled notifications are not queued for later delivery;
+`PROD_SEND` is the only email-mode switch. The exact value `true` enables both
+account emails and new-shop admin notifications. The exact value `false` enables
+private browser previews for newly registered test accounts without sending mail.
+If unset, it defaults to `false`; blank or invalid values disable both modes.
+The confirmation panel includes a button to open the private email in a new tab.
+Set `PROD_SEND=true` explicitly for real users in the environment of both the
+web process and the mail worker, then restart those
+processes. Disabled admin notifications are not queued for later delivery;
 already queued notifications also check the flag before sending.
 `RegistrationMailer.new_registration` is queued only by successful self-registration
 with this flag enabled, including an account awaiting confirmation. It is sent to

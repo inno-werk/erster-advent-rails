@@ -4,15 +4,16 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
 
   setup do
-    @original_send_prod_emails = ENV.delete("SEND_PROD_EMAILS")
+    @original_prod_send = ENV["PROD_SEND"]
+    ENV["PROD_SEND"] = "true"
   end
 
   teardown do
-    ENV["SEND_PROD_EMAILS"] = @original_send_prod_emails
+    ENV["PROD_SEND"] = @original_prod_send
   end
 
   test "initial registration queues exactly one admin notification" do
-    ENV["SEND_PROD_EMAILS"] = "true"
+    ENV["PROD_SEND"] = "true"
     assert_difference [ "User.count", "Business.count" ] do
       assert_enqueued_email_with RegistrationMailer, :new_registration, args: ->(args) { args.first.email == "new-registration@example.com" } do
         post user_registration_path, params: { user: {
@@ -43,7 +44,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
   end
 
   test "failed registration and later state changes do not notify admin" do
-    ENV["SEND_PROD_EMAILS"] = "true"
+    ENV["PROD_SEND"] = "true"
     assert_no_difference [ "User.count", "Business.count" ] do
       assert_no_enqueued_emails do
         post user_registration_path, params: { user: { email: "invalid", password: "short" } }
@@ -57,7 +58,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
   end
 
   test "invalid business details reject the entire registration without an orphan account" do
-    ENV["SEND_PROD_EMAILS"] = "true"
+    ENV["PROD_SEND"] = "true"
     assert_no_difference [ "User.count", "Business.count" ] do
       assert_no_enqueued_emails do
         post user_registration_path, params: { user: {
@@ -70,7 +71,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
   end
 
   test "notification addresses info mailbox and identifies the user" do
-    ENV["SEND_PROD_EMAILS"] = "true"
+    ENV["PROD_SEND"] = "true"
     mail = RegistrationMailer.new_registration(users(:member))
     assert_emails 1 do
       mail.deliver_now
@@ -86,13 +87,13 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     assert html.css("a").any? { |link| link.text == "Registrierung ansehen" }
   end
 
-  test "registration still sends account confirmation but no admin notification unless explicitly enabled" do
+  test "registration sends no emails unless delivery is explicitly enabled" do
     [ nil, "false", "", "1", "invalid" ].each_with_index do |value, index|
-      ENV["SEND_PROD_EMAILS"] = value
+      ENV["PROD_SEND"] = value
       email = "notifications-disabled-#{index}@example.com"
       assert_difference [ "User.count", "Business.count" ] do
         assert_no_enqueued_emails do
-          assert_emails 1 do
+          assert_no_emails do
             post user_registration_path, params: { user: {
               business_name: "Neu GmbH", email: email, address: "Bern",
               name: "Neue Person", phone: "031 000 00 00", password: "password123"
@@ -100,17 +101,14 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
           end
         end
       end
-      mail = ActionMailer::Base.deliveries.last
-      assert_equal [ email ], mail.to
-      assert_match "/users/confirmation?confirmation_token=", mail.body.encoded
       assert_no_emails { RegistrationMailer.new_registration(User.find_by!(email: email)).deliver_now }
     end
   end
 
   test "queued admin notifications are not delivered after the flag is disabled" do
-    ENV["SEND_PROD_EMAILS"] = "true"
+    ENV["PROD_SEND"] = "true"
     RegistrationMailer.new_registration(users(:member)).deliver_later
-    ENV["SEND_PROD_EMAILS"] = "false"
+    ENV["PROD_SEND"] = "false"
     assert_no_emails { perform_enqueued_jobs }
   end
 

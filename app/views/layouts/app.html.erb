@@ -36,6 +36,7 @@
             <span class="font-bold">Mein Geschäft</span>
           </div>
           <%= yield :topbar %>
+          <%= render "shared/email_preview" %>
           <div class="min-h-0 flex-1 overflow-y-auto">
             <div class="app-container py-8">
               <%= yield %>

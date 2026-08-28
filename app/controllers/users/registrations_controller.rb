@@ -7,6 +7,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   def create
     super do |user|
+      capture_account_email_preview(user, newly_registered: true)
       RegistrationMailer.new_registration(user).deliver_later if user.persisted? && RegistrationMailer.notifications_enabled?
     end
   end
