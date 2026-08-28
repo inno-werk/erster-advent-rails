@@ -3,7 +3,7 @@
     <div>
       <p class="font-bold">Ihre Teilnahme <%= EventConfiguration.year %> ist noch nicht abgeschlossen.</p>
       <p>Sie werden erst nach abgeschlossener Teilnahme mit Eintrag und Bestätigung Ihres Geschäfts als teilnehmendes Geschäft aufgeführt. Ihre Konto- und Geschäftsangaben können Sie bereits bearbeiten.</p>
-      <%= link_to "Teilnahme abschliessen", current_participation ? payment_app_participation_path : edit_app_participation_path, class: "btn btn-sm btn-primary mt-3" %>
+      <%= link_to "Teilnahme abschliessen", current_participation ? payment_app_participation_path : app_setup_participation_path, class: "btn btn-sm btn-primary mt-3" %>
     </div>
   </div>
 <% end %>

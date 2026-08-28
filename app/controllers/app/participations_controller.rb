@@ -23,7 +23,7 @@ class App::ParticipationsController < App::BaseController
           render :edit, status: :unprocessable_entity
         end
       elsif @participation.update(category: params.require(:participation).permit(:category)[:category])
-        redirect_to setup_flow? ? payment_app_participation_path(setup: 1) : app_participation_path
+        redirect_to app_participation_path
       else
         render :edit, status: :unprocessable_entity
       end
@@ -32,9 +32,10 @@ class App::ParticipationsController < App::BaseController
 
   def payment
     @participation = current_participation
-    @continue_setup = params[:setup] == "1" && !@participation&.paid?
     if @participation.nil?
       redirect_to edit_app_participation_path
+    elsif payment_confirmed?
+      render :payment_confirmation
     elsif !@participation.payment_due?
       redirect_to app_participation_path
     end
@@ -42,11 +43,7 @@ class App::ParticipationsController < App::BaseController
 
   private
 
-  def setup_flow?
-    %w[edit update].include?(action_name) && params[:setup] != "0" && !@participation&.paid?
-  end
-
-  def store_layout
-    action_name == "payment" ? "payment" : super
+  def payment_confirmed?
+    params[:status] == "success" && @participation&.paid? && !@participation.payment_due?
   end
 end

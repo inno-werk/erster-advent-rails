@@ -1,10 +1,9 @@
 <%= content_for :title, "Informationen bearbeiten" %>
-<%= render "app/shared/onboarding_steps", step: 4 if setup_flow? %>
 
 <%# The form lives in the page body, its buttons in the layout's sticky bars —
   the HTML `form` attribute wires them back together. %>
 <% form_id = "business-form" %>
-<% submit_label = setup_flow? ? "Angaben speichern und zum Dashboard" : (@business.persisted? ? "Änderungen speichern" : "Geschäft anlegen") %>
+<% submit_label = "Änderungen speichern" %>
 
 <% content_for :topbar do %>
   <%= render "app/shared/topbar",
@@ -60,21 +59,22 @@
     )
   },
   actions: capture {
-    concat link_to(setup_flow? ? "Zurück" : "Abbrechen", setup_flow? ? app_print_order_path(setup: 1) : app_mystore_path, class: "btn btn-ghost")
+    concat link_to("Abbrechen", app_mystore_path, class: "btn btn-ghost")
     concat(
     button_tag(
     submit_label,
     type: "submit",
     form: form_id,
-    class: setup_flow? ? "btn btn-primary" : "btn btn-primary hidden",
-    data: setup_flow? ? {} : { unsaved_changes_target: "save" }
+    class: "btn btn-primary hidden",
+    data: { unsaved_changes_target: "save" }
     )
     )
   } %>
 <% end %>
 
 <%= form_with model: @business,
-url: app_mystore_path(setup: setup_flow? ? 1 : nil),
+url: app_mystore_path,
+method: :patch,
 local: true,
 html: {
   id: form_id,

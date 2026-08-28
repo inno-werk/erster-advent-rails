@@ -4,7 +4,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :confirmable, :lockable, :trackable
 
-  has_one :business, dependent: :destroy
+  has_one :business, dependent: :destroy, autosave: true
   has_many :participations, dependent: :destroy
   has_many :print_orders, dependent: :destroy
   has_one :payment, dependent: :destroy
@@ -50,6 +50,26 @@ class User < ApplicationRecord
 
   def business_editing_allowed?
     current_participation&.category != "no_listing"
+  end
+
+  def build_registration_business
+    business || build_business(
+      business_name: business_name,
+      phone: phone,
+      address: address,
+      billing_address: address,
+      email: email,
+      contact_name: name.to_s,
+      map_link: ""
+    )
+  end
+
+  def business_for_editing
+    with_lock do
+      reload_business || build_registration_business.tap do |record|
+        record.save! if record.valid?
+      end
+    end
   end
 
   private

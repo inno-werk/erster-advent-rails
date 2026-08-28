@@ -16,6 +16,8 @@ Rails.application.routes.draw do
 
     devise_scope :user do
       get "users/confirmation_pending" => "users/confirmations#pending", as: :confirmation_pending
+      get "admin/login" => "admin/sessions#new", as: :admin_login
+      post "admin/login" => "admin/sessions#create", as: :admin_session
     end
 
     root "marketing/pages#home"
@@ -33,8 +35,6 @@ Rails.application.routes.draw do
 
     namespace :admin do
       root "dashboard#index"
-
-      get "login", to: "sessions#new", as: :login
 
       resources :stores, only: [ :index, :show, :edit, :update ] do
         member do
@@ -77,6 +77,14 @@ Rails.application.routes.draw do
 
     namespace :app do
       root "base#index"
+      namespace :setup do
+        root "participations#show"
+        resource :participation, only: [ :show, :update ]
+        resource :payment, only: :show
+        resource :test_payment, only: [ :show, :create ]
+        resource :print_order, only: [ :show, :update ]
+        resource :business, only: :show
+      end
       resource :participation, only: [ :show, :edit, :update ] do
         get :payment
       end

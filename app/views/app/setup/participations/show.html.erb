@@ -1,0 +1,25 @@
+<% content_for :title, "Mitgliedschaft auswählen" %>
+<header class="mx-auto mb-8 max-w-3xl text-center">
+  <p class="admin-eyebrow mb-3">Gemeinsam am Ersten Advent</p>
+  <h1 class="admin-heading">Ihre Mitgliedschaft <%= EventConfiguration.year %></h1>
+  <p class="admin-subtitle mt-3">Wählen Sie den passenden Teilnahmebeitrag für Ihr Geschäft. Die Mitgliedschaft gilt für dieses Veranstaltungsjahr.</p>
+</header>
+<%= form_with model: @participation, url: app_setup_participation_path, method: :patch, id: "participation-form" do |form| %>
+  <%= render "shared/form_errors", record: @participation %>
+  <fieldset class="grid gap-6 lg:grid-cols-3">
+    <legend class="sr-only">Teilnahmekategorie auswählen</legend>
+    <% Participation::CATEGORIES.each do |key, category| %>
+      <label class="admin-card bg-base-100 p-6 md:p-8 cursor-pointer space-y-5 border-2 border-transparent has-[:checked]:border-primary">
+        <div class="flex gap-3 items-center">
+          <%= form.radio_button :category, key, required: true, class: "radio radio-primary" %>
+          <span class="font-bold text-xl"><%= category[:title] %></span>
+        </div>
+        <p class="font-bold text-3xl"><%= participation_amount(category[:amount_cents]) %></p>
+        <p class="text-sm leading-relaxed text-base-content/75"><%= category[:description] %></p>
+      </label>
+    <% end %>
+  </fieldset>
+<% end %>
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", hint: "Es wird noch keine Zahlung ausgelöst.", actions: button_tag("Weiter zur Bezahlung", type: "submit", form: "participation-form", class: "btn btn-primary") %>
+<% end %>

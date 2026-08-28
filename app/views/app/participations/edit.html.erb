@@ -1,10 +1,7 @@
 <% upgrading = @participation.paid? %>
-<% content_for :title, upgrading ? "Mitgliedschaft erhöhen" : (setup_flow? ? "Mitgliedschaft auswählen" : "Mitgliedschaft ändern") %>
-<%= render "app/shared/onboarding_steps", step: 1 if setup_flow? %>
-<% unless setup_flow? %>
-  <% content_for :topbar do %>
-    <%= render "app/shared/topbar", crumbs: [ [ "Mitgliedschaft", app_participation_path ], [ upgrading ? "Mitgliedschaft erhöhen" : "Mitgliedschaft ändern" ] ] %>
-  <% end %>
+<% content_for :title, upgrading ? "Mitgliedschaft erhöhen" : "Mitgliedschaft ändern" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ [ "Mitgliedschaft", app_participation_path ], [ upgrading ? "Mitgliedschaft erhöhen" : "Mitgliedschaft ändern" ] ] %>
 <% end %>
 <header class="mb-8 max-w-3xl">
   <p class="admin-eyebrow mb-3">Gemeinsam am Ersten Advent</p>
@@ -14,7 +11,7 @@
     <p class="mt-4 text-base-content/70">Bereits bezahlt: <strong><%= participation_amount(@participation.amount_cents) %></strong> für «<%= @participation.category_title %>». Sie können nur einen höheren Beitrag wählen und bezahlen ausschliesslich die Differenz. Ihre bisherige Mitgliedschaft bleibt bis zur Bestätigung der Differenzzahlung bestehen.</p>
   <% end %>
 </header>
-<%= form_with model: @participation, url: app_participation_path(setup: setup_flow? ? nil : 0), method: :patch, id: "participation-form" do |form| %>
+<%= form_with model: @participation, url: app_participation_path, method: :patch, id: "participation-form" do |form| %>
   <%= render "shared/form_errors", record: @participation %>
   <%= render "shared/form_errors", record: @upgrade if @upgrade %>
   <fieldset class="grid gap-6 lg:grid-cols-3">
@@ -34,7 +31,7 @@
 <% end %>
 <% content_for :bottombar do %>
   <%= render "app/shared/bottombar", hint: "Es wird noch keine Zahlung ausgelöst.", actions: capture {
-    concat link_to("Abbrechen", app_participation_path, class: "btn btn-ghost") unless setup_flow?
-    concat button_tag(upgrading ? "Erhöhung wählen und zur Zahlung" : (setup_flow? ? "Weiter zum Zahlungsstatus" : "Änderungen speichern"), type: "submit", form: "participation-form", class: "btn btn-primary")
+    concat link_to("Abbrechen", app_participation_path, class: "btn btn-ghost")
+    concat button_tag(upgrading ? "Erhöhung wählen und zur Zahlung" : "Änderungen speichern", type: "submit", form: "participation-form", class: "btn btn-primary")
   } %>
 <% end %>

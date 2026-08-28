@@ -1,12 +1,13 @@
 class App::MystoreController < App::BaseController
   before_action :require_business_editing, except: :show
   before_action :set_business, except: :create
-  before_action :initialize_business, only: [ :edit, :create, :update ]
-  before_action :set_categories, only: [ :edit, :create, :update ]
+  before_action :initialize_business, only: :edit
+  before_action :set_categories, only: :edit
 
 
   def show
-    return unless @business
+    return unless current_user.business_editing_allowed?
+    return redirect_to edit_app_mystore_path unless @business
 
     prepare_view_data(@business)
   end
@@ -16,22 +17,11 @@ class App::MystoreController < App::BaseController
   end
 
   def create
-  if @business.update(business_params)
-    redirect_to app_mystore_path, notice: "Geschäft erfolgreich erstellt."
-  else
-    prepare_form_data
-    render :edit, status: :unprocessable_entity
+    save_business
   end
-end
 
   def update
-    business_params.delete(:loginemail)
-    if @business.update(business_params)
-      redirect_to app_mystore_path, notice: "Geschäft wurde aktualisiert."
-    else
-      prepare_form_data
-      render :edit, status: :unprocessable_entity
-    end
+    save_business
   end
 
   def edit_main_image
@@ -80,15 +70,20 @@ end
   end
 
   def initialize_business
-    @business ||= current_user.build_business
+    @business = current_user.business_for_editing
+  end
 
-    @business.business_name ||= current_user.business_name
-    @business.phone ||= current_user.phone
-    @business.address ||= current_user.address
-    @business.billing_address ||= current_user.address
-    @business.map_link ||= ""
-    @business.email = @business.email.presence || current_user.email
-    @business.contact_name = @business.contact_name.presence || current_user.name.to_s
+  def save_business
+    current_user.with_lock do
+      @business = current_user.reload_business || current_user.build_registration_business
+      if @business.update(business_params)
+        redirect_to app_mystore_path, notice: "Geschäft wurde aktualisiert."
+      else
+        set_categories
+        prepare_form_data
+        render :edit, status: :unprocessable_entity
+      end
+    end
   end
 
   def business_params

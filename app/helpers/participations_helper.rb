@@ -7,7 +7,7 @@ module ParticipationsHelper
     if participation.pending_upgrade
       "Bisherige Mitgliedschaft bezahlt · Differenzzahlung offen"
     else
-      participation.paid? ? "Bezahlt · Teilnahme abgeschlossen" : "Zahlung offen · Teilnahme nicht abgeschlossen"
+      participation.paid? ? "Bezahlt" : "Zahlung offen · Teilnahme nicht abgeschlossen"
     end
   end
 end

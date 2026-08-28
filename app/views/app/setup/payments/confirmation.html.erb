@@ -1,0 +1,15 @@
+<% content_for :title, "Bezahlung erfolgreich" %>
+<header class="mx-auto mb-8 max-w-3xl text-center">
+  <%= heroicon "check-circle", options: { class: "mx-auto h-14 w-14 text-success mb-6", "aria-hidden": true } %>
+  <p class="admin-eyebrow mb-3">Vielen Dank!</p>
+  <h1 class="admin-heading">Bezahlung erfolgreich</h1>
+  <p class="admin-subtitle mt-3">Ihre Bezahlung wurde bestätigt. Ihre Mitgliedschaft «<%= @participation.category_title %>» für den Ersten Advent Bern <%= @participation.year %> ist damit aktiv.</p>
+  <% if @participation.simulated_payment? %>
+    <p class="mt-4 text-sm text-base-content/65">Testzahlung bestätigt · kein echter Geldfluss.</p>
+  <% end %>
+</header>
+<% confirmation_actions = link_to "Weiter zur Printbestellung", app_setup_print_order_path, class: "btn btn-primary" %>
+<div class="flex flex-wrap justify-center gap-3"><%= confirmation_actions %></div>
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", actions: confirmation_actions %>
+<% end %>

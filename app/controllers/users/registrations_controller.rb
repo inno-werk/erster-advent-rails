@@ -7,11 +7,16 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   def create
     super do |user|
-      RegistrationMailer.new_registration(user).deliver_later if user.persisted?
+      RegistrationMailer.new_registration(user).deliver_later if user.persisted? && RegistrationMailer.notifications_enabled?
     end
   end
 
   protected
+
+  def build_resource(hash = {})
+    super
+    resource.build_registration_business
+  end
 
   def registration_layout
     %w[edit update].include?(action_name) ? "app" : "auth"
@@ -31,7 +36,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   def after_sign_up_path_for(resource)
-    edit_app_participation_path
+    app_setup_participation_path
   end
 
   def after_update_path_for(resource)

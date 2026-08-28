@@ -31,7 +31,7 @@
 <% if local_assigns[:bottom_actions] %>
   <% content_for :bottombar do %>
     <%= render "app/shared/bottombar", actions: capture {
-      concat link_to("Abbrechen", app_print_order_path(setup: setup_flow? ? 1 : nil), class: "btn btn-ghost")
+      concat link_to("Abbrechen", app_print_order_path, class: "btn btn-ghost")
       concat button_tag(submit_label, type: "submit", form: form_id, class: "btn btn-primary")
     } %>
   <% end %>

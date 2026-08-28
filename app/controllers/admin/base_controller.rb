@@ -34,7 +34,9 @@ class Admin::BaseController < ApplicationController
   end
 
   def require_admin!
-    unless current_user&.adminish?
+    if current_user.nil?
+      redirect_to admin_login_path
+    elsif !current_user.adminish?
       redirect_to root_path, alert: "Not authorized"
     end
   end

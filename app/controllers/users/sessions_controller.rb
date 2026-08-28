@@ -30,7 +30,9 @@ class Users::SessionsController < Devise::SessionsController
   def redirect_path_for(resource)
     return admin_root_path if resource.respond_to?(:adminish?) ? resource.adminish? : resource.respond_to?(:admin?) && resource.admin?
 
-    resource.participation_complete? ? app_mystore_path : app_participation_path
+    return app_participation_path unless resource.participation_complete?
+
+    app_mystore_path
   end
 
   # If you have extra params to permit, append them to the sanitizer.

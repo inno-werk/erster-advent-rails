@@ -1,0 +1,92 @@
+<section class="flex flex-col px-6 py-8 sm:px-10 lg:px-12 lg:py-14" aria-labelledby="checkout-summary-heading">
+  <%= link_to cancel_path, class: "checkout-back-link" do %>
+    <%= heroicon "arrow-left", options: { class: "h-4 w-4", "aria-hidden": true } %>
+    Zurück
+  <% end %>
+  <div class="mt-8 flex flex-wrap items-center gap-3">
+    <%= image_tag "logo.svg", alt: "", class: "h-10 w-10 object-contain" %>
+    <span class="text-sm font-semibold">Erster Advent Bern</span>
+    <span class="rounded bg-amber-100 px-2 py-1 text-[10px] font-bold tracking-wider text-amber-900">TESTMODUS</span>
+  </div>
+  <div class="mt-8 lg:mt-12">
+    <h2 id="checkout-summary-heading" class="text-base text-slate-500"><%= @upgrade ? "Mitgliedschaft erhöhen" : "Ihre Teilnahme" %> · <%= @participation.year %></h2>
+    <p class="mt-2 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl" data-checkout-amount><%= participation_amount(@amount_cents) %></p>
+    <p class="mt-3 text-sm text-slate-500">Einmaliger Teilnahmebeitrag · kein Abonnement</p>
+  </div>
+  <div class="mt-8 flex items-start gap-4 border-b border-slate-200 pb-7 lg:mt-12">
+    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-slate-200/70">
+      <%= heroicon "building-storefront", options: { class: "h-6 w-6 text-slate-500", "aria-hidden": true } %>
+    </div>
+    <div class="min-w-0 flex-1">
+      <p class="font-semibold text-slate-900"><%= @upgrade ? @upgrade.category_title : @participation.category_title %></p>
+      <p class="mt-1 text-sm leading-relaxed text-slate-500">Erster Advent Bern <%= @participation.year %></p>
+      <% if @upgrade %><p class="mt-1 text-sm text-slate-500">Erhöhung Ihrer bestehenden Mitgliedschaft</p><% end %>
+    </div>
+    <span class="shrink-0 text-sm font-medium tabular-nums"><%= participation_amount(@upgrade ? @upgrade.amount_cents : @amount_cents) %></span>
+  </div>
+  <dl class="space-y-4 py-6 text-sm">
+    <% if @upgrade %>
+      <div class="flex justify-between gap-4 text-slate-500">
+        <dt>Bereits bezahlt</dt>
+        <dd class="tabular-nums">− <%= participation_amount(@upgrade.previous_amount_cents) %></dd>
+      </div>
+    <% end %>
+    <div class="flex justify-between gap-4 font-semibold text-slate-900">
+      <dt><%= @upgrade ? "Jetzt fällige Differenz" : "Heute fällig" %></dt>
+      <dd class="tabular-nums"><%= participation_amount(@amount_cents) %></dd>
+    </div>
+  </dl>
+  <p class="mt-4 max-w-sm text-xs leading-relaxed text-slate-500 lg:mt-auto lg:pt-16">Checkout-Vorschau für Entwicklung und Tests. Keine Verbindung zu Stripe oder einem anderen Zahlungsanbieter.</p>
+</section>
+
+<section class="border-t border-slate-200 bg-white px-6 py-10 sm:px-10 lg:border-t-0 lg:px-12 lg:py-24" aria-labelledby="checkout-payment-heading">
+  <div class="mx-auto max-w-md">
+    <h1 id="checkout-payment-heading" class="text-xl font-semibold tracking-tight text-slate-900">Zahlung bestätigen</h1>
+    <p class="mt-2 text-sm leading-relaxed text-slate-500">Simulieren Sie den Abschluss Ihrer Zahlung.</p>
+    <div class="mt-7 flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="note">
+      <%= heroicon "beaker", options: { class: "mt-0.5 h-5 w-5 shrink-0", "aria-hidden": true } %>
+      <div>
+        <p class="font-semibold">Testzahlung · kein Geldfluss</p>
+        <p class="mt-1 leading-relaxed">Es wird nichts abgebucht. Bitte geben Sie keine echten Zahlungsdaten ein.</p>
+      </div>
+    </div>
+    <div class="mt-7 border-b border-slate-200 pb-5">
+      <p class="text-xs font-medium text-slate-500">E-Mail-Adresse</p>
+      <p class="mt-1 break-all text-sm text-slate-900"><%= current_user.email %></p>
+    </div>
+    <%= form_with url: payment_path, id: "test-payment-form", method: :post, class: "mt-6" do %>
+      <%= hidden_field_tag :token, @token %>
+      <fieldset aria-describedby="test-card-help">
+        <legend class="mb-3 text-sm font-semibold text-slate-900">Zahlungsmethode</legend>
+        <div class="mb-5 flex items-center justify-between rounded-md border border-[#635bff] bg-[#635bff]/5 px-4 py-3">
+          <span class="flex items-center gap-3 text-sm font-medium">
+            <%= heroicon "credit-card", options: { class: "h-5 w-5 text-[#635bff]", "aria-hidden": true } %>
+            Karte
+          </span>
+          <span class="text-xs font-medium text-[#635bff]">Testkarte</span>
+        </div>
+        <label for="test-card-number" class="checkout-field-label">Kartennummer</label>
+        <input id="test-card-number" class="checkout-field" type="text" value="4242 4242 4242 4242" disabled autocomplete="off">
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label for="test-card-expiry" class="checkout-field-label">Gültig bis</label>
+            <input id="test-card-expiry" class="checkout-field" type="text" value="12 / 34" disabled autocomplete="off">
+          </div>
+          <div>
+            <label for="test-card-cvc" class="checkout-field-label">Prüfnummer</label>
+            <input id="test-card-cvc" class="checkout-field" type="text" value="123" disabled autocomplete="off">
+          </div>
+        </div>
+        <p id="test-card-help" class="mt-3 text-xs leading-relaxed text-slate-500">Feste Beispieldaten. Diese Felder sind nicht bearbeitbar und werden nicht übermittelt.</p>
+      </fieldset>
+      <%= button_tag type: "submit", class: "checkout-pay-button", data: { turbo_submits_with: "Testzahlung wird bestätigt …" } do %>
+        <%= heroicon "lock-closed", options: { class: "h-4 w-4", "aria-hidden": true } %>
+        <%= participation_amount(@amount_cents) %> testweise bezahlen
+      <% end %>
+      <p class="mt-4 text-center text-xs leading-relaxed text-slate-500">Mit Ihrer Bestätigung wird die <%= @upgrade ? "Erhöhung" : "Mitgliedschaft" %> sofort aktiviert und als Testzahlung gespeichert.</p>
+    <% end %>
+    <div class="mt-6 text-center">
+      <%= link_to "Abbrechen und zurück", cancel_path, class: "checkout-back-link text-sm" %>
+    </div>
+  </div>
+</section>

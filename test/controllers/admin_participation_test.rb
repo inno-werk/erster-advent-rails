@@ -163,7 +163,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_equal date, PrintDistribution.current.distribution_on
 
     sign_in users(:member)
-    [ edit_app_print_order_path(setup: 1), app_print_order_path ].each do |path|
+    [ edit_app_print_order_path, app_print_order_path ].each do |path|
       get path
       assert_response :success
       assert_select "time[datetime=?]", date.iso8601, text: "20.11.#{EventConfiguration.year}"
@@ -374,7 +374,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     get admin_store_path(id: businesses(:member).id)
     assert_response :success
     assert_select ".admin-detail-header a[href=?]", marketing_store_path(businesses(:member)), text: "Geschäftseintrag ansehen"
-    assert_select "section[aria-labelledby=store-administration-heading] dd", text: "Bezahlt · Teilnahme abgeschlossen"
+    assert_select "section[aria-labelledby=store-administration-heading] dd", text: "Bezahlt"
     assert_select "section[aria-labelledby=store-orders-heading]" do
       assert_select "tbody tr", count: 1
       assert_select "a[href=?]", admin_print_order_path(order), text: "Printbestellung #{EventConfiguration.year}"
@@ -454,7 +454,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     sign_out users(:member)
     get preview_admin_store_path(id: business.id)
-    assert_redirected_to root_path
+    assert_redirected_to admin_login_path
   end
 
   test "admin product CRUD supports activation and position" do

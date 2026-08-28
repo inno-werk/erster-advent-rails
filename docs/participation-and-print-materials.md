@@ -94,9 +94,13 @@ printed-map exports must use the same eligibility rule.
 
 ## Flow and access
 
-Registration still uses Devise email confirmation. Confirmation leads to
-`/app/participation/edit`, which begins a separate setup layout without the
-dashboard sidebar. Subsequent incomplete logins lead to `/app/participation`, a
+Self-registration creates the account and a pending business together, using the
+entered business name, phone, address, contact name and email. The address also
+prefills the billing address. Invalid business details prevent both records from
+being saved; the business remains unpublished until the normal approval and
+participation requirements are met. Registration still uses Devise email confirmation. Confirmation leads to
+`/app/setup/participation`, which begins a separate setup layout without the
+dashboard sidebar. `/app/setup` is also an entry point for membership selection. Subsequent incomplete logins lead to `/app/participation`, a
 status-only dashboard page with a membership-selection or pending-payment CTA.
 Every Store page requires login. Navigation shows an attention icon at
 «Mitgliedschaft» while participation/payment is outstanding, and at
@@ -113,14 +117,15 @@ existing data is preserved and admin editing remains available. Initial setup
 skips business editing for this tier. Changing an unpaid membership to a listed
 tier restores editing; last year's category does not restrict the current year.
 Unpaid memberships also offer «Mitgliedschaft ändern». This opens the existing
-category form with `setup=0`, without the onboarding stepper; saving returns to
+dashboard category form, without the onboarding stepper; saving returns to
 the membership summary. Paid memberships expose higher-tier upgrades, or
 «Differenz bezahlen» when an upgrade is pending, and reject direct category edits.
 
 The member sidebar contains «Mitgliedschaft», «Meine Printbestellung»,
-«Mein Geschäft» and «Kontoeinstellungen». Business editing is reached via
-«Informationen bearbeiten» above the business information, with the same
-«Mein Geschäft» navigation entry active in both views. Business status uses the
+«Mein Geschäft» and «Kontoeinstellungen». «Mein Geschäft» opens the business overview;
+«Informationen bearbeiten» in its fixed top bar opens the editor. Both views keep
+the same navigation entry active. Complete memberships also land on the overview
+after login. Memberships without a listing retain the explanation screen. Business status uses the
 approval information only, without a duplicate badge.
 
 Account settings use the dashboard layout for both edit and invalid update
@@ -128,33 +133,79 @@ responses, with personal details, email/password fields and a fixed save bar.
 Updates still require the current password; email changes require reconfirmation.
 Successful updates return to settings. Signup retains the separate auth layout.
 
-Selection saves the current annual record and opens
-`/app/participation/payment?setup=1`. Payment always uses its own layout without
-the dashboard sidebar or setup stepper. The membership dashboard shows «Zur
-Zahlung» only for an unpaid membership and opens the standalone payment page
-without setup context; its return action goes back to membership. A paid membership
-with a pending upgrade can also open payment, showing only the outstanding
-difference. Paid users without an outstanding balance are redirected to membership.
-The payment
-page offers a clearly labelled dummy payment in development/test; other
-environments explain that online payment is unavailable. No real transaction
-occurs. When reached from initial setup, users can continue to
-`/app/print_order?setup=1`, see the order summary, optionally choose **Bestellung
-bearbeiten**, then continue to their business details with the same setup context.
-Saving quantities returns to the summary. Validation errors preserve the layout;
-saving business details returns to the dashboard. Skipping
-creates no order and does not change an existing order. Pending users may prepare
-a print order; it does not complete participation. Editing print orders from the
-dashboard omits setup steps and returns to the order summary on save.
-The setup and payment headers and bottom action bars stay outside the scrolling
-main content. The stepper is only a guide on setup pages; it does not appear on
-the payment page. External submit buttons
-target their forms via the HTML `form` attribute. Dashboard print editing also
-uses the existing fixed bottom bar. Flash notifications are not rendered in any
-layout; inline form validation and the relevant page's status remain visible.
+Admin login uses GET/POST `/admin/login`, separately from the member login at
+`/users/sign_in`. Both use the same auth layout and form design, with an explicit
+«Admin-Login» heading for administrators. Login errors appear inline on the
+originating form; inactive-admin failures also return to the admin login.
+Devise password verification, lockouts, confirmation and remember-me behavior
+remain active. Member credentials cannot establish a session through admin login.
+Anonymous visits to protected admin pages go to the admin login; signed-in members
+remain blocked. Registration links are absent from login and account recovery
+screens, while the direct `/users/sign_up` URL remains available for distribution.
+This hides public signup navigation; it does not introduce invitation tokens.
+Restart the Rails server after deploying the Devise failure-handler configuration.
 
-`RegistrationMailer.new_registration` is queued only by successful self-registration,
-including an account awaiting confirmation. It is sent to
+Setup has dedicated controllers under `App::Setup`, its own screen templates under
+`app/views/app/setup`, and a single stepper rendered by `layouts/setup`. Dashboard
+controllers use the app layout, except for the standalone test checkout; the old `setup` query parameter no longer
+selects screens or controls navigation. Reusable layout components, models and
+signed test-payment processing remain shared, not the setup screens. Both test-payment
+entry points leave their originating layout for the same standalone checkout.
+
+| Setup route | Purpose |
+| --- | --- |
+| `/app/setup/participation` | Select and save the current annual membership. |
+| `/app/setup/payment` | Pay now or continue without payment. |
+| `/app/setup/payment?status=success` | Confirm recorded payment on the same step. |
+| `/app/setup/test_payment` | Development/test-only payment confirmation. |
+| `/app/setup/print_order` | Select product quantities and continue. |
+| `/app/setup/business` | Short handoff to «Mein Geschäft» in the app. |
+
+The payment introduction names the chosen membership, event year and amount due,
+without a separate membership details block. Both below the price and in the bottom
+bar, it offers «Jetzt bezahlen» (primary) and «Später bezahlen» (neutral outline).
+In development/test, «Jetzt bezahlen» opens the explicitly labelled test-payment
+confirmation; the setup payment screen itself has no test-payment section. Other
+environments explain that online payment is unavailable and disable the button.
+No real transaction occurs. Paid memberships cannot be changed through setup;
+outstanding upgrades are handled by the separate dashboard payment screen.
+
+«Später bezahlen» and the successful-payment continuation both open print selection
+directly. The print step shows available product images, titles, descriptions and
+quantity dropdowns (none or 1–10 bundles), without a summary, separate edit action
+or delivery-information section. «Weiter» saves and advances to the business handoff.
+Selecting no products creates no empty order; clearing an existing selection removes
+only the selected active products. Existing inactive items are preserved and noted.
+Invalid quantities remain on the same step with errors and the submitted values.
+Expired deadlines and empty catalogues show a short explanation and a continue link;
+closed-deadline POSTs cannot modify orders. Pending users may order print materials;
+this does not complete participation.
+
+«Geschäftsangaben» only explains that the user can now complete their store information
+in the app and links to the business overview. It has no form and creates no business record.
+The existing dashboard editor remains the only member business editor and uses
+«Änderungen speichern», with no separate «Geschäft anlegen» action. Older accounts
+without a business get one on their first editor visit when their saved registration
+details are valid; incomplete details remain prefilled for completion and saving.
+Creation is serialized on the account, and existing business details are preserved.
+Memberships
+without a listing skip this handoff and go straight to their dashboard explanation.
+Dashboard print editing still returns to its own order summary after saving.
+
+The setup header and bottom action bar stay outside the scrolling main content.
+The layout renders the stepper exactly once on every setup page, including payment
+success. The test checkout has no stepper, sidebar or app action bars. Dashboard screens
+have no stepper. External submit buttons target their
+forms with the HTML `form` attribute; print selection uses unsaved-change protection.
+Flash notifications are not rendered in any layout; inline validation remains visible.
+
+`SEND_PROD_EMAILS` defaults to `false`. Only the exact value `true` enables
+new-shop admin notifications; confirmation, password reset and other emails are
+unaffected. Set it in the environment of both the web process and the mail worker,
+then restart those processes. Disabled notifications are not queued for later delivery;
+already queued notifications also check the flag before sending.
+`RegistrationMailer.new_registration` is queued only by successful self-registration
+with this flag enabled, including an account awaiting confirmation. It is sent to
 `info@erster-advent-bern.ch`; subsequent updates and admin-created accounts do not
 trigger it. Production needs the existing SMTP configuration and a running Solid
 Queue worker (e.g. `SOLID_QUEUE_IN_PUMA=true`). Mail links use the existing mailer
@@ -243,12 +294,27 @@ fixed navigation/save bars and the same validation/unsaved-change behavior.
 
 ### Dummy payment for local testing
 
-In development and test, choose **Zur Zahlung → Testzahlung öffnen → Ja, als
-bezahlt markieren**. `/app/test_payment` uses the separate payment layout and
-shows the membership amount or upgrade difference. GET never changes payment
+In development and test, choose **Jetzt bezahlen → CHF … testweise bezahlen**
+during setup, or **Zur Zahlung → Testzahlung öffnen → CHF … testweise bezahlen**
+from the dashboard. Both `/app/setup/test_payment` and `/app/test_payment` use the
+standalone `checkout` layout, with a Stripe-like two-column summary and payment
+panel that stacks on mobile. It is explicitly labelled as a simulation, not an
+actual Stripe integration. Fixed example card fields are disabled and have no
+names, so no card data is requested or submitted. The form submits only the signed
+quote and normal framework fields. Upgrade summaries show the previous payment
+as a credit and only the outstanding difference as due. Cancel links return to
+the originating payment screen. Both entry points use the same signed-quote processing,
+current-user scoping and payment rules. GET never changes payment
 state; the confirmation POST activates the selected membership/upgrade through
-the existing payment methods. Initial setup returns to print materials; other
-payments return to the membership summary.
+the existing payment methods. Successful payments return to
+`/app/setup/payment?status=success` for setup or
+`/app/participation/payment?status=success` for the dashboard. The signed quote
+preserves the originating flow without trusting a redirect URL from the request.
+The success screen returns to «Bezahlung» in the setup stepper and offers
+«Weiter zur Printbestellung». Dashboard payment success returns to the app layout and offers
+«Zur Mitgliedschaft». The success screen requires the current membership to be
+paid with no outstanding upgrade; the query parameter never changes payment state
+or serves as proof of payment. Refreshing the confirmation is safe.
 
 `EventConfiguration.dummy_payments_enabled?` permits only Rails development/test.
 Both GET and POST return 404 in production and other environments. Authentication,
@@ -343,12 +409,14 @@ public eligibility and direct access, quantity validation and atomicity, skip/
 return flow, authorization, admin payment changes, image uploads, business/account
 editing and registration mail. Rails integration tests render the affected views.
 
-Verified locally: `bin/rails test` passes 114 tests / 1230 assertions, including
+Verified locally: `bin/rails test` passes 139 tests / 2153 assertions, including
+automatic business creation at registration, direct editor navigation, legacy
+account initialization without duplicate businesses or overwritten details,
 missing configuration, setup/dashboard separation, validation redirects and
 branded account emails, annual distribution dates, deadline boundaries and
 enforcement, navigation warnings, quantity dropdown limits, detailed order
-summaries, account-settings password verification/reconfirmation, and standalone
-payment versus guided-setup navigation, no-listing business access restrictions,
+summaries, account-settings password verification/reconfirmation, and
+in-app payment versus guided-setup navigation, no-listing business access restrictions,
 upgrade pricing, repeated confirmations, preserved entitlements and admin-only
 differential payment confirmation, simulated payments, production blocking,
 expired/stale quote rejection and safe repeat submissions.

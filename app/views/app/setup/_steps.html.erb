@@ -1,6 +1,6 @@
 <nav aria-label="Anmeldeschritte" class="mb-8 overflow-x-auto">
   <ol class="steps w-full text-sm">
-    <% ["Registrierung", "Teilnahme", "Zahlungsstatus", "Printmaterial", "Geschäftsangaben"].each_with_index do |label, index| %>
+    <% ["Registrierung", "Teilnahme", "Bezahlung", "Printmaterial", "Geschäftsangaben"].each_with_index do |label, index| %>
       <li class="step <%= 'step-primary' if index <= step %>" <%= 'aria-current=step' if index == step %>><%= label %></li>
     <% end %>
   </ol>

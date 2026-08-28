@@ -1,0 +1,10 @@
+<% content_for :title, "Geschäftsangaben" %>
+<header class="mx-auto mb-8 max-w-3xl text-center">
+  <h1 class="admin-heading">Jetzt Ihr Geschäft ergänzen</h1>
+  <p class="admin-subtitle mt-3">Im Bereich «Mein Geschäft» können Sie jetzt Ihre Geschäftsangaben, Bilder und Ihr Angebot für den Ersten Advent ergänzen. Sie können Ihre Angaben dort jederzeit bearbeiten.</p>
+</header>
+<% store_link = link_to "Zum Geschäft", app_mystore_path, class: "btn btn-primary" %>
+<div class="flex justify-center"><%= store_link %></div>
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", actions: store_link %>
+<% end %>

@@ -1,0 +1,104 @@
+<section
+  class="min-h-screen bg-gradient-to-br from-primary via-primary to-primary"
+>
+  <div
+    class="
+      flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-8
+    "
+  >
+    <div
+      class="
+        relative w-full max-w-xl rounded-3xl bg-base-100 px-8 py-12 shadow-2xl
+      "
+    >
+      <div
+        class="
+          absolute -top-10 left-1/2 flex h-20 w-20 -translate-x-1/2 items-center
+          justify-center rounded-full border-4 border-base-100 bg-secondary
+          text-primary-content shadow-xl
+        "
+      >
+        <%= heroicon "lock-closed", options: { class: "h-10 w-10" } %>
+      </div>
+
+      <div class="space-y-3 text-center">
+        <h1 class="text-3xl font-bold text-base-content">
+          <%= admin_login ? "Admin-Login" : "Melden Sie sich bei Ihrem Konto an" %>
+        </h1>
+        <% if admin_login %>
+          <p class="text-base text-base-content/80">Melden Sie sich mit Ihrem Administrationskonto an.</p>
+        <% end %>
+      </div>
+
+      <div class="mt-6">
+        <% if flash[:alert].present? %>
+          <p class="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert" data-turbo-cache="false"><%= flash[:alert] %></p>
+        <% end %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+      </div>
+
+      <%= form_for(resource, as: resource_name, url: login_path) do |f| %>
+        <div class="mt-8 space-y-6">
+          <div class="form-control">
+            <%= f.label :email, class: "label" do %>
+              <span class="label-text font-semibold">E-Mail-Adresse</span>
+            <% end %>
+            <%= f.email_field :email,
+                          autofocus: true,
+                          autocomplete: "email",
+                          class: "input input-bordered w-full",
+                          placeholder: "Geben Sie Ihre gültige E-Mail ein" %>
+            <% if resource.errors[:email].present? %>
+              <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:email).first %></span>
+            <% end %>
+          </div>
+
+          <div class="form-control">
+            <%= f.label :password, class: "label" do %>
+              <span class="label-text font-semibold">Passwort</span>
+            <% end %>
+            <div class="relative" data-controller="password-visibility">
+              <%= f.password_field :password,
+                               autocomplete: "current-password",
+                               class: "input input-bordered w-full pr-12",
+                               placeholder: "Geben Sie Ihr Passwort ein",
+                               data: {
+                                 password_visibility_target: "input",
+                               } %>
+              <button
+                type="button"
+                class="
+                  btn btn-ghost btn-xs absolute right-2 top-1/2 -translate-y-1/2
+                "
+                data-action="password-visibility#toggle"
+              >
+                <%= heroicon "eye", options: { class: "h-5 w-5 password-visibility--show" } %>
+                <span class="sr-only" data-password-visibility-target="label">Passwort anzeigen</span>
+              </button>
+            </div>
+            <% if resource.errors[:password].present? %>
+              <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:password).first %></span>
+            <% end %>
+          </div>
+
+          <% if devise_mapping.rememberable? %>
+            <div class="form-control">
+              <label class="label cursor-pointer justify-start gap-3">
+                <%= f.check_box :remember_me, class: "checkbox checkbox-primary" %>
+                <span class="label-text text-base-content">Angemeldet bleiben</span>
+              </label>
+            </div>
+          <% end %>
+
+          <div class="pt-2">
+            <%= f.submit "Anmelden", class: "btn btn-primary w-full" %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="mt-6">
+        <%= render "devise/shared/links" %>
+      </div>
+    </div>
+  </div>
+</section>

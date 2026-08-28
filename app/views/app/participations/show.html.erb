@@ -1,38 +1,43 @@
 <% content_for :title, "Mitgliedschaft" %>
-<header class="mb-8">
-  <p class="admin-eyebrow mb-3">Ihre Mitgliedschaft</p>
-  <h1 class="admin-heading">Mitgliedschaft</h1>
-  <p class="admin-subtitle mt-3">Ihr aktueller Status für den Ersten Advent <%= EventConfiguration.year %>.</p>
-</header>
-<% if @participation %>
-  <section class="admin-card p-6 md:p-8">
-    <%= render "shared/participation_details", participation: @participation %>
-    <% if @participation.pending? %>
-      <div class="border-t border-base-300 mt-6 pt-6">
-        <p class="mb-4">Ihre Mitgliedschaft ist ausgewählt, die Zahlung ist noch offen. Die Teilnahme ist deshalb noch nicht abgeschlossen.</p>
-        <div class="flex flex-wrap gap-3">
-          <%= link_to "Zur Zahlung", payment_app_participation_path, class: "btn btn-primary" %>
-          <%= link_to "Mitgliedschaft ändern", edit_app_participation_path(setup: 0), class: "btn btn-outline" %>
-        </div>
-      </div>
-    <% end %>
-    <% if (upgrade = @participation.pending_upgrade) %>
-      <div class="border-t border-base-300 mt-6 pt-6">
-        <%= render "shared/participation_upgrade", upgrade: upgrade %>
-        <%= link_to "Differenz bezahlen", payment_app_participation_path, class: "btn btn-primary mt-5" %>
-      </div>
-    <% elsif @participation.upgrade_available? %>
-      <div class="border-t border-base-300 mt-6 pt-6">
-        <p class="mb-4">Sie können Ihre bezahlte Mitgliedschaft erhöhen. Bereits geleistete Beiträge werden angerechnet.</p>
-        <%= link_to "Mitgliedschaft erhöhen", edit_app_participation_path(setup: 0), class: "btn btn-outline" %>
-      </div>
-    <% end %>
-  </section>
-<% else %>
-  <section class="admin-card p-6 md:p-8 max-w-3xl">
-    <span class="badge badge-warning mb-4">Noch keine Mitgliedschaft</span>
-    <h2 class="text-2xl font-bold mb-3">Machen Sie mit am Ersten Advent.</h2>
-    <p class="text-base-content/70 mb-6">Für <%= EventConfiguration.year %> haben Sie noch keine Mitgliedschaft ausgewählt. Starten Sie die Anmeldung und wählen Sie den passenden Teilnahmebeitrag für Ihr Geschäft.</p>
-    <%= link_to "Mitgliedschaft auswählen", edit_app_participation_path, class: "btn btn-primary" %>
-  </section>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ [ "Dashboard", app_root_path ], [ "Mitgliedschaft" ] ] %>
 <% end %>
+<div class="max-w-5xl">
+  <header class="mb-10">
+    <h1 class="admin-heading">Mitgliedschaft</h1>
+    <p class="admin-subtitle mt-3">Ihr aktueller Status für den Ersten Advent <%= EventConfiguration.year %>.</p>
+  </header>
+  <% if @participation %>
+    <section aria-labelledby="participation-details-heading">
+      <h2 id="participation-details-heading" class="border-b border-base-content/10 pb-5 text-base font-semibold">Ihre Mitgliedschaft im Überblick</h2>
+      <%= render "shared/participation_details", participation: @participation, details_class: "participation-overview-details" %>
+      <% if @participation.pending? %>
+        <div class="mt-8">
+          <p class="mb-5 max-w-2xl text-sm leading-relaxed text-base-content/65">Ihre Mitgliedschaft ist ausgewählt, die Zahlung ist noch offen. Die Teilnahme ist deshalb noch nicht abgeschlossen.</p>
+          <div class="flex flex-wrap gap-3">
+            <%= link_to "Zur Zahlung", payment_app_participation_path, class: "btn btn-primary" %>
+            <%= link_to "Mitgliedschaft ändern", edit_app_participation_path, class: "btn btn-outline" %>
+          </div>
+        </div>
+      <% end %>
+      <% if (upgrade = @participation.pending_upgrade) %>
+        <div class="mt-8">
+          <%= render "shared/participation_upgrade", upgrade: upgrade %>
+          <%= link_to "Differenz bezahlen", payment_app_participation_path, class: "btn btn-primary mt-5" %>
+        </div>
+      <% elsif @participation.upgrade_available? %>
+        <div class="mt-8">
+          <p class="mb-5 max-w-2xl text-sm leading-relaxed text-base-content/65">Sie können Ihre bezahlte Mitgliedschaft erhöhen. Bereits geleistete Beiträge werden angerechnet.</p>
+          <%= link_to "Mitgliedschaft erhöhen", edit_app_participation_path, class: "btn btn-outline" %>
+        </div>
+      <% end %>
+    </section>
+  <% else %>
+    <section class="border-t border-base-content/10 pt-8" aria-labelledby="participation-empty-heading">
+      <p class="mb-3 text-sm text-base-content/60">Noch keine Mitgliedschaft</p>
+      <h2 id="participation-empty-heading" class="mb-3 text-xl font-semibold">Machen Sie mit am Ersten Advent.</h2>
+      <p class="mb-6 max-w-2xl text-sm leading-relaxed text-base-content/65">Für <%= EventConfiguration.year %> haben Sie noch keine Mitgliedschaft ausgewählt. Starten Sie die Anmeldung und wählen Sie den passenden Teilnahmebeitrag für Ihr Geschäft.</p>
+      <%= link_to "Mitgliedschaft auswählen", app_setup_participation_path, class: "btn btn-primary" %>
+    </section>
+  <% end %>
+</div>

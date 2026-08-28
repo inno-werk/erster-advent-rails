@@ -1,0 +1,50 @@
+<% content_for :title, "Printmaterial auswählen" %>
+<header class="mx-auto mb-8 max-w-3xl text-center">
+  <h1 class="admin-heading">Printmaterial auswählen</h1>
+  <p class="admin-subtitle mt-3">Was brauchen Sie für Ihr Geschäft? Wählen Sie die gewünschten Mengen – oder gehen Sie ohne Printmaterial weiter.</p>
+</header>
+<% choosing_products = @distribution.orders_open? && @products.any? %>
+<% if choosing_products %>
+  <%= form_with url: app_setup_print_order_path, method: :patch, id: "print-order-form",
+    data: { unsaved_changes_target: "form", invalid: @print_order.errors.any?, action: "change->unsaved-changes#markDirty" } do %>
+    <%= render "shared/form_errors", record: @print_order %>
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <% @products.each do |product| %>
+        <% item = @print_order.items.find { |entry| entry.print_product_id == product.id } %>
+        <article class="admin-card bg-base-100 p-6 flex flex-col gap-4">
+          <% if product.image.attached? %>
+            <%= image_tag product.image, alt: product.title, class: "w-full h-40 object-contain" %>
+          <% end %>
+          <h2 class="text-xl font-bold"><%= product.title %></h2>
+          <div class="text-sm leading-relaxed text-base-content/65 flex-1"><%= simple_format product.description %></div>
+          <div>
+            <%= label_tag "quantities_#{product.id}", "Anzahl Bündel", class: "field-label" %>
+            <% quantity = item&.quantity_before_type_cast || 0 %>
+            <% options = [ [ "Keine", 0 ] ] + (1..10).map { |number| [ number, number ] } %>
+            <% invalid_quantity = !(0..10).map(&:to_s).include?(quantity.to_s) %>
+            <% options << [ "Bitte 1–10 auswählen (bisher: #{quantity})", quantity ] if invalid_quantity %>
+            <%= select_tag "quantities[#{product.id}]", options_for_select(options, selected: quantity, disabled: invalid_quantity ? quantity : nil),
+              id: "quantities_#{product.id}", class: "select w-full", aria: { label: "Anzahl Bündel: #{product.title}" } %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% end %>
+  <% if @print_order.items.any? { |item| !item.print_product.active? } %>
+    <p class="mx-auto mt-6 max-w-3xl text-center text-sm text-base-content/65">Bereits bestellte Materialien, die nicht mehr angeboten werden, bleiben in Ihrer Bestellung erhalten.</p>
+  <% end %>
+<% elsif !@distribution.orders_open? %>
+  <p class="mx-auto max-w-3xl text-center text-base-content/70" data-order-deadline>Die Bestellfrist ist abgelaufen. Eine bestehende Printbestellung bleibt erhalten. Sie können mit der Anmeldung fortfahren.</p>
+<% else %>
+  <p class="mx-auto max-w-3xl text-center text-base-content/70">Aktuell sind keine Printmaterialien verfügbar. Sie können mit der Anmeldung fortfahren.</p>
+<% end %>
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", actions: capture {
+    concat link_to("Zurück", app_setup_payment_path, class: "btn btn-ghost")
+    if choosing_products
+      concat button_tag("Weiter", type: "submit", form: "print-order-form", class: "btn btn-primary")
+    else
+      concat link_to("Weiter", after_print_order_path, class: "btn btn-primary")
+    end
+  } %>
+<% end %>

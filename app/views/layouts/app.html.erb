@@ -52,23 +52,20 @@
             "
           >
             <div class="flex h-full flex-col gap-4 px-4 py-6">
-              <div class="hidden lg:flex items-center gap-3">
+              <header class="flex flex-col items-start gap-4" data-sidebar-brand>
                 <a
                   href="<%= root_path %>"
-                  class="
-                    flex h-12 w-12 items-center justify-center rounded-full bg-secondary
-                    text-secondary-content
-                  "
+                  class="inline-flex shrink-0"
                 >
                   <%= image_tag "logo.svg", alt: "Erster Advent Logo", class: "h-8 w-auto" %>
                 </a>
-                <div>
-                  <p class="text-sm font-semibold"><%= current_user.business_name&.presence || current_user.email %></p>
-                  <p class="text-xs">Dashboard</p>
+                <div class="min-w-0 w-full">
+                  <p class="text-sm font-semibold [overflow-wrap:anywhere]"><%= current_user.business_name&.presence || current_user.email %></p>
+                  <p class="mt-1 text-xs">Dashboard</p>
                 </div>
-              </div>
+              </header>
               <ul class="menu flex-1 gap-1 w-full">
-                <%= render "layouts/menu_item", link: app_participation_path, text: "Mitgliedschaft", active: controller_name == "participations",
+                <%= render "layouts/menu_item", link: app_participation_path, text: "Mitgliedschaft", active: %w[participations test_payments].include?(controller_name),
                   attention: current_user.current_participation&.paid? && !current_user.current_participation.payment_due? ? nil : "Teilnahme oder Zahlung noch offen" %>
                 <%= render "layouts/menu_item", link: app_print_order_path, text: "Meine Printbestellung", active: controller_name == "print_orders" %>
                 <%= render "layouts/menu_item", link: app_mystore_path, text: "Mein Geschäft", active: controller_name == "mystore",

@@ -14,7 +14,7 @@ class App::PrintOrdersController < App::BaseController
     current_user.with_lock do
       @print_order = current_user.print_orders.for_year.lock.first_or_initialize(year: EventConfiguration.year)
       if @print_order.update_quantities(quantity_params, products: @products, maximum_quantity: 10)
-        redirect_to app_print_order_path(setup: setup_flow? ? 1 : nil)
+        redirect_to app_print_order_path
       else
         render :edit, status: :unprocessable_entity
       end
@@ -24,7 +24,7 @@ class App::PrintOrdersController < App::BaseController
   private
 
   def ensure_orders_open
-    redirect_to app_print_order_path(setup: setup_flow? ? 1 : nil) unless PrintDistribution.current.orders_open?
+    redirect_to app_print_order_path unless PrintDistribution.current.orders_open?
   end
 
   def load_order

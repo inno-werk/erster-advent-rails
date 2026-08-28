@@ -1,4 +1,4 @@
-<dl class="grid gap-4 sm:grid-cols-2">
+<dl class="<%= local_assigns.fetch(:details_class, "grid gap-4 sm:grid-cols-2") %>">
   <div><dt class="admin-eyebrow">Teilnahmejahr</dt><dd><%= participation.year %></dd></div>
   <div><dt class="admin-eyebrow">Kategorie</dt><dd><%= participation.category_title %></dd></div>
   <div><dt class="admin-eyebrow">Teilnahmebeitrag</dt><dd><%= participation_amount(participation.amount_cents) %></dd></div>

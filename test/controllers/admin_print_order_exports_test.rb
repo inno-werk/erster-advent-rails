@@ -44,11 +44,11 @@ class AdminPrintOrderExportsTest < ActionDispatch::IntegrationTest
       sign_in user if user
       [ addresses_admin_print_order_export_path, address_preview_admin_print_order_export_path, letters_admin_print_order_export_path, preview_admin_print_order_export_path ].each do |path|
         get path
-        assert_redirected_to root_path
+        assert_redirected_to(user ? root_path : admin_login_path)
       end
       [ preview_admin_print_order_export_path, download_admin_print_order_export_path, address_preview_admin_print_order_export_path, download_addresses_admin_print_order_export_path ].each do |path|
         post path, params: { document_format: "zip" }
-        assert_redirected_to root_path
+        assert_redirected_to(user ? root_path : admin_login_path)
       end
     end
   end

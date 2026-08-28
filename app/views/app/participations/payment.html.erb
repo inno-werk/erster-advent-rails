@@ -1,32 +1,22 @@
-<% content_for :title, "Mitgliedschaft bezahlen" %>
+<% content_for :title, "Bezahlung" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ [ "Mitgliedschaft", app_participation_path ], [ "Bezahlung" ] ] %>
+<% end %>
 <header class="mb-8">
   <p class="admin-eyebrow mb-3">Ihre Mitgliedschaft <%= @participation.year %></p>
-  <h1 class="admin-heading">Mitgliedschaft bezahlen</h1>
-  <p class="admin-subtitle mt-3">Hier finden Sie den offenen Beitrag und den aktuellen Zahlungsstatus.</p>
+  <h1 class="admin-heading">Bezahlung</h1>
+  <% if (upgrade = @participation.pending_upgrade) %>
+    <p class="admin-subtitle mt-3">Sie haben die Erhöhung auf die Mitgliedschaft «<%= upgrade.category_title %>» für den Ersten Advent Bern <%= @participation.year %> gewählt. Bezahlen Sie jetzt die Differenz von <strong><%= participation_amount(@participation.amount_due_cents) %></strong>. Ihr bereits bezahlter Beitrag wird angerechnet.</p>
+    <p class="mt-4 text-base-content/70">Die neue Mitgliedschaft wird aktiviert, sobald der Zahlungseingang bestätigt wurde. Bis dahin bleibt Ihre bisherige Mitgliedschaft bestehen.</p>
+  <% else %>
+    <p class="admin-subtitle mt-3">Sie haben die Mitgliedschaft «<%= @participation.category_title %>» gewählt. Um Ihre Teilnahme am Ersten Advent Bern <%= @participation.year %> abzuschliessen, bezahlen Sie jetzt <strong><%= participation_amount(@participation.amount_due_cents) %></strong>.</p>
+    <p class="mt-4 text-base-content/70">Ihre Teilnahme ist abgeschlossen, sobald der Zahlungseingang bestätigt wurde.</p>
+  <% end %>
 </header>
 <div class="admin-card p-6"><%= render "shared/participation_details", participation: @participation %></div>
-<% if (upgrade = @participation.pending_upgrade) %>
-  <div class="admin-card p-6 mt-6"><%= render "shared/participation_upgrade", upgrade: upgrade %></div>
-<% end %>
-<p class="mt-6 text-xl font-bold">Jetzt zu bezahlen: <%= participation_amount(@participation.amount_due_cents) %></p>
-<% if EventConfiguration.dummy_payments_enabled? %>
-  <section class="mt-6 border-t border-base-content/10 pt-6">
-    <h2 class="text-xl font-bold">Testzahlung</h2>
-    <p class="mt-2 mb-4 text-sm text-base-content/65">Nur in der Entwicklungs- und Testumgebung: Simulieren Sie eine Zahlung ohne Geldfluss.</p>
-    <%= link_to "Testzahlung öffnen", app_test_payment_path(setup: @continue_setup ? 1 : nil), class: "btn btn-primary" %>
-  </section>
-<% elsif @participation.payment_due? %>
-  <div class="alert alert-info mt-6">
-    <p>Die Online-Zahlung ist noch nicht verfügbar. Es wurde keine Zahlung ausgeführt. Der offene Betrag muss durch die Administration als eingegangen bestätigt werden. Bei Fragen zur Zahlung kontaktieren Sie bitte das Team.</p>
-  </div>
-<% end %>
+<%= render "payment_details" %>
 <% content_for :bottombar do %>
   <%= render "app/shared/bottombar", actions: capture {
-    if @continue_setup
-      concat link_to("Kategorie ändern", edit_app_participation_path, class: "btn btn-ghost")
-      concat link_to("Weiter zu Printbestellung", app_print_order_path(setup: 1), class: "btn btn-primary")
-    else
-      concat link_to("Zurück zur Mitgliedschaft", app_participation_path, class: "btn btn-primary")
-    end
+    concat link_to("Zurück zur Mitgliedschaft", app_participation_path, class: "btn btn-primary")
   } %>
 <% end %>

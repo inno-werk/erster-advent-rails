@@ -626,6 +626,42 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply font-jakarta font-light text-base-content/60 text-sm md:text-base;
   }
 
+  /* Standalone payment simulation, separate from the app and setup shells. */
+  .checkout-page {
+    @apply min-h-dvh bg-slate-50 font-jakarta text-slate-700;
+  }
+  @media (min-width: 64rem) {
+    .checkout-page {
+      background: linear-gradient(to right, #f8fafc 50%, #fff 50%);
+    }
+  }
+  .checkout-back-link {
+    @apply inline-flex w-fit items-center gap-2 rounded text-sm text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#635bff];
+  }
+  .checkout-field-label {
+    @apply mb-1.5 block text-xs font-medium text-slate-600;
+  }
+  .checkout-field {
+    @apply block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-500 opacity-100 shadow-sm;
+    -webkit-text-fill-color: #64748b;
+  }
+  .checkout-pay-button {
+    @apply mt-7 flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#635bff] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#5147eb] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#635bff] disabled:cursor-wait disabled:opacity-60;
+  }
+
+  .participation-overview-details {
+    @apply grid gap-x-12 sm:grid-cols-2;
+  }
+  .participation-overview-details > div {
+    @apply border-b border-base-content/10 py-5;
+  }
+  .participation-overview-details dt {
+    @apply text-sm font-normal normal-case tracking-normal text-base-content/60;
+  }
+  .participation-overview-details dd {
+    @apply mt-2 text-base leading-relaxed;
+  }
+
   /* White card with the storefront's 28px radius and #C6C6C6 hairline */
   .admin-card {
     @apply overflow-hidden rounded-[28px] border border-[#C6C6C6] bg-base-100;
@@ -729,14 +765,6 @@ button:has(+ #popover-1:popover-open) .icon-up {
   }
 
   [data-layout="setup"] .app-bottombar .btn {
-    @apply whitespace-normal h-auto min-h-10 py-2;
-  }
-
-  [data-layout="payment"] .app-bottombar .app-container {
-    @apply max-w-4xl px-6;
-  }
-
-  [data-layout="payment"] .app-bottombar .btn {
     @apply whitespace-normal h-auto min-h-10 py-2;
   }
 
