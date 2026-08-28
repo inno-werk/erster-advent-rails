@@ -30,113 +30,57 @@
             </p>
           </div>
 
-          <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "mt-6" }) do |f| %>
+          <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: {
+            id: "registration-form", class: "mt-6", data: {
+              controller: "auth-form", auth_form_invalid: resource.errors.any?,
+              action: "turbo:submit-start->auth-form#rememberPassword turbo:before-render@document->auth-form#restorePassword turbo:before-cache@document->auth-form#scrubInputs pagehide@window->auth-form#leavePage"
+            }
+          }) do |f| %>
             <div class="space-y-6">
-              <%= render "devise/shared/error_messages", resource: resource %>
+              <% if resource.errors.any? %>
+                <p class="text-sm text-base-content/70">Bitte prüfen Sie die markierten Felder.</p>
+                <% resource.errors.full_messages_for(:base).each do |message| %>
+                  <p class="text-sm text-error" role="alert"><%= message %></p>
+                <% end %>
+              <% end %>
 
               <div class="grid gap-4 md:grid-cols-2">
-                <div class="form-control">
-                  <%= f.label :business_name, class: "label" do %>
-                    <span class="label-text font-semibold">Firmenname</span>
-                  <% end %>
-                  <%= f.text_field :business_name,
-                               class: "input input-bordered w-full",
-                               placeholder: "Geben Sie Ihren Firmennamen ein",
-                               autofocus: true,
-                               required: true %>
-                  <% if resource.errors[:business_name].present? %>
-                    <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:business_name).first %></span>
-                  <% end %>
-                </div>
-
-                <div class="form-control">
-                  <%= f.label :email, class: "label" do %>
-                    <span class="label-text font-semibold">E-Mail-Adresse</span>
-                  <% end %>
-                  <%= f.email_field :email,
-                                class: "input input-bordered w-full",
-                                placeholder: "Geben Sie Ihre gültige E-Mail ein",
-                                autocomplete: "email",
-                                required: true %>
-                  <% if resource.errors[:email].present? %>
-                    <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:email).first %></span>
-                  <% end %>
-                </div>
-
-                <div class="form-control">
-                  <%= f.label :address, class: "label" do %>
-                    <span class="label-text font-semibold">Adresse</span>
-                  <% end %>
-                  <%= f.text_field :address,
-                               class: "input input-bordered w-full",
-                               placeholder: "Geben Sie Ihre Postadresse ein",
-                               required: true %>
-                  <% if resource.errors[:address].present? %>
-                    <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:address).first %></span>
-                  <% end %>
-                </div>
-
-                <div class="form-control">
-                  <%= f.label :name, class: "label" do %>
-                    <span class="label-text font-semibold">Vor- und Nachname</span>
-                  <% end %>
-                  <%= f.text_field :name,
-                               class: "input input-bordered w-full",
-                               placeholder: "Geben Sie den Management-Namen ein",
-                               required: true %>
-                  <% if resource.errors[:management_name].present? %>
-                    <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:management_name).first %></span>
-                  <% end %>
-                </div>
-
-                <div class="form-control">
-                  <%= f.label :password, class: "label" do %>
-                    <span class="label-text font-semibold">Passwort</span>
-                  <% end %>
-                  <div class="relative" data-controller="password-visibility">
-                    <%= f.password_field :password,
-                                     class: "input input-bordered w-full pr-12",
-                                     placeholder: "Geben Sie Ihr Passwort ein",
-                                     autocomplete: "new-password",
-                                     data: {
-                                       password_visibility_target: "input",
-                                     },
-                                     required: true %>
-                    <button
-                      type="button"
-                      class="
-                        btn btn-ghost btn-xs absolute right-2 top-1/2 -translate-y-1/2
-                      "
-                      data-action="password-visibility#toggle"
-                    >
-                      <%= heroicon "eye", options: { class: "h-5 w-5 password-visibility--show" } %>
-                      <span class="sr-only" data-password-visibility-target="label">Passwort anzeigen</span>
-                    </button>
-
+                <% [
+                  [:business_name, :text, "Firmenname", "Geben Sie Ihren Firmennamen ein", "organization"],
+                  [:email, :email, "E-Mail-Adresse", "Geben Sie Ihre gültige E-Mail ein", "email"],
+                  [:address, :text, "Adresse", "Geben Sie Ihre Postadresse ein", "street-address"],
+                  [:name, :text, "Vor- und Nachname", "Geben Sie Ihren Vor- und Nachnamen ein", "name"],
+                  [:password, :password, "Passwort", "Geben Sie Ihr Passwort ein", "new-password"],
+                  [:phone, :telephone, "Telefonnummer", "Geben Sie Ihre Telefonnummer ein", "tel"]
+                ].each do |field, type, label, placeholder, autocomplete| %>
+                  <% errors = auth_field_errors(resource, field) %>
+                  <% password = field == :password %>
+                  <% hint = password && @minimum_password_length ? "user_password_hint" : nil %>
+                  <% options = auth_input_options(field, errors: errors, extra_class: ("pr-12" if password), hint: hint).merge(
+                    placeholder: placeholder, autocomplete: autocomplete, required: true,
+                    autofocus: resource.errors.empty? && field == :business_name
+                  ) %>
+                  <div class="form-control">
+                    <%= f.label field, class: "label" do %>
+                      <span class="label-text font-semibold"><%= label %></span>
+                    <% end %>
+                    <% if password %>
+                      <div class="relative" data-controller="password-visibility">
+                        <%= f.password_field field, **options, data: { password_visibility_target: "input", auth_password: true } %>
+                        <button type="button" class="btn btn-ghost btn-xs absolute right-2 top-1/2 -translate-y-1/2" data-action="password-visibility#toggle">
+                          <%= heroicon "eye", options: { class: "h-5 w-5" } %>
+                          <span class="sr-only" data-password-visibility-target="label">Passwort anzeigen</span>
+                        </button>
+                      </div>
+                      <% if @minimum_password_length %>
+                        <p id="user_password_hint" class="mt-1 text-sm text-base-content/60">Mindestens <%= @minimum_password_length %> Zeichen</p>
+                      <% end %>
+                    <% else %>
+                      <%= f.public_send("#{type}_field", field, **options) %>
+                    <% end %>
+                    <%= render "devise/shared/field_errors", field: field, errors: errors %>
                   </div>
-                  <% if @minimum_password_length %>
-                    <span class="label-text-alt mt-1 text-base-content/70">Mindestens
-                      <%= @minimum_password_length %>
-                      Zeichen</span>
-                  <% end %>
-                  <% if resource.errors[:password].present? %>
-                    <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:password).first %></span>
-                  <% end %>
-                </div>
-
-                <div class="form-control">
-                  <%= f.label :phone, class: "label" do %>
-                    <span class="label-text font-semibold">Telefonnummer</span>
-                  <% end %>
-                  <%= f.telephone_field :phone,
-                                    class: "input input-bordered w-full",
-                                    placeholder: "Geben Sie Ihre Telefonnummer ein",
-                                    required: true %>
-                  <% if resource.errors[:phone].present? %>
-                    <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:phone).first %></span>
-                  <% end %>
-                </div>
-
+                <% end %>
               </div>
 
               <div class="flex justify-center">

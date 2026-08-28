@@ -21,6 +21,7 @@ class EmailPreviewsController < ApplicationController
       link["rel"] = "noopener noreferrer"
     end
     @email_html = document.to_html
+    session[:account_email_preview_opened_key] = session[:account_email_preview_key]
   end
 
   private
@@ -29,6 +30,6 @@ class EmailPreviewsController < ApplicationController
     response.headers["Cache-Control"] = "no-store, private"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
-    response.headers["Content-Security-Policy"] = "default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src 'self' about:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src 'self' about:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
   end
 end

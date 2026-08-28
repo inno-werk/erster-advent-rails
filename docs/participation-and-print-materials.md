@@ -199,6 +199,19 @@ have no stepper. External submit buttons target their
 forms with the HTML `form` attribute; print selection uses unsaved-change protection.
 Flash notifications are not rendered in any layout; inline validation remains visible.
 
+Login and registration validation uses field-level error messages, error borders,
+and `aria-invalid` / `aria-describedby`. Registration maps nested business errors
+back to the visible fields. Authentication failures keep the generic credentials
+message so the form does not disclose which part of the credentials was wrong.
+Account lock, confirmation and admin-access errors remain form-level messages.
+
+During Turbo validation failures, `auth-form` keeps the submitted password only in
+browser memory and restores it masked into the same failed form. It does not echo
+the password in response HTML or store it in cookies, sessions, local storage or
+session storage. Password values are scrubbed before Turbo snapshots, navigation
+away and page unload. Without JavaScript, Devise retains its normal behavior of
+clearing password fields. The first invalid field receives focus after rendering.
+
 `PROD_SEND` is the only email-mode switch. The exact value `true` enables both
 account emails and new-shop admin notifications. The exact value `false` enables
 private browser previews for newly registered test accounts without sending mail.

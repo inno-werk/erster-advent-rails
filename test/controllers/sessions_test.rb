@@ -28,6 +28,10 @@ class SessionsTest < ActionDispatch::IntegrationTest
       assert_select "form[action=?]", admin_session_path
       assert_select "input[name='user[email]'][value=?]", users(:admin).email
       assert_select "input[type=password][value]", count: 0
+      assert_select "form#admin-login-form[data-controller=auth-form][data-auth-form-invalid=true]"
+      assert_select "input[name='user[email]'][aria-invalid=true][aria-describedby=user_email_error].input-error"
+      assert_select "input[name='user[password]'][aria-invalid=true][aria-describedby=user_password_error].input-error"
+      assert_select "#user_password_error[role=alert]", text: /E-Mail oder Passwort ist ungültig/
       assert_select "a[href=?]", new_user_registration_path, count: 0
     end
     assert_equal 2, users(:admin).reload.failed_attempts
@@ -42,6 +46,9 @@ class SessionsTest < ActionDispatch::IntegrationTest
     assert_select "[role=alert]", text: /E-Mail oder Passwort ist ungültig/
     assert_select "form[action=?]", user_session_path
     assert_select "input[type=password][value]", count: 0
+    assert_select "form#login-form[data-controller=auth-form][data-auth-form-invalid=true]"
+    assert_select "input[name='user[email]'][aria-invalid=true].input-error"
+    assert_select "input[name='user[password]'][aria-invalid=true].input-error"
   end
 
   test "admin login accepts administrators and superadministrators" do
@@ -77,6 +84,7 @@ class SessionsTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert_select "h1", text: "Admin-Login"
     assert_select "[role=alert]", text: "Dieses Konto hat keinen Zugang zum Adminbereich."
+    assert_select "input[aria-invalid=true]", count: 0
     assert_select "form[action=?]", admin_session_path
     assert_select "input[type=password][value]", count: 0
     get app_participation_path

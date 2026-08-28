@@ -1,5 +1,6 @@
-<% if AccountEmailPreview.enabled? %>
-  <aside class="border-b border-base-300 bg-base-100 px-6 py-4 text-center text-sm" data-email-preview-notice data-turbo-cache="false">
+<% if AccountEmailPreview.enabled? && !account_email_preview_opened? %>
+  <aside class="border-b border-base-300 bg-base-100 px-6 py-4 text-center text-sm" data-email-preview-notice data-turbo-cache="false"
+    data-controller="email-preview-notice" data-email-preview-notice-id-value="<%= account_email_preview_notice_id %>">
     <p class="font-semibold">Testmodus: E-Mails werden nicht versendet.</p>
     <% if account_email_preview_available? %>
       <% unless content_for?(:email_preview_in_content) %>

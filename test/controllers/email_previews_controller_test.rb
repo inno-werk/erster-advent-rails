@@ -21,7 +21,7 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to confirmation_pending_path
     follow_redirect!
-    assert_select "a[href='#{email_preview_path}']", count: 1
+    assert_select "[data-email-preview-notice-target=prompt]:not([hidden]) a[href='#{email_preview_path}']", count: 1
     assert_select "[data-confirmation-panel] a[href='#{email_preview_path}'][target='_blank'][rel='noopener noreferrer']", text: "E-Mail-Vorschau öffnen"
     assert_select "h1", text: "E-Mail-Adresse bestätigen"
     assert_includes response.body, "Ihre Bestätigungs-E-Mail ist bereit."
@@ -118,6 +118,52 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
     other_browser.assert_response :not_found
     get email_preview_path
     assert_response :success
+  end
+
+  test "opening a preview dismisses its notice without revoking the preview or confirming the account" do
+    register_test_account
+    follow_redirect!
+    notice_id = css_select("[data-email-preview-notice]").sole["data-email-preview-notice-id-value"]
+    assert notice_id.present?
+    get email_preview_path
+    assert_response :success
+    assert_select "body[data-email-preview-notice-id=?]", notice_id
+    assert_select "script[type=module][src*='email_preview_opened']"
+    assert_not User.find_by!(email: "preview@example.com").confirmed?
+
+    get confirmation_pending_path
+    assert_select "[data-email-preview-notice]", count: 0
+    assert_select "[data-email-preview-notice-target=prompt][hidden]"
+    assert_select "[data-email-preview-notice-target=opened]:not([hidden])", text: /Die E-Mail-Vorschau wurde geöffnet/
+    get email_preview_path
+    assert_response :success
+    link = preview_document.at_css("a[href*='confirmation_token=']")
+    get link["href"]
+    follow_redirect!
+    assert_select "[data-email-preview-notice]", count: 0
+  end
+
+  test "a new email brings its preview notice back with a different identifier" do
+    register_test_account
+    get email_preview_path
+    previous_id = css_select("body").sole["data-email-preview-notice-id"]
+    post user_confirmation_path, params: { user: { email: "preview@example.com" } }
+    follow_redirect!
+    assert_select "[data-email-preview-notice]" do |notices|
+      assert_not_equal previous_id, notices.sole["data-email-preview-notice-id-value"]
+    end
+    assert_select "[data-email-preview-notice-target=prompt]:not([hidden])"
+  end
+
+  test "an unsuccessful preview request does not dismiss the notice" do
+    register_test_account
+    Rails.cache.stub(:read, nil) do
+      get email_preview_path
+      assert_response :not_found
+    end
+    get confirmation_pending_path
+    assert_select "[data-email-preview-notice]"
+    assert_select "[data-email-preview-notice-target=prompt]:not([hidden])"
   end
 
   test "resend replaces the owning browser preview without sending mail" do

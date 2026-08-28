@@ -4,10 +4,18 @@
     <%= heroicon "envelope", options: { class: "mx-auto mb-6 h-10 w-10 text-primary" } %>
     <h1 class="text-3xl font-semibold">E-Mail-Adresse bestätigen</h1>
     <% if account_email_preview_available? %>
-      <p class="mt-4 text-base-content/70">Ihre Bestätigungs-E-Mail ist bereit. Öffnen Sie die Vorschau und bestätigen Sie dort Ihre E-Mail-Adresse, um fortzufahren.</p>
-      <div class="mt-6">
-        <%= link_to "E-Mail-Vorschau öffnen", email_preview_path, target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary", data: { turbo: false } %>
-        <p class="mt-3 text-sm text-base-content/60">Öffnet in einem neuen Tab. Es wurde keine E-Mail versendet.</p>
+      <div data-controller="email-preview-notice" data-email-preview-notice-id-value="<%= account_email_preview_notice_id %>">
+        <div data-email-preview-notice-target="prompt" <%= "hidden" if account_email_preview_opened? %>>
+          <p class="mt-4 text-base-content/70">Ihre Bestätigungs-E-Mail ist bereit. Öffnen Sie die Vorschau und bestätigen Sie dort Ihre E-Mail-Adresse, um fortzufahren.</p>
+          <div class="mt-6">
+            <%= link_to "E-Mail-Vorschau öffnen", email_preview_path, target: "_blank", rel: "noopener noreferrer", class: "btn btn-primary", data: { turbo: false } %>
+            <p class="mt-3 text-sm text-base-content/60">Öffnet in einem neuen Tab. Es wurde keine E-Mail versendet.</p>
+          </div>
+        </div>
+        <div data-email-preview-notice-target="opened" <%= "hidden" unless account_email_preview_opened? %>>
+          <p class="mt-4 text-base-content/70" role="status">Die E-Mail-Vorschau wurde geöffnet. Bestätigen Sie Ihre E-Mail-Adresse im neuen Tab, um fortzufahren.</p>
+          <%= link_to "Vorschau erneut öffnen", email_preview_path, target: "_blank", rel: "noopener noreferrer", class: "link mt-4 inline-block text-sm", data: { turbo: false } %>
+        </div>
       </div>
     <% elsif account_email_preview_retryable? %>
       <p class="mt-4 text-base-content/70" role="status">Ihre Registrierung wurde gespeichert. Die E-Mail-Vorschau ist gerade nicht verfügbar. Bitte fordern Sie die Bestätigung erneut an.</p>

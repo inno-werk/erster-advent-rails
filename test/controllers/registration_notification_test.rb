@@ -66,8 +66,49 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
           name: "Neue Person", phone: "", password: "password123"
         } }
         assert_response :unprocessable_entity
+        assert_select "input[name='user[phone]'][aria-invalid=true][aria-describedby=user_phone_error].input-error"
+        assert_select "#user_phone_error[role=alert]", text: /ausgefüllt/
+        assert_select "input[name='user[email]'][aria-invalid=true]", count: 0
       end
     end
+  end
+
+  test "duplicate email is marked inline and the password stays out of the response" do
+    [ "text/html", "text/vnd.turbo-stream.html, text/html" ].each do |accept|
+      assert_no_difference [ "User.count", "Business.count" ] do
+        post user_registration_path, params: { user: {
+          business_name: "Neu GmbH", email: users(:member).email, address: "Bern",
+          name: "Neue Person", phone: "031 000 00 00", password: "private-test-password"
+        } }, headers: { "Accept" => accept }
+      end
+      assert_response :unprocessable_entity
+      assert_select "form#registration-form[data-controller=auth-form][data-auth-form-invalid=true]"
+      assert_select "input[name='user[email]'][aria-invalid=true][aria-describedby=user_email_error].input-error"
+      assert_select "#user_email_error[role=alert]", text: /bereits vergeben/
+      assert_select "input[name='user[business_name]'][value='Neu GmbH']"
+      assert_select "input[name='user[password]'][data-auth-password][aria-invalid=true]", count: 0
+      assert_select "input[name='user[password]'][data-auth-password]"
+      assert_select "input[type=password][value]", count: 0
+      assert_not_includes response.body, "private-test-password"
+      assert_select "#error_explanation", count: 0
+    end
+  end
+
+  test "all invalid registration fields have their own error and accessible description" do
+    post user_registration_path, params: { user: {
+      business_name: "", email: "invalid", address: "",
+      name: "Neue Person", phone: "", password: "short"
+    } }
+    assert_response :unprocessable_entity
+    %w[business_name email address password phone].each do |field|
+      assert_select "input[name='user[#{field}]'][aria-invalid=true].input-error" do |inputs|
+        assert_includes inputs.first["aria-describedby"].split, "user_#{field}_error"
+      end
+      assert_select "#user_#{field}_error[role=alert]", count: 1
+    end
+    assert_select "input[name='user[password]'][aria-describedby='user_password_hint user_password_error']"
+    assert_select "input[autofocus]", count: 0
+    assert_select "input[type=password][value]", count: 0
   end
 
   test "notification addresses info mailbox and identifies the user" do

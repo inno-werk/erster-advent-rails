@@ -1,3 +1,10 @@
+<% credential_error = login_credentials_invalid? %>
+<% email_errors = auth_field_errors(resource, :email) %>
+<% password_errors = auth_field_errors(resource, :password) %>
+<% if credential_error %>
+  <% email_errors << "Bitte prüfen Sie Ihre E-Mail-Adresse." %>
+  <% password_errors << flash[:alert] if flash[:alert].present? %>
+<% end %>
 <section
   class="min-h-screen bg-gradient-to-br from-primary via-primary to-primary"
 >
@@ -31,26 +38,32 @@
       </div>
 
       <div class="mt-6">
-        <% if flash[:alert].present? %>
+        <% if flash[:alert].present? && !credential_error %>
           <p class="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert" data-turbo-cache="false"><%= flash[:alert] %></p>
         <% end %>
-        <%= render "devise/shared/error_messages", resource: resource %>
+        <% resource.errors.full_messages_for(:base).each do |message| %>
+          <p class="text-sm text-error" role="alert"><%= message %></p>
+        <% end %>
       </div>
 
-      <%= form_for(resource, as: resource_name, url: login_path) do |f| %>
+      <%= form_for(resource, as: resource_name, url: login_path, html: {
+        id: admin_login ? "admin-login-form" : "login-form", data: {
+          controller: "auth-form", auth_form_invalid: flash[:alert].present? || resource.errors.any?,
+          action: "turbo:submit-start->auth-form#rememberPassword turbo:before-render@document->auth-form#restorePassword turbo:before-cache@document->auth-form#scrubInputs pagehide@window->auth-form#leavePage"
+        }
+      }) do |f| %>
         <div class="mt-8 space-y-6">
           <div class="form-control">
             <%= f.label :email, class: "label" do %>
               <span class="label-text font-semibold">E-Mail-Adresse</span>
             <% end %>
             <%= f.email_field :email,
-                          autofocus: true,
+                          **auth_input_options(:email, errors: email_errors),
+                          autofocus: email_errors.empty? && password_errors.empty?,
                           autocomplete: "email",
-                          class: "input input-bordered w-full",
+                          required: true,
                           placeholder: "Geben Sie Ihre gültige E-Mail ein" %>
-            <% if resource.errors[:email].present? %>
-              <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:email).first %></span>
-            <% end %>
+            <%= render "devise/shared/field_errors", field: :email, errors: email_errors %>
           </div>
 
           <div class="form-control">
@@ -59,11 +72,13 @@
             <% end %>
             <div class="relative" data-controller="password-visibility">
               <%= f.password_field :password,
+                               **auth_input_options(:password, errors: password_errors, extra_class: "pr-12"),
                                autocomplete: "current-password",
-                               class: "input input-bordered w-full pr-12",
+                               required: true,
                                placeholder: "Geben Sie Ihr Passwort ein",
                                data: {
                                  password_visibility_target: "input",
+                                 auth_password: true,
                                } %>
               <button
                 type="button"
@@ -76,9 +91,7 @@
                 <span class="sr-only" data-password-visibility-target="label">Passwort anzeigen</span>
               </button>
             </div>
-            <% if resource.errors[:password].present? %>
-              <span class="label-text-alt mt-1 text-error"><%= resource.errors.full_messages_for(:password).first %></span>
-            <% end %>
+            <%= render "devise/shared/field_errors", field: :password, errors: password_errors %>
           </div>
 
           <% if devise_mapping.rememberable? %>

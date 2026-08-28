@@ -214,6 +214,12 @@ Restart the app and any separate workers. A new registration then shows
 email and working confirmation link, with a clear notice that nothing was sent.
 Links point to the deployment where the preview is opened.
 
+Once the preview loads successfully, its notice disappears in the original tab
+and stays dismissed on subsequent pages. The confirmation panel switches to a
+short opened message with a reopen link. Requesting a new email shows a new notice.
+The preview itself remains accessible until its normal expiry. Cross-tab messages
+contain only a notification identifier, never email content or account tokens.
+
 - `PROD_SEND` is the only email-mode variable: `false` enables private previews
   without sending; `true` enables account and admin emails through the configured
   delivery method. Queued messages check the same flag before delivery.

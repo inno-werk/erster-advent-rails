@@ -2,7 +2,8 @@ module AccountEmailPreviews
   extend ActiveSupport::Concern
 
   included do
-    helper_method :account_email_preview_available?, :account_email_preview_retryable?
+    helper_method :account_email_preview_available?, :account_email_preview_retryable?,
+      :account_email_preview_opened?, :account_email_preview_notice_id
   end
 
   private
@@ -25,6 +26,7 @@ module AccountEmailPreviews
     session[:account_email_preview_key] = AccountEmailPreview.write(
       user.account_email_preview_message, expires_at: Time.at(owner["expires_at"])
     )
+    session.delete(:account_email_preview_opened_key)
   end
 
   def account_email_preview_owner
@@ -45,8 +47,19 @@ module AccountEmailPreviews
     account_email_preview_owner.present?
   end
 
+  def account_email_preview_opened?
+    account_email_preview_owner && session[:account_email_preview_key].present? &&
+      session[:account_email_preview_opened_key] == session[:account_email_preview_key]
+  end
+
+  def account_email_preview_notice_id
+    key = session[:account_email_preview_key]
+    Digest::SHA256.hexdigest(key) if account_email_preview_owner && key.present?
+  end
+
   def clear_account_email_preview
     AccountEmailPreview.delete(session.delete(:account_email_preview_key))
     session.delete(:account_email_preview_owner)
+    session.delete(:account_email_preview_opened_key)
   end
 end

@@ -6,8 +6,9 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
     <%= stylesheet_link_tag :app %>
+    <%= javascript_include_tag "email_preview_opened", type: "module" %>
   </head>
-  <body class="bg-base-200 text-base-content">
+  <body class="bg-base-200 text-base-content" data-email-preview-notice-id="<%= account_email_preview_notice_id %>">
     <main class="mx-auto max-w-4xl px-4 py-8 sm:px-8">
       <header class="mb-6 space-y-3">
         <p class="text-sm font-semibold uppercase tracking-widest text-primary">Testmodus · E-Mail-Vorschau</p>
