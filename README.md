@@ -55,12 +55,29 @@ use the destructive `db:seed` command to add activity to an existing database.
 
 ## Live server
 
-To do live development, you need to do those 3 steps:
+To do live development, run:
 
 ```bash
-# Rails dev server
 bin/dev
 ```
+
+`bin/dev` and Foreman load the ignored local `.env` file. To enable the real
+Stripe sandbox flow, configure:
+
+```dotenv
+PROD_PAYMENT=true
+STRIPE_SECRET_KEY=sk_test_your_sandbox_key
+```
+
+When these values are present, `bin/dev` uses the Stripe CLI to obtain the
+matching local `STRIPE_WEBHOOK_SECRET`, saves that value in `.env`, and starts
+webhook forwarding to `http://localhost:3000/stripe/webhooks`. Install the CLI
+with `npm install -g @stripe/cli`; run `stripe login` once if the CLI requests
+authentication. Do not add `STRIPE_WEBHOOK_SECRET` manually because the local
+listener manages it.
+
+Leave `PROD_PAYMENT` unset (or set it to `false`) to use the development dummy
+payment flow without starting Stripe CLI.
 
 To run commands in the docker container, you must be on /rails
 
@@ -95,8 +112,9 @@ payment integration, see [Participation and print materials](docs/participation-
 The app is deployed to [Dokploy](https://dokploy.com) from the `Dockerfile`. Set the
 variables below in the app's **Environment** tab.
 
-Note that `dotenv-rails` is not installed — a `.env` file in the project is _not_
-loaded by the app. Everything has to come from the real environment.
+Note that `dotenv-rails` is not installed. `bin/dev` loads `.env` locally through
+Foreman, but Rails commands started directly do not. Deployed environments must
+receive every variable from the real environment.
 
 This app uses **environment-scoped credentials** (`config/credentials/production.yml.enc`),
 not the default `config/credentials.yml.enc`. There is no `config/master.key`. The value
@@ -137,13 +155,36 @@ the other three on the `PG*` values.
 
 Set `PROD_PAYMENT=false` to enable the mock checkout, including on production.
 Mock payments activate memberships/upgrades and are saved as test payments; no
-money is transferred. Set `PROD_PAYMENT=true` to disable both mock checkout pages
-and confirmation endpoints. This does not activate Stripe: real online payments
-are not integrated yet, so payment confirmation remains an admin action.
+money is transferred. Never enable the mock checkout in production after Stripe
+has been rolled out.
 
 When unset, the mock is enabled only in development/test. Blank or invalid values
 disable it. Set the variable in the deployment environment and redeploy/restart
-the app for changes to take effect; a local `.env` file is not loaded automatically.
+the app for changes to take effect. Locally, restart `bin/dev` after changing
+`.env`; Rails commands started directly do not load that file.
+
+Real payments use one-time Stripe-hosted Checkout sessions in CHF. Rails calculates
+the participation fee or upgrade difference and only a verified Stripe webhook can
+mark it paid. Configure both secrets to enable the Stripe buttons:
+
+| Variable | Description |
+| --- | --- |
+| `STRIPE_SECRET_KEY` | Sandbox or live restricted server key. Keep sandbox and production keys separate. |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for the matching `POST /stripe/webhooks` endpoint. |
+
+Create the webhook endpoint in Stripe with these events:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+- `payment_intent.payment_failed`
+
+The payment methods are managed dynamically in Stripe; do not hardcode them in
+Rails. Enable TWINT and cards in the Stripe Dashboard after the account and website
+meet Stripe's requirements. Ensure `SOLID_QUEUE_IN_PUMA=true` or run `bin/jobs`, so
+verified webhook events are processed. Roll out with sandbox credentials first,
+then replace both Stripe secrets together for production.
 
 ### Active Storage (S3)
 

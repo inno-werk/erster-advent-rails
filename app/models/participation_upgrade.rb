@@ -1,5 +1,6 @@
 class ParticipationUpgrade < ApplicationRecord
   belongs_to :participation
+  has_many :stripe_payments, dependent: :restrict_with_error
   enum :payment_status, { pending: "pending", paid: "paid" }, validate: true
 
   validates :category, :previous_category, inclusion: { in: Participation::CATEGORIES.keys }

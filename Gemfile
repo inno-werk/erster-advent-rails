@@ -87,6 +87,7 @@ gem "pagy", "~> 6.5"
 gem "prawn", "~> 2.5"
 gem "prawn-svg", "~> 0.38"
 gem "rubyzip", "~> 3.0", require: "zip"
+gem "stripe", "~> 19.4"
 
 # Authenticaiton
 

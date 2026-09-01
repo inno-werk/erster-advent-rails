@@ -13,6 +13,11 @@
     <p class="mt-4 text-base-content/70">Ihre Teilnahme ist abgeschlossen, sobald der Zahlungseingang bestätigt wurde.</p>
   <% end %>
 </header>
+<% if @stripe_payment && !@stripe_payment.paid? %>
+  <div class="alert alert-info mb-6">
+    <p>Stripe verarbeitet Ihre Zahlung noch. Die Mitgliedschaft wird automatisch aktiviert, sobald die bestätigte Zahlungsmitteilung eingetroffen ist. Sie können diese Seite später erneut laden.</p>
+  </div>
+<% end %>
 <div class="admin-card p-6"><%= render "shared/participation_details", participation: @participation %></div>
 <%= render "payment_details" %>
 <% content_for :bottombar do %>

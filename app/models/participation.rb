@@ -17,6 +17,7 @@ class Participation < ApplicationRecord
 
   belongs_to :user
   has_many :upgrades, class_name: "ParticipationUpgrade", dependent: :destroy
+  has_many :stripe_payments, dependent: :destroy
   enum :payment_status, { pending: "pending", paid: "paid" }, validate: true
 
   validates :year, numericality: { only_integer: true, in: 2000..9999 }, uniqueness: { scope: :user_id }

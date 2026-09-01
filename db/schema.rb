@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_28_170000) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_31_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -357,6 +357,46 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_28_170000) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "stripe_payments", force: :cascade do |t|
+    t.bigint "participation_id", null: false
+    t.bigint "participation_upgrade_id"
+    t.string "payment_kind", null: false
+    t.string "obligation_key", null: false
+    t.integer "attempt", null: false
+    t.integer "amount_cents", null: false
+    t.string "currency", default: "chf", null: false
+    t.string "status", default: "pending", null: false
+    t.string "idempotency_key", null: false
+    t.string "checkout_session_id"
+    t.text "checkout_url"
+    t.string "payment_intent_id"
+    t.datetime "expires_at"
+    t.datetime "paid_at"
+    t.string "failure_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["checkout_session_id"], name: "index_stripe_payments_on_checkout_session_id", unique: true
+    t.index ["idempotency_key"], name: "index_stripe_payments_on_idempotency_key", unique: true
+    t.index ["obligation_key", "attempt"], name: "index_stripe_payments_on_obligation_key_and_attempt", unique: true
+    t.index ["obligation_key"], name: "one_active_stripe_payment_per_obligation", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'checkout_created'::character varying, 'processing'::character varying])::text[]))"
+    t.index ["participation_id"], name: "index_stripe_payments_on_participation_id"
+    t.index ["participation_upgrade_id"], name: "index_stripe_payments_on_participation_upgrade_id"
+    t.index ["payment_intent_id"], name: "index_stripe_payments_on_payment_intent_id", unique: true
+    t.check_constraint "amount_cents > 0", name: "stripe_payments_positive_amount"
+  end
+
+  create_table "stripe_webhook_events", force: :cascade do |t|
+    t.string "stripe_event_id", null: false
+    t.string "event_type", null: false
+    t.string "status", default: "received", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "processed_at"
+    t.text "processing_error"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["stripe_event_id"], name: "index_stripe_webhook_events_on_stripe_event_id", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -416,4 +456,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_28_170000) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
+  add_foreign_key "stripe_payments", "participation_upgrades"
+  add_foreign_key "stripe_payments", "participations"
 end

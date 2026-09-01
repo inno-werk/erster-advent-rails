@@ -4,9 +4,16 @@
   <h1 class="admin-heading">Bezahlung</h1>
   <p class="admin-subtitle mt-3">Sie haben die Mitgliedschaft «<%= @participation.category_title %>» gewählt. Um Ihre Teilnahme am Ersten Advent Bern <%= @participation.year %> abzuschliessen, bezahlen Sie jetzt <strong><%= participation_amount(@participation.amount_due_cents) %></strong>.</p>
 </header>
+<% if @stripe_payment && !@stripe_payment.paid? %>
+  <div class="alert alert-info mx-auto mb-6 max-w-3xl text-center">
+    <p>Stripe verarbeitet Ihre Zahlung noch. Die Teilnahme wird automatisch aktiviert, sobald die bestätigte Zahlungsmitteilung eingetroffen ist. Sie können diese Seite später erneut laden.</p>
+  </div>
+<% end %>
 <% payment_actions = capture do %>
   <% if EventConfiguration.dummy_payments_enabled? %>
     <%= link_to "Jetzt bezahlen", app_setup_test_payment_path, class: "btn btn-primary" %>
+  <% elsif StripeConfiguration.ready? %>
+    <%= button_to "Jetzt mit Stripe bezahlen", app_stripe_checkout_path, params: { continue_setup: true }, class: "btn btn-primary", form: { data: { turbo: false } } %>
   <% else %>
     <%= button_tag "Jetzt bezahlen", type: "button", disabled: true, class: "btn btn-primary", title: "Die Online-Zahlung ist noch nicht verfügbar." %>
   <% end %>
@@ -14,7 +21,7 @@
 <% end %>
 <p class="mt-6 text-center text-xl font-bold">Jetzt zu bezahlen: <%= participation_amount(@participation.amount_due_cents) %></p>
 <div class="mt-4 flex flex-wrap justify-center gap-3" data-payment-actions><%= payment_actions %></div>
-<% unless EventConfiguration.dummy_payments_enabled? %>
+<% unless EventConfiguration.dummy_payments_enabled? || StripeConfiguration.ready? %>
   <div class="alert alert-info mx-auto mt-6 max-w-3xl text-center">
     <p>Die Online-Zahlung ist noch nicht verfügbar. Es wurde keine Zahlung ausgeführt. Der offene Betrag muss durch die Administration als eingegangen bestätigt werden. Bei Fragen zur Zahlung kontaktieren Sie bitte das Team.</p>
   </div>

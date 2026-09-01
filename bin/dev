@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+set -u
+
+APP_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$APP_ROOT"
+
 if ! gem list foreman -i --silent; then
   echo "Installing foreman..."
   gem install foreman
@@ -7,10 +12,83 @@ fi
 
 # Default to port 3000 if not specified
 export PORT="${PORT:-3000}"
+# Foreman changes PORT for each process type. Preserve the Rails port so the
+# Stripe process always forwards webhooks to the web process.
+export STRIPE_FORWARD_PORT="$PORT"
 
 # Let the debug gem allow remote connections,
 # but avoid loading until `debugger` is called
 export RUBY_DEBUG_OPEN="true"
 export RUBY_DEBUG_LAZY="true"
 
-exec foreman start -f Procfile.dev "$@"
+# Load local development configuration before Foreman starts its processes.
+# Foreman also reads this file, but bin/dev needs the Stripe key first so it can
+# retrieve the signing secret used by both the CLI listener and Rails.
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
+update_env_value() {
+  key=$1
+  value=$2
+  temporary_file=".env.tmp.$$"
+
+  if [ -f .env ]; then
+    awk -v key="$key" -v value="$value" '
+      BEGIN { found = 0 }
+      $0 ~ "^" key "=" {
+        if (!found) print key "=" value
+        found = 1
+        next
+      }
+      { print }
+      END { if (!found) print key "=" value }
+    ' .env > "$temporary_file"
+  else
+    printf '%s=%s\n' "$key" "$value" > "$temporary_file"
+  fi
+
+  chmod 600 "$temporary_file"
+  mv "$temporary_file" .env
+}
+
+stripe_dev_enabled=false
+if [ "${PROD_PAYMENT:-}" = "true" ] && [ -n "${STRIPE_SECRET_KEY:-}" ]; then
+  stripe_dev_enabled=true
+
+  if ! command -v stripe >/dev/null 2>&1; then
+    echo "Stripe test payments are enabled, but the Stripe CLI is not installed."
+    echo "Install it with: npm install -g @stripe/cli"
+    exit 1
+  fi
+
+  # Use the same sandbox account for Checkout API calls and forwarded events.
+  export STRIPE_API_KEY="$STRIPE_SECRET_KEY"
+  echo "Preparing the local Stripe webhook listener..."
+  if ! STRIPE_WEBHOOK_SECRET=$(stripe listen --print-secret --skip-update 2>/dev/null); then
+    echo "Could not obtain a Stripe webhook signing secret."
+    echo "Check STRIPE_SECRET_KEY and run 'stripe login' if necessary."
+    exit 1
+  fi
+
+  case "$STRIPE_WEBHOOK_SECRET" in
+    whsec_*) ;;
+    *)
+      echo "Stripe CLI returned an invalid webhook signing secret."
+      exit 1
+      ;;
+  esac
+
+  export STRIPE_WEBHOOK_SECRET
+  update_env_value "STRIPE_WEBHOOK_SECRET" "$STRIPE_WEBHOOK_SECRET"
+  echo "Stripe webhook forwarding is ready."
+fi
+
+if [ "$stripe_dev_enabled" = true ]; then
+  exec foreman start -f Procfile.dev "$@"
+else
+  exec foreman start -f Procfile.dev -m stripe=0 "$@"
+fi

@@ -32,6 +32,7 @@ class App::ParticipationsController < App::BaseController
 
   def payment
     @participation = current_participation
+    @stripe_payment = returned_stripe_payment
     if @participation.nil?
       redirect_to edit_app_participation_path
     elsif payment_confirmed?
@@ -45,5 +46,11 @@ class App::ParticipationsController < App::BaseController
 
   def payment_confirmed?
     params[:status] == "success" && @participation&.paid? && !@participation.payment_due?
+  end
+
+  def returned_stripe_payment
+    return unless @participation && params[:session_id].present?
+
+    @participation.stripe_payments.find_by(checkout_session_id: params[:session_id])
   end
 end

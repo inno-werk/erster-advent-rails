@@ -1,3 +1,4 @@
 web: bin/rails server
 css: bin/rails tailwindcss:watch
 guard: bundle exec guard -d -n
+stripe: stripe listen --skip-update --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired,payment_intent.payment_failed --forward-to http://localhost:${STRIPE_FORWARD_PORT:-3000}/stripe/webhooks

@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
+  post "stripe/webhooks" => "stripe_webhooks#create"
 
 
   scope "(:locale)", locale: /en|de|it|fr/ do
@@ -90,6 +91,7 @@ Rails.application.routes.draw do
         get :payment
       end
       resource :test_payment, only: [ :show, :create ]
+      resource :stripe_checkout, only: :create
       resource :print_order, only: [ :show, :edit, :update ]
       resource :mystore, only: [ :show, :edit, :create, :update ], controller: "mystore" do
           delete :purge_image

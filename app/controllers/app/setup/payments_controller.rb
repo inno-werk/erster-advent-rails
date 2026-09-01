@@ -1,6 +1,7 @@
 class App::Setup::PaymentsController < App::Setup::BaseController
   def show
     @participation = current_participation
+    @stripe_payment = @participation&.stripe_payments&.find_by(checkout_session_id: params[:session_id]) if params[:session_id].present?
     if @participation.nil?
       redirect_to app_setup_participation_path
     elsif @participation.pending_upgrade
