@@ -4,93 +4,61 @@
 <% end %>
 
 <div class="max-w-5xl">
-  <header class="mb-10">
-    <p class="admin-eyebrow mb-3">Ihr Benutzerkonto</p>
-    <h1 class="admin-heading">Kontoeinstellungen</h1>
-    <p class="admin-subtitle mt-3">Verwalten Sie Ihre Kontaktdaten und den Zugang zu Ihrem Konto.</p>
+  <header class="border-b border-base-content/10 pb-6">
+    <p class="font-jakarta text-xs uppercase tracking-[0.35em] text-primary/80">Übersicht</p>
+    <h1 class="admin-heading mt-2">Kontoeinstellungen</h1>
+    <p class="admin-subtitle mt-2 max-w-3xl">So sind Ihre Kontoangaben hinterlegt. Bearbeiten Sie persönliche Angaben und Passwort getrennt.</p>
   </header>
 
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: {
-    method: :put, id: "account-settings-form",
-    data: { unsaved_changes_target: "form", action: "input->unsaved-changes#markDirty change->unsaved-changes#markDirty" }
-  }) do |f| %>
-    <%= render "devise/shared/error_messages", resource: resource %>
-
-    <section class="form-section">
-      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
+  <div class="mt-10">
+    <section class="form-section" aria-labelledby="personal-details-heading">
+      <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 class="form-section-title">Persönliche Angaben</h2>
-          <p class="form-section-subtitle">So kann das Team Sie erreichen. Ihre öffentlichen Geschäftsangaben bearbeiten Sie unter «Mein Geschäft».</p>
+          <h2 id="personal-details-heading" class="form-section-title">Persönliche Angaben</h2>
+          <p class="form-section-subtitle">Diese Angaben verwendet das Team, um Sie zu erreichen.</p>
         </div>
-        <div class="md:col-span-2 grid gap-5 sm:grid-cols-2">
-          <div>
-            <%= f.label :name, "Vor- und Nachname", class: "field-label" %>
-            <%= f.text_field :name, autocomplete: "name", class: "field-input" %>
-          </div>
-          <div>
-            <%= f.label :phone, "Telefonnummer", class: "field-label" %>
-            <%= f.telephone_field :phone, autocomplete: "tel", class: "field-input" %>
-          </div>
-          <div class="sm:col-span-2">
-            <%= f.label :email, "E-Mail-Adresse", class: "field-label" %>
-            <%= f.email_field :email, autocomplete: "email", class: "field-input", required: true %>
-            <p class="field-hint">Diese Adresse verwenden Sie zur Anmeldung. Eine neue Adresse muss per E-Mail bestätigt werden.</p>
-            <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-              <p class="mt-3 text-sm text-base-content/70">Die Bestätigung für <strong><%= resource.unconfirmed_email %></strong> steht noch aus.</p>
-            <% end %>
-          </div>
-        </div>
+        <%= link_to edit_personal_user_registration_path, class: "btn btn-outline btn-sm gap-2" do %>
+          <%= heroicon "pencil-square", options: { class: "h-4 w-4", "aria-hidden": true } %>
+          Angaben bearbeiten
+        <% end %>
       </div>
-    </section>
 
-    <section class="form-section">
-      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
-        <div>
-          <h2 class="form-section-title">Passwort ändern</h2>
-          <p class="form-section-subtitle">Lassen Sie diese Felder leer, wenn Sie Ihr bisheriges Passwort behalten möchten.</p>
-        </div>
-        <div class="md:col-span-2 grid gap-5 sm:grid-cols-2">
-          <div>
-            <%= f.label :password, "Neues Passwort", class: "field-label" %>
-            <%= f.password_field :password, autocomplete: "new-password", class: "field-input" %>
-            <% if @minimum_password_length %><p class="field-hint">Mindestens <%= @minimum_password_length %> Zeichen.</p><% end %>
-          </div>
-          <div>
-            <%= f.label :password_confirmation, "Neues Passwort bestätigen", class: "field-label" %>
-            <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "field-input" %>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="form-section">
-      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
-        <div>
-          <h2 class="form-section-title">Änderungen bestätigen</h2>
-          <p class="form-section-subtitle">Zu Ihrer Sicherheit benötigen wir Ihr aktuelles Passwort, um Änderungen zu speichern.</p>
-        </div>
+      <div class="data-grid">
+        <%= render "app/shared/data_item", label: "Vor- und Nachname", value: resource.name %>
+        <%= render "app/shared/data_item", label: "Telefonnummer", value: resource.phone %>
         <div class="md:col-span-2">
-          <%= f.label :current_password, "Aktuelles Passwort", class: "field-label" %>
-          <%= f.password_field :current_password, autocomplete: "current-password", class: "field-input", required: true %>
+          <%= render "app/shared/data_item", label: "E-Mail-Adresse", value: resource.email %>
+        </div>
+      </div>
+      <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+        <p class="mt-4 text-sm text-base-content/70">Die Bestätigung für <strong><%= resource.unconfirmed_email %></strong> steht noch aus.</p>
+      <% end %>
+    </section>
+
+    <section class="form-section" aria-labelledby="password-details-heading">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 id="password-details-heading" class="form-section-title">Passwort</h2>
+          <p class="form-section-subtitle">Ihr Passwort wird aus Sicherheitsgründen nicht angezeigt.</p>
+        </div>
+        <%= link_to edit_password_user_registration_path, class: "btn btn-outline btn-sm gap-2" do %>
+          <%= heroicon "key", options: { class: "h-4 w-4", "aria-hidden": true } %>
+          Passwort ändern
+        <% end %>
+      </div>
+    </section>
+
+    <section class="mt-12 border-t border-warning/50 pt-8" aria-labelledby="deactivate-account-heading">
+      <div class="flex max-w-3xl items-start gap-3 text-warning">
+        <%= heroicon "exclamation-triangle", options: { class: "mt-0.5 h-6 w-6 shrink-0", "aria-hidden": true } %>
+        <div>
+          <h2 id="deactivate-account-heading" class="form-section-title text-base-content">Konto löschen</h2>
+          <p class="mt-2 text-sm leading-relaxed text-base-content/65">Nach der Deaktivierung können Sie sich nicht mehr anmelden und Ihr Geschäft wird nicht mehr öffentlich angezeigt. Ihre Konto-, Teilnahme-, Zahlungs- und Bestelldaten bleiben erhalten.</p>
+          <%= button_to "Konto löschen", registration_path(resource_name),
+            data: { turbo_confirm: "Möchten Sie Ihr Konto wirklich deaktivieren? Sie können sich danach nicht mehr anmelden. Ihre Daten bleiben erhalten." },
+            method: :delete, class: "btn btn-error btn-outline mt-5" %>
         </div>
       </div>
     </section>
-  <% end %>
-
-  <section class="form-section mb-6">
-    <div class="grid gap-6 md:grid-cols-3 md:gap-10">
-      <div>
-        <h2 class="form-section-title">Konto löschen</h2>
-        <p class="form-section-subtitle">Diese Aktion kann nicht rückgängig gemacht werden.</p>
-      </div>
-      <div class="md:col-span-2">
-        <p class="text-sm text-base-content/65 mb-4">Ihr Konto und die zugehörigen Daten werden dauerhaft gelöscht.</p>
-        <%= button_to "Konto löschen", registration_path(resource_name), data: { turbo_confirm: "Möchten Sie Ihr Konto und die zugehörigen Daten wirklich löschen?" }, method: :delete, class: "btn btn-error btn-outline" %>
-      </div>
-    </div>
-  </section>
+  </div>
 </div>
-
-<% content_for :bottombar do %>
-  <%= render "app/shared/bottombar", hint: "Bestätigen Sie Ihre Änderungen mit Ihrem aktuellen Passwort.", actions: button_tag("Änderungen speichern", type: "submit", form: "account-settings-form", class: "btn btn-primary") %>
-<% end %>

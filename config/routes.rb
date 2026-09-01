@@ -18,6 +18,10 @@ Rails.application.routes.draw do
 
     devise_scope :user do
       get "users/confirmation_pending" => "users/confirmations#pending", as: :confirmation_pending
+      get "users/edit/personal" => "users/registrations#edit_personal", as: :edit_personal_user_registration
+      patch "users/edit/personal" => "users/registrations#update_personal", as: :personal_user_registration
+      get "users/edit/password" => "users/registrations#edit_password", as: :edit_password_user_registration
+      patch "users/edit/password" => "users/registrations#update_password", as: :password_user_registration
       get "admin/login" => "admin/sessions#new", as: :admin_login
       post "admin/login" => "admin/sessions#create", as: :admin_session
     end

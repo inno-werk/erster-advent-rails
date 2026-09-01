@@ -21,7 +21,7 @@
   --color-base-content: oklch(21% 0.006 285.885);
   --color-primary: #52819c;
   --color-primary-content: oklch(98% 0.003 247.858);
-  --color-secondary: #d03036;
+  --color-secondary: #52819c;
   --color-secondary-content: oklch(98% 0.003 247.858);
   --color-accent: #2b2e34;
   --color-accent-content: oklch(98% 0.003 247.858);
@@ -279,7 +279,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
     line-height: 1.467;
   }
 
-  /* "Mehr erfahren" links: Plus Jakarta Sans Bold 24/32, red */
+  /* "Mehr erfahren" links: Plus Jakarta Sans Bold 24/32, brand accent */
   .link-more {
     @apply font-jakarta font-bold text-secondary;
     font-size: clamp(1rem, 1.25vw, 1.5rem);
@@ -292,7 +292,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
    * ------------------------------------------------------------------
    */
 
-  /* Red outline CTA pill: 78px tall, radius 45, 1px #D03036 border,
+  /* Brand-accent outline CTA pill: 78px tall, radius 45, 1px border,
      Plus Jakarta Sans Regular 30/36 */
   .btn-cta {
     @apply inline-flex w-fit max-w-full items-center justify-center
@@ -456,7 +456,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
     line-height: 1;
   }
 
-  /* Item in the header dropdown: PJS Light 20px black, hover bold red */
+  /* Item in the header dropdown: PJS Light 20px black, bold accent on hover */
   .menu-item-nav {
     @apply rounded-none bg-transparent px-0 py-1.5 font-jakarta font-light
       text-black text-base lg:text-[20px] hover:bg-transparent hover:font-bold

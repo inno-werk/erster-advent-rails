@@ -32,12 +32,13 @@ Do **not** use the existing `db:seed` for a live database: its pre-existing demo
 workflow clears data, including users and CMS content.
 
 Set `PARTICIPATION_YEAR` to the year currently open for participation. Without an
-override, `EventConfiguration.year` uses `Date.current.year`. Set
-`PRINT_DELIVERY_INFORMATION` optionally overrides general distribution instructions.
+override, `EventConfiguration.year` uses `Date.current.year`.
 Admins set the distribution date and order deadline at `/admin/print_products`;
 no deployment or environment change is needed for those dates. They are stored in `PrintDistribution`
 per event year, so a previous year's date never appears in a new event. Clearing
-the date shows «Das Datum wird noch bekannt gegeben» to members.
+the date shows «Das Datum wird noch bekannt gegeben» to members. The print-order
+delivery block shows the configured weekday and distribution date together with
+the order deadline; missing values retain explicit announcement placeholders.
 The order deadline is inclusive through the end of the selected day in
 `Europe/Zurich`. A blank deadline leaves ordering open. The deadline cannot be
 later than the distribution date. After it passes, member edit and update routes
@@ -128,10 +129,15 @@ the same navigation entry active. Complete memberships also land on the overview
 after login. Memberships without a listing retain the explanation screen. Business status uses the
 approval information only, without a duplicate badge.
 
-Account settings use the dashboard layout for both edit and invalid update
-responses, with personal details, email/password fields and a fixed save bar.
-Updates still require the current password; email changes require reconfirmation.
-Successful updates return to settings. Signup retains the separate auth layout.
+Account settings use the dashboard layout and open as a read-only overview.
+Personal details and password have separate editors: name, phone and email can be
+updated without a password, while password changes require the current password.
+Email changes retain Devise reconfirmation. The two endpoints use independent
+strong-parameter allowlists so one cannot modify the other's fields. Self-service
+account deletion flags the user as deactivated, signs out the current session and
+preserves all account, participation, payment and order data. Deactivated users
+cannot authenticate and their businesses are excluded from public visibility.
+Signup retains the separate auth layout.
 
 Admin login uses GET/POST `/admin/login`, separately from the member login at
 `/users/sign_in`. Both use the same auth layout and form design, with an explicit

@@ -808,48 +808,107 @@ class ParticipationFlowTest < ActionDispatch::IntegrationTest
     assert_equal 20_000, participation.amount_cents
   end
 
-  test "account editing remains available without completed participation" do
-    sign_in users(:member)
+  test "account settings are a read only overview with separate editors" do
+    user = users(:member)
+    sign_in user
     get edit_user_registration_path
     assert_response :success
     assert_select ".drawer-side a.menu-active[href=?]", edit_user_registration_path, text: "Kontoeinstellungen"
     assert_select "h1", text: "Kontoeinstellungen"
-    assert_select ".app-bottombar button[form=account-settings-form]", text: "Änderungen speichern"
-    assert_select "form#account-settings-form input[name='user[current_password]'][required]"
-    assert_select "button[data-turbo-confirm]", text: "Konto löschen"
-    patch user_registration_path, params: { user: { name: "Neuer Kontakt", phone: "0310000000", current_password: "password123", role: 2 } }
-    assert_redirected_to edit_user_registration_path
-    assert_equal "Neuer Kontakt", users(:member).reload.name
-    assert users(:member).user?
+    assert_select "input[name^='user[']", count: 0
+    assert_select "section[aria-labelledby=personal-details-heading]" do
+      assert_select ".data-item", text: /#{Regexp.escape(user.name)}/
+      assert_select ".data-item", text: /#{Regexp.escape(user.phone)}/
+      assert_select ".data-item", text: /#{Regexp.escape(user.email)}/
+      assert_select "a[href=?]", edit_personal_user_registration_path, text: /Angaben bearbeiten/
+    end
+    assert_select "section[aria-labelledby=password-details-heading] a[href=?]", edit_password_user_registration_path, text: /Passwort ändern/
+    assert_select "section[aria-labelledby=deactivate-account-heading]:not(.admin-card)" do
+      assert_select "form[action=?]", user_registration_path
+      assert_select "button[data-turbo-confirm]", text: "Konto löschen"
+      assert_select "p", text: /Bestelldaten bleiben erhalten/
+    end
   end
 
-  test "account settings preserve password verification and render invalid updates in the dashboard" do
-    sign_in users(:member)
-    original_name = users(:member).name
-    patch user_registration_path, params: { user: { name: "Nicht speichern", current_password: "incorrect" } }
+  test "personal details update without a password and cannot change password or role" do
+    user = users(:member)
+    sign_in user
+    get edit_personal_user_registration_path
+    assert_response :success
+    assert_select "form#personal-settings-form[action=?]", personal_user_registration_path
+    assert_select "input[name='user[current_password]']", count: 0
+
+    patch personal_user_registration_path, params: { user: {
+      name: "Neuer Kontakt", phone: "0310000000", email: "updated@example.com",
+      password: "injected-password", password_confirmation: "injected-password", role: 2
+    } }
+    assert_redirected_to edit_user_registration_path
+    assert_equal "Neuer Kontakt", user.reload.name
+    assert_equal "0310000000", user.phone
+    assert_equal "member@example.com", user.email
+    assert_equal "updated@example.com", user.unconfirmed_email
+    assert user.valid_password?("password123")
+    assert user.user?
+    follow_redirect!
+    assert_select "p", text: /Die Bestätigung für updated@example.com steht noch aus/
+
+    patch user_registration_path, params: { user: { name: "Alter kombinierter Endpunkt" } }
+    assert_redirected_to edit_user_registration_path
+    assert_equal "Neuer Kontakt", user.reload.name
+  end
+
+  test "password editor requires the old password and cannot change personal details" do
+    user = users(:member)
+    original_name = user.name
+    sign_in user
+    get edit_password_user_registration_path
+    assert_response :success
+    assert_select "form#password-settings-form[action=?]", password_user_registration_path
+    assert_select "input[name='user[current_password]'][required]"
+    assert_select "input[name='user[name]']", count: 0
+
+    patch password_user_registration_path, params: { user: {
+      current_password: "incorrect", password: "new-password123", password_confirmation: "new-password123"
+    } }
     assert_response :unprocessable_entity
     assert_select ".drawer-side a.menu-active[href=?]", edit_user_registration_path
     assert_select "#error_explanation"
-    assert_equal original_name, users(:member).reload.name
-    patch user_registration_path, params: { user: { password: "new-password123", password_confirmation: "new-password123", current_password: "password123" } }
+    assert user.reload.valid_password?("password123")
+
+    patch password_user_registration_path, params: { user: {
+      current_password: "password123", password: "new-password123", password_confirmation: "new-password123",
+      name: "Nicht übernehmen", email: "ignored@example.com"
+    } }
     assert_redirected_to edit_user_registration_path
-    assert users(:member).reload.valid_password?("new-password123")
+    assert user.reload.valid_password?("new-password123")
+    assert_equal original_name, user.name
+    assert_nil user.unconfirmed_email
     follow_redirect!
     assert_response :success
     assert_select "input[type=password][value]", count: 0
   end
 
-  test "settings email changes still require confirmation and signup retains its own layout" do
-    sign_in users(:member)
-    original_email = users(:member).email
-    patch user_registration_path, params: { user: { email: "updated@example.com", current_password: "password123" } }
-    assert_redirected_to edit_user_registration_path
-    assert_equal original_email, users(:member).reload.email
-    assert_equal "updated@example.com", users(:member).unconfirmed_email
-    follow_redirect!
-    assert_select "p", text: /Die Bestätigung für updated@example.com steht noch aus/
-    assert_select ".drawer-side"
-    sign_out users(:member)
+  test "self service deactivation flags the account signs out and preserves related data" do
+    user = users(:member)
+    participation = participation_for
+    order = user.print_orders.create!(year: EventConfiguration.year)
+    business = user.business
+    sign_in user
+
+    assert_no_difference [ "User.count", "Business.count", "Participation.count", "PrintOrder.count" ] do
+      delete user_registration_path
+    end
+
+    assert_redirected_to root_path
+    assert user.reload.deleted?
+    assert_equal business, user.business
+    assert_equal participation, user.participations.find(participation.id)
+    assert_equal order, user.print_orders.find(order.id)
+    get app_participation_path
+    assert_redirected_to new_user_session_path
+  end
+
+  test "signup retains its own layout" do
     get new_user_registration_path
     assert_response :success
     assert_select ".drawer-side", count: 0
@@ -998,6 +1057,23 @@ class ParticipationFlowTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "1 Materialart · 4 Bündel insgesamt"
     assert_select "p", text: /Zuletzt aktualisiert am/
     assert_select "section[aria-labelledby=print-delivery-heading]", text: /Verteilung und Lieferung/
+  end
+
+  test "print delivery uses the configured dates and client wording" do
+    distribution_date = Date.new(EventConfiguration.year, 10, 31)
+    deadline = Date.new(EventConfiguration.year, 10, 5)
+    PrintDistribution.create!(year: EventConfiguration.year, distribution_on: distribution_date, order_deadline_on: deadline)
+    sign_in users(:member)
+
+    get app_print_order_path
+
+    assert_response :success
+    assert_select "section[aria-labelledby=print-delivery-heading]" do
+      assert_select "p", text: "Die Printmaterialien werden am Samstag, 31.10., verteilt."
+      assert_select "time[datetime=?]", distribution_date.iso8601, text: "Samstag, 31.10."
+      assert_select "p", text: "Bestellungen müssen bis am 5.10. eingehen."
+      assert_select "time[datetime=?]", deadline.iso8601, text: "5.10."
+    end
   end
 
   test "invalid quantities show errors and do not save an order" do

@@ -1,0 +1,16 @@
+de:
+  devise:
+    failure:
+      deleted: "Dieses Konto ist deaktiviert."
+en:
+  devise:
+    failure:
+      deleted: "This account is deactivated."
+fr:
+  devise:
+    failure:
+      deleted: "Ce compte est désactivé."
+it:
+  devise:
+    failure:
+      deleted: "Questo account è disattivato."

@@ -111,6 +111,44 @@ class SessionsTest < ActionDispatch::IntegrationTest
     assert_redirected_to admin_login_path
   end
 
+  test "deactivated accounts cannot sign in directly" do
+    member = users(:member)
+    member.update!(deleted: true)
+
+    post user_session_path, params: { user: { email: member.email, password: "password123" } }
+    assert_redirected_to new_user_session_path
+    follow_redirect!
+    assert_select "[role=alert]", text: /Konto ist deaktiviert/
+    get app_participation_path
+    assert_redirected_to new_user_session_path
+
+    admin = users(:admin)
+    admin.update!(deleted: true)
+    post admin_session_path, params: { user: { email: admin.email, password: "password123" } }
+    assert_redirected_to admin_login_path
+    follow_redirect!
+    assert_select "[role=alert]", text: /Konto ist deaktiviert/
+    get admin_root_path
+    assert_redirected_to admin_login_path
+  end
+
+  test "deactivation ends an existing session on its next request" do
+    user = users(:member)
+    account_browser = open_session
+    other_browser = open_session
+
+    [ account_browser, other_browser ].each do |browser|
+      browser.post user_session_path, params: { user: { email: user.email, password: "password123" } }
+      browser.assert_redirected_to app_participation_path
+    end
+
+    account_browser.delete user_registration_path
+    account_browser.assert_redirected_to root_path
+
+    other_browser.get app_participation_path
+    other_browser.assert_redirected_to new_user_session_path
+  end
+
   test "signed in members keep their session and cannot access admin pages" do
     sign_in users(:member)
     get admin_login_path

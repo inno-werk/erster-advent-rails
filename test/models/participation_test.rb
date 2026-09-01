@@ -1,15 +1,6 @@
 require "test_helper"
 
 class ParticipationTest < ActiveSupport::TestCase
-  test "missing delivery config uses readable fallback text instead of an empty options object" do
-    previous = Rails.configuration.x.print_delivery_information
-    Rails.configuration.x.print_delivery_information = ActiveSupport::OrderedOptions.new
-    assert_kind_of String, EventConfiguration.print_delivery_information
-    assert_match(/Verteiltag/, EventConfiguration.print_delivery_information)
-  ensure
-    Rails.configuration.x.print_delivery_information = previous
-  end
-
   test "a selection snapshots amount and time and remains pending" do
     participation = participation_for
     assert_equal 20_000, participation.amount_cents

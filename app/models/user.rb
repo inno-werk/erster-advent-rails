@@ -53,6 +53,14 @@ class User < ApplicationRecord
     current_participation&.category != "no_listing"
   end
 
+  def active_for_authentication?
+    super && !deleted?
+  end
+
+  def inactive_message
+    deleted? ? :deleted : super
+  end
+
   def build_registration_business
     business || build_business(
       business_name: business_name,

@@ -67,9 +67,9 @@ class Admin::UsersController < Admin::BaseController
     end
 
     if @user.update(deleted: true)
-      redirect_to admin_users_path, notice: "Benutzer wurde gelöscht.", status: :see_other
+      redirect_to admin_users_path, notice: "Benutzer wurde deaktiviert.", status: :see_other
     else
-      redirect_to admin_users_path, alert: "Benutzer konnte nicht gelöscht werden.", status: :see_other
+      redirect_to admin_users_path, alert: "Benutzer konnte nicht deaktiviert werden.", status: :see_other
     end
   end
 

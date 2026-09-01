@@ -166,7 +166,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     [ edit_app_print_order_path, app_print_order_path ].each do |path|
       get path
       assert_response :success
-      assert_select "time[datetime=?]", date.iso8601, text: "20.11.#{EventConfiguration.year}"
+      assert_select "time[datetime=?]", date.iso8601, text: "Freitag, 20.11."
       assert_select "section[aria-labelledby=print-delivery-heading].alert", count: 0
     end
     sign_in users(:admin)
@@ -180,6 +180,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     sign_in users(:member)
     get app_print_order_path
     assert_select "section[aria-labelledby=print-delivery-heading]", text: /Das Datum wird noch bekannt gegeben/
+    assert_select "section[aria-labelledby=print-delivery-heading]", text: /Der Bestellschluss wird noch bekannt gegeben/
     assert_select "time", count: 0
   end
 

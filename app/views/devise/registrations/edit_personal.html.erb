@@ -1,0 +1,45 @@
+<% content_for :title, "Persönliche Angaben bearbeiten" %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [ [ "Dashboard", app_root_path ], [ "Kontoeinstellungen", edit_user_registration_path ], [ "Persönliche Angaben" ] ] %>
+<% end %>
+
+<div class="max-w-5xl">
+  <header class="mb-10">
+    <h1 class="admin-heading">Persönliche Angaben bearbeiten</h1>
+    <p class="admin-subtitle mt-3">Für diese Änderungen benötigen Sie kein Passwort.</p>
+  </header>
+
+  <%= form_for(resource, as: resource_name, url: personal_user_registration_path, html: { method: :patch, id: "personal-settings-form" }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+    <section class="form-section">
+      <div class="grid gap-6 md:grid-cols-3 md:gap-10">
+        <div>
+          <h2 class="form-section-title">Kontaktdaten</h2>
+          <p class="form-section-subtitle">Ihre öffentlichen Geschäftsangaben bearbeiten Sie unter «Mein Geschäft».</p>
+        </div>
+        <div class="grid gap-5 md:col-span-2 sm:grid-cols-2">
+          <div>
+            <%= f.label :name, "Vor- und Nachname", class: "field-label" %>
+            <%= f.text_field :name, autocomplete: "name", class: "field-input" %>
+          </div>
+          <div>
+            <%= f.label :phone, "Telefonnummer", class: "field-label" %>
+            <%= f.telephone_field :phone, autocomplete: "tel", class: "field-input" %>
+          </div>
+          <div class="sm:col-span-2">
+            <%= f.label :email, "E-Mail-Adresse", class: "field-label" %>
+            <%= f.email_field :email, autocomplete: "email", class: "field-input", required: true %>
+            <p class="field-hint">Eine neue Adresse muss per E-Mail bestätigt werden.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  <% end %>
+</div>
+
+<% content_for :bottombar do %>
+  <%= render "app/shared/bottombar", actions: capture {
+    concat link_to("Abbrechen", edit_user_registration_path, class: "btn btn-ghost")
+    concat button_tag("Änderungen speichern", type: "submit", form: "personal-settings-form", class: "btn btn-primary")
+  } %>
+<% end %>
