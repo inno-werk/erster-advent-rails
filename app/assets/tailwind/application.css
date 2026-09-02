@@ -93,7 +93,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
 
 /*
  * Expanded (hero) navbar geometry, from the 1920px XD artboards:
- * logo and nav pills sit 90px below the top edge; the logo itself is
+ * logo and nav pills sit up to 40px below the top edge; the logo itself is
  * 160px tall on desktop. The scroll-nav controller reads these values
  * to know where the bottom of the logo sits (see scroll_nav_controller.js).
  *
@@ -102,7 +102,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
  * It scales fluidly and never drops below the 80px it needs on mobile.
  */
 :root {
-  --nav-top-offset: clamp(1.25rem, 4.6875vw, 5.625rem);
+  --nav-top-offset: clamp(1.25rem, 4.6875vw, 2.5rem);
   --nav-logo-height: 7rem;
   --nav-small-height: clamp(5rem, 7.2917vw, 8.75rem);
   /* 100 of the bar's 140px, so the mark keeps its 20px top/bottom air */

@@ -3,17 +3,18 @@ import { Controller } from "@hotwired/stimulus";
 // Connects to data-controller="scroll-nav"
 //
 // Switches the navbar between its expanded hero state ("large") and the
-// minimized purple bar ("small"). Scrolling down, the switch happens the
-// moment the bottom edge of the expanded logo touches the page content
-// (marked with [data-nav-boundary]); scrolling up, the expanded navbar
-// already returns once the bottom of the minimized bar clears the content.
+// minimized purple bar ("small"). The switch happens the moment the bottom
+// edge of the expanded logo touches the page content (marked with
+// [data-nav-boundary]), in both scroll directions: the expanded logo is
+// 200px tall against the minimized bar's ~93px, so returning to "large"
+// any earlier on the way up would drop the logo onto the content.
 export default class extends Controller {
     static DEFAULT_THRESHOLD = 10;
 
     connect() {
         this.lastScrollY = window.scrollY;
         this.ticking = false;
-        this.thresholds = this.computeThresholds();
+        this.threshold = this.computeThreshold();
         this.handleScroll = this.onScroll.bind(this);
         this.handleResize = this.onResize.bind(this);
         window.addEventListener("scroll", this.handleScroll, { passive: true });
@@ -26,7 +27,7 @@ export default class extends Controller {
         window.removeEventListener("resize", this.handleResize);
     }
 
-    computeThresholds() {
+    computeThreshold() {
         const boundary = document.querySelector("[data-nav-boundary]");
         if (boundary) {
             // The marker's top edge is where the overlapping content starts;
@@ -38,16 +39,11 @@ export default class extends Controller {
             const largeLogoBottom = this.measureCssHeight(
                 "calc(var(--nav-top-offset, 0px) + var(--nav-logo-height, 0px))"
             );
-            const smallBarBottom = this.measureCssHeight("var(--nav-small-height, 0px)");
-            return {
-                down: Math.max(boundaryTop - largeLogoBottom, 0),
-                up: Math.max(boundaryTop - smallBarBottom, 0),
-            };
+            return Math.max(boundaryTop - largeLogoBottom, 0);
         }
 
         const hero = document.querySelector("[data-hero]");
-        const threshold = hero ? hero.offsetHeight : this.constructor.DEFAULT_THRESHOLD;
-        return { down: threshold, up: threshold };
+        return hero ? hero.offsetHeight : this.constructor.DEFAULT_THRESHOLD;
     }
 
     // Resolves a CSS height expression (media queries, clamp()) to actual
@@ -64,7 +60,7 @@ export default class extends Controller {
     }
 
     onResize() {
-        this.thresholds = this.computeThresholds();
+        this.threshold = this.computeThreshold();
         this.toggleBackground();
     }
 
@@ -80,10 +76,8 @@ export default class extends Controller {
 
     toggleBackground() {
         const scrollY = window.scrollY;
-        const goingDown = scrollY > this.lastScrollY;
-        const threshold = goingDown ? this.thresholds.down : this.thresholds.up;
 
-        if (scrollY > threshold) {
+        if (scrollY > this.threshold) {
             this.element.classList.remove("large");
             this.element.classList.add("small");
 
