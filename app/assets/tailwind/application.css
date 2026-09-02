@@ -531,15 +531,20 @@ button:has(+ #popover-1:popover-open) .icon-up {
   /* "Besonderes am 1. Advent" list on store detail:
      PJS Bold 40/56 items with short #D9D9D9 leader lines */
   .specialities-list :is(p, li) {
-    @apply flex items-center font-jakarta font-bold;
+    @apply flex items-start font-jakarta font-bold;
+    /* Beats the unlayered `.trix-content li { margin-left: 1em }` from
+       actiontext.css, which no layered rule can outrank on specificity. */
+    margin-left: 0 !important;
     gap: clamp(0.75rem, 1.25vw, 1.5rem);
     font-size: clamp(1.125rem, 2.083vw, 2.5rem);
     line-height: 1.4;
   }
+  /* Centred on the first line, not on the whole (possibly wrapped) item. */
   .specialities-list :is(p, li)::before {
     @apply block shrink-0 bg-[#505050] content-[""];
     width: clamp(1.5rem, 2.08vw, 2.5rem);
     height: 1px;
+    margin-top: calc(0.7em - 0.5px);
   }
   .specialities-list ul,
   .specialities-list ol {
