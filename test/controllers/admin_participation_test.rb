@@ -338,7 +338,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_select ".drawer-content > main.admin-detail-scroll"
     assert_select "main .alert, main .badge, [data-controller=dismiss]", count: 0
     assert_select "a[href=?]", edit_admin_store_path(id: business.id), text: "Informationen bearbeiten"
-    assert_select ".admin-detail-header a[href=?]", preview_admin_store_path(id: business.id), text: "Geschäftseintrag ansehen"
+    assert_select ".admin-detail-header a[href=?]", marketing_store_path(business), text: "Geschäftseintrag ansehen"
     assert_select "section[aria-labelledby=store-user-heading] a[href=?]", admin_user_path(users(:member))
     assert_select "section[aria-labelledby=store-information-heading] + section[aria-labelledby=store-user-heading] + section[aria-labelledby=store-contact-heading]", count: 1
     assert_select "aside section[aria-labelledby=store-user-heading]", count: 0

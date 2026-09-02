@@ -5,14 +5,14 @@
   <% if business&.confirmed? %>
     <div role="alert" class="alert alert-success">
       <%= heroicon "check-circle", options: { class: "h-6 w-6 flex-shrink-0" } %>
-      <span><%= business.publicly_visible? ? "Ihr Geschäft ist bestätigt und wird auf der Website angezeigt." : "Ihr Geschäft ist bestätigt. Es wird nur mit einer bezahlten Teilnahme mit Eintrag für das aktuelle Jahr öffentlich angezeigt." %></span>
+      <span><%= business.publicly_visible? ? "Ihr Geschäft ist bestätigt und wird auf der Website angezeigt." : "Ihr Geschäft ist bestätigt. Mit der Teilnahme «Kein Eintrag» wird es nicht öffentlich angezeigt." %></span>
     </div>
   <% end %>
   <% if business&.pending? %>
     <div role="alert" class="alert alert-warning">
       <%= heroicon "exclamation-triangle", options: { class: "h-6 w-6 flex-shrink-0" } %>
       <span>Ihr Geschäft wird vom Team für den ersten Advent dieses Jahres noch
-        geprüft. Ein öffentlicher Eintrag erfordert die Freigabe und eine bezahlte Teilnahme mit Eintrag für das aktuelle Jahr.
+        geprüft. Ein öffentlicher Eintrag erfordert die Freigabe durch das Team.
       </span>
     </div>
   <% end %>

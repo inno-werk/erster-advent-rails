@@ -120,7 +120,7 @@ See [`docs/security.md`](docs/security.md), [`docs/stripe-integration.md`](docs/
 
 - A user has at most one `Participation` and one `PrintOrder` per event year. `PARTICIPATION_YEAR`, falling back to the current year, selects the active event.
 - Participation prices are snapshotted in CHF cents. A paid category/amount cannot be edited directly; a valid paid upgrade applies the higher category atomically.
-- Public business visibility requires an active user, confirmed business, and paid current-year participation in a listed category. The `no_listing` tier is never public.
+- Public business visibility requires an active user and an admin-confirmed business. Payment status does not affect listing. The `no_listing` tier is never public: a current-year «Kein Eintrag» membership is an explicit opt-out and hides the business.
 - Payment transitions must remain server-calculated, locked, retry-safe, and idempotent. Never accept a client-supplied price, paid state, payment owner, or success query parameter as authority.
 - Print-product availability controls new selection, but disabling a product must not erase historical order items. Member quantities, deadlines, user ownership, and event year are enforced server-side.
 - Legacy `Product`, `Order`, and `Payment` records are not interchangeable with annual `Participation`, `PrintProduct`, `PrintOrder`, or `StripePayment` records.

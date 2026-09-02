@@ -29,9 +29,10 @@ class Business < ApplicationRecord
   enum :status, [ :pending, :confirmed, :rejected, :deleted ], default: :pending, validate: true
 
   # Use this scope for every public listing, search, detail page, and map/export.
+  # Admin approval decides visibility; only an explicit «Kein Eintrag» membership opts out.
   scope :publicly_visible, -> {
     confirmed.joins(:user).merge(User.active)
-      .where(user_id: Participation.publicly_listable.select(:user_id))
+      .where.not(user_id: Participation.listing_opted_out.select(:user_id))
   }
 
   def publicly_visible?

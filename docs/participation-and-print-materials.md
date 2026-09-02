@@ -49,10 +49,10 @@ Rails' empty `OrderedOptions` placeholder) falls back to the environment/current
 year, never to a blank database year or a displayed `{}`.
 
 **Rollout consequence:** existing confirmed businesses have no annual participation
-record and therefore disappear from public listings until they select a current
-category and an admin confirms payment. Legacy payment proof is not automatically
-converted into a current-year paid membership: neither year nor category/amount
-can be inferred safely. Plan that operational transition before production deploy.
+record. They stay publicly listed, because listing follows admin approval alone.
+Legacy payment proof is not automatically converted into a current-year paid
+membership: neither year nor category/amount can be inferred safely. Unpaid
+memberships must therefore be chased operationally, not through the listing.
 
 ## Annual participation
 
@@ -87,11 +87,14 @@ confirmation is a no-op. Previously created pending CHF 200 → 250 upgrades rem
 stored but cannot be paid through admin or test payment actions. The original
 paid timestamp stays intact, while the UI shows the latest confirmed payment.
 
-`Business.publicly_visible` requires the existing confirmed status, a non-deleted
-user, and a paid participation for the active year in one of the two listed
-categories. All public store lists, search, detail access, homepage features and
-store counts use it. Category C is excluded in SQL even if paid. Future map or
-printed-map exports must use the same eligibility rule.
+`Business.publicly_visible` requires only the existing confirmed status and a
+non-deleted user. Admin approval («Freigabe») is the sole listing decision;
+payment status and a missing participation record do not hide a confirmed
+business. The single exception is category C: a current-year `no_listing`
+membership is an explicit opt-out and is excluded in SQL regardless of payment
+status. All public store lists, search, detail access, homepage features and
+store counts use the scope. Future map or printed-map exports must use the same
+eligibility rule.
 
 ## Flow and access
 

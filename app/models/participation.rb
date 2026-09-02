@@ -32,7 +32,8 @@ class Participation < ApplicationRecord
   before_validation :snapshot_category, if: -> { new_record? || will_save_change_to_category? }
 
   scope :for_year, ->(year = EventConfiguration.year) { where(year: year) }
-  scope :publicly_listable, -> { for_year.paid.where(category: LISTED_CATEGORIES) }
+  # Members who explicitly booked «Kein Eintrag» opt out of every public listing.
+  scope :listing_opted_out, -> { for_year.where(category: "no_listing") }
 
   def category_title
     CATEGORIES.dig(category, :title) || "Noch nicht ausgewählt"

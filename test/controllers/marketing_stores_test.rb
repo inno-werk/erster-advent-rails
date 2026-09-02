@@ -1,14 +1,15 @@
 require "test_helper"
 
 class MarketingStoresTest < ActionDispatch::IntegrationTest
-  test "listing and detail require paid current listed participation and confirmation" do
-    participation = participation_for
+  test "listing and detail require admin confirmation only" do
+    businesses(:member).pending!
     get marketing_stores_path
     assert_select "a[href=?]", marketing_store_path(businesses(:member)), count: 0
     get marketing_store_path(businesses(:member))
     assert_redirected_to marketing_stores_path
 
-    participation.mark_paid!
+    businesses(:member).confirmed!
+    participation_for
     get marketing_stores_path
     assert_response :success
     assert_select "a[href=?]", marketing_store_path(businesses(:member))
