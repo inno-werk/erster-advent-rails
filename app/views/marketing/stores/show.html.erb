@@ -12,9 +12,9 @@
 <section
   class="
     page-container sticky z-[6] w-full flex justify-end h-0
-    [--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+0.5rem)]
-    md:[--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+0.75rem)]
-    lg:[--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+1rem)]
+    [--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+0.5rem+1px)]
+    md:[--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+0.75rem+1px)]
+    lg:[--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+1rem+1px)]
     top-[calc(0.5rem_-_var(--cross-offset))]
     group-[.small.up]:top-[calc(var(--nav-small-height)_+_1rem_-_var(--cross-offset))]
     duration-300 ease-in-out transition-[top]
@@ -29,7 +29,12 @@
       0.565em is where Plus Jakarta Sans Bold puts it: the 1.05 line-height is
       tighter than the font's own 1.05/0.225 ascent/descent, so half-leading
       pulls the baseline up to 0.9375em, and the capitals reach 0.745em above
-      it. Centring on the line box instead leaves the cross visibly high. %>
+      it. Centring on the line box instead leaves the cross visibly high.
+
+      The trailing 3px is a flat optical nudge, not part of that geometry: on
+      the capitals alone the cross reads a touch high beside a name with
+      descenders. It stays constant across breakpoints so it cannot drift as
+      the heading scales. %>
   <%= link_to marketing_stores_path,
   class: "flex items-center justify-center h-12 w-12 md:mr-10 md:h-14 md:w-14 lg:h-20 lg:w-20
     mt-[var(--cross-offset)] transition-colors hover:bg-black hover:text-white" do %>
