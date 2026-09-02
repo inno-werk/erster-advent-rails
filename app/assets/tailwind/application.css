@@ -385,6 +385,26 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply relative w-full aspect-[4/3] overflow-hidden rounded-[15px];
   }
 
+  /*
+   * Zoom-on-hover for the listing image: the media box keeps its 4/3 crop and
+   * clips the overflow, while the link wrapping the image (or the logo
+   * fallback) scales up slightly. Hovering anywhere on the card - image or
+   * text - triggers it, so the whole card reads as one target. Touch devices
+   * and reduced-motion users get the static image.
+   */
+  .store-card-media > a {
+    @apply block h-full w-full;
+    transition: transform 0.4s ease;
+    will-change: transform;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .store-card:hover .store-card-media > a,
+    .store-card-media > a:focus-visible {
+      transform: scale(1.08);
+    }
+  }
+
   /* Category pills, 20px inside the top-left image corner and 4px apart */
   .store-card-tags {
     @apply absolute left-5 top-5 flex flex-wrap gap-1;
