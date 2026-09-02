@@ -435,10 +435,12 @@ button:has(+ #popover-1:popover-open) .icon-up {
      off the geometric middle so it does not read as sitting low. */
   .tag-pill-lg {
     @apply inline-flex w-fit items-center whitespace-nowrap rounded-full
-      bg-black text-white font-jakarta font-light;
+    bg-black text-white font-jakarta font-light;
     height: clamp(2rem, 2.71vw, 3.25rem);
     padding-inline: clamp(0.875rem, 1.25vw, 1.5rem);
     font-size: clamp(0.875rem, 1.5625vw, 1.875rem);
+    line-height: 1;
+    padding-block-end: 0.1em; /* trims descender space, lifts type onto the optical middle */
   }
 
   /*
