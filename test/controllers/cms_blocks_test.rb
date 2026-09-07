@@ -52,4 +52,16 @@ class CmsBlocksTest < ActionDispatch::IntegrationTest
       assert_select ".text-body", text: "Eine bisherige Antwort"
     end
   end
+
+  test "homepage prioritizes an optimized hero and defers gallery images" do
+    get root_path
+
+    assert_response :success
+    assert_select "section[data-hero] picture[aria-hidden=true]" do
+      assert_select "source[type='image/avif'][srcset*='hero_image']", count: 1
+      assert_select "source[type='image/webp'][srcset*='hero_image']", count: 1
+      assert_select "img[src*='hero_image'][loading=eager][fetchpriority=high][width=1920][height=1080]", count: 1
+    end
+    assert_select "img[src*='/home/bild_'][loading=lazy][decoding=async]", count: 5
+  end
 end

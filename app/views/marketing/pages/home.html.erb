@@ -1,11 +1,22 @@
 <section
   data-hero
   class="
-    h-[100svh] bg-cover bg-center w-full flex flex-col justify-end fixed top-0
-    left-0 z-0
+    h-[100svh] w-full flex flex-col justify-end fixed top-0 left-0 z-0
+    overflow-hidden
   "
-  style="background-image: url('<%= image_path('hero_image.png') %>');"
 >
+  <picture class="absolute inset-0" aria-hidden="true">
+    <source srcset="<%= image_path('hero_image.avif') %>" type="image/avif">
+    <source srcset="<%= image_path('hero_image.webp') %>" type="image/webp">
+    <%= image_tag "hero_image.png",
+    alt: "",
+    class: "h-full w-full object-cover object-center",
+    width: 1920,
+    height: 1080,
+    loading: "eager",
+    fetchpriority: "high",
+    draggable: false %>
+  </picture>
   <div
     class="
       absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-black/60
@@ -62,12 +73,28 @@
             col-span-2 md:col-span-4 lg:col-span-6 flex flex-col gap-[14px] sm:gap-4
           "
         >
-          <%= image_tag image_path("home/bild_1.png"),
-          alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[20px]" %>
-          <%= image_tag image_path("home/bild_3.png"),
-          alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[20px]" %>
+          <picture class="block">
+            <source srcset="<%= image_path('home/bild_1.avif') %>" type="image/avif">
+            <source srcset="<%= image_path('home/bild_1.webp') %>" type="image/webp">
+            <%= image_tag image_path("home/bild_1.png"),
+            alt: "Erster Advent Bern",
+            class: "w-full h-auto rounded-[20px]",
+            width: 812,
+            height: 1015,
+            loading: "lazy",
+            decoding: "async" %>
+          </picture>
+          <picture class="block">
+            <source srcset="<%= image_path('home/bild_3.avif') %>" type="image/avif">
+            <source srcset="<%= image_path('home/bild_3.webp') %>" type="image/webp">
+            <%= image_tag image_path("home/bild_3.png"),
+            alt: "Erster Advent Bern",
+            class: "w-full h-auto rounded-[20px]",
+            width: 812,
+            height: 515,
+            loading: "lazy",
+            decoding: "async" %>
+          </picture>
         </div>
 
         <div
@@ -75,19 +102,43 @@
             col-span-2 md:col-span-4 lg:col-span-6 flex flex-col gap-[14px] sm:gap-4
           "
         >
-          <%= image_tag image_path("home/bild_2.png"),
-          alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[20px]" %>
-          <%= image_tag image_path("home/bild_4.png"),
-          alt: "Erster Advent Bern",
-          class: "w-full h-auto rounded-[20px]" %>
+          <picture class="block">
+            <source srcset="<%= image_path('home/bild_2.avif') %>" type="image/avif">
+            <source srcset="<%= image_path('home/bild_2.webp') %>" type="image/webp">
+            <%= image_tag image_path("home/bild_2.png"),
+            alt: "Erster Advent Bern",
+            class: "w-full h-auto rounded-[20px]",
+            width: 812,
+            height: 648,
+            loading: "lazy",
+            decoding: "async" %>
+          </picture>
+          <picture class="block">
+            <source srcset="<%= image_path('home/bild_4.avif') %>" type="image/avif">
+            <source srcset="<%= image_path('home/bild_4.webp') %>" type="image/webp">
+            <%= image_tag image_path("home/bild_4.png"),
+            alt: "Erster Advent Bern",
+            class: "w-full h-auto rounded-[20px]",
+            width: 812,
+            height: 977,
+            loading: "lazy",
+            decoding: "async" %>
+          </picture>
         </div>
       </div>
 
       <div class="mt-[14px] sm:mt-4 w-full">
-        <%= image_tag image_path("home/bild_5.png"),
-        alt: "Erster Advent Bern",
-        class: "w-full h-auto rounded-[20px] sm:rounded-[15px]" %>
+        <picture class="block">
+          <source srcset="<%= image_path('home/bild_5.avif') %>" type="image/avif">
+          <source srcset="<%= image_path('home/bild_5.webp') %>" type="image/webp">
+          <%= image_tag image_path("home/bild_5.png"),
+          alt: "Erster Advent Bern",
+          class: "w-full h-auto rounded-[20px] sm:rounded-[15px]",
+          width: 1640,
+          height: 869,
+          loading: "lazy",
+          decoding: "async" %>
+        </picture>
       </div>
     </div>
   </section>
