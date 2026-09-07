@@ -17,7 +17,9 @@ CMS models, controllers and views are unchanged.
 
 ## Deployment and configuration
 
-Run the additive migration and the narrowly scoped initial-data task:
+Normal production startup runs the additive migrations and the production-safe,
+idempotent baseline seed through `db:prepare`. To initialize or repair only the
+print-material catalogue manually, run:
 
 ```sh
 bin/rails db:migrate
@@ -28,8 +30,11 @@ bin/rails print_materials:seed
 seed keys. Repeating it does not duplicate products or overwrite admin edits.
 It also removes the old «Gratis.» suffix only when an existing description
 exactly matches the original seed text. Custom descriptions remain unchanged.
-Do **not** use the existing `db:seed` for a live database: its pre-existing demo
-workflow clears data, including users and CMS content.
+Production `db:seed` creates one confirmed admin, the site setting, the
+print-material catalogue, and the initial homepage CMS and FAQ entries. The
+generated admin password is printed only on creation. The destructive demo seed
+is isolated to development and never creates demo businesses or payments in
+production.
 
 Set `PARTICIPATION_YEAR` to the year currently open for participation. Without an
 override, `EventConfiguration.year` uses `Date.current.year`.

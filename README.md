@@ -25,8 +25,8 @@ To set up the development environment, follow these steps:
    bin/rails db:migrate
    ```
 
-   5. For a fresh disposable database only: seed the base shops and accounts.
-      **Warning: this deletes existing users, shops, orders and CMS content.**
+   5. For a fresh disposable development database only: seed the base shops and accounts.
+      **Warning: in development this deletes existing users, shops, orders and CMS content.**
 
    ```bash
    bin/rails db:seed
@@ -50,8 +50,9 @@ Added payments use the dummy provider and `DEMO-...` references; no money moves
 and no emails are sent. Some shops intentionally have no current membership or
 an empty/missing order, so those dashboard states remain available for testing.
 
-Optional: `YEAR=2026 YEARS=3 bin/rails demo_data:seed` limits the history. Do not
-use the destructive `db:seed` command to add activity to an existing database.
+Optional: `YEAR=2026 YEARS=3 bin/rails demo_data:seed` limits the history. In
+development, do not use the destructive `db:seed` command to add activity to an
+existing database.
 
 ## Live server
 
@@ -111,6 +112,13 @@ payment integration, see [Participation and print materials](docs/participation-
 
 The app is deployed to [Dokploy](https://dokploy.com) from the `Dockerfile`. Set the
 variables below in the app's **Environment** tab.
+
+On a fresh production database, `db:prepare` runs a production-only, idempotent
+baseline seed. It creates one confirmed admin, the site setting, print-material
+catalogue, initial homepage CMS sections and initial FAQ entries. The admin's
+generated password is printed only when that account is first created. No demo
+businesses or payments are created. The destructive demo seed remains limited
+to the development environment.
 
 Note that `dotenv-rails` is not installed. `bin/dev` loads `.env` locally through
 Foreman, but Rails commands started directly do not. Deployed environments must
@@ -210,6 +218,8 @@ need a CORS configuration.
 
 | Variable              | Description                                                                                                                                                                                                                                                                                                        |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `APP_HOST`            | Canonical host used for HTTPS links in production emails. Defaults to `www.erster-advent-bern.ch`; set it explicitly for staging or another production hostname. It is also added to Rails' allowed hosts.                                                                                                          |
+| `SEED_ADMIN_EMAIL`    | Email for the initial production admin. Defaults to `admin@erster-advent-bern.ch`. It is read only when the account does not exist; the generated password is printed once in the seed output.                                                                                                                       |
 | `ALLOWED_HOSTS`       | Comma-separated extra host names accepted by DNS-rebinding protection, on top of the `erster-advent-bern.ch` / `.coffee-journal.com` domains hardcoded in `production.rb`. Needed when reaching the app on a Dokploy-generated domain or a bare IP — otherwise every request is rejected with `403` in middleware. |
 | `SOLID_QUEUE_IN_PUMA` | Set to `true` to run the Solid Queue supervisor inside Puma. Without it, no background jobs are processed, since there is no separate worker container.                                                                                                                                                            |
 | `JOB_CONCURRENCY`     | Solid Queue processes, defaults to `1`.                                                                                                                                                                                                                                                                            |

@@ -57,8 +57,9 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "erster-advent-bern.coffee-journal.com" }
+  # Set the canonical host used by links generated in mailer templates.
+  canonical_host = ENV["APP_HOST"].to_s.strip.presence || "www.erster-advent-bern.ch"
+  config.action_mailer.default_url_options = { host: canonical_host, protocol: "https" }
 
   # Specify outgoing SMTP server. Configured entirely via environment variables
   # (see README, Deployment) so that no credentials are needed to send mail.
@@ -83,6 +84,7 @@ Rails.application.configure do
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   config.hosts = [
+    canonical_host,
     "erster-advent-bern.coffee-journal.com",
     "erster-advent-bern.ch",
     "erster-advent.apps.innowerk.ch", # Dokploy deployment
