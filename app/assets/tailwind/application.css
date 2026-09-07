@@ -618,12 +618,12 @@ button:has(+ #popover-1:popover-open) .icon-up {
     margin-top: clamp(2.5rem, 6.25vw, 7.5rem);
   }
 
-  /* FAQ accordion row: 1px black rules, title PJS Light 30/44 in #D33D43 */
+  /* FAQ accordion row: 1px black rules, title PJS Light 30/44 in the site colour */
   .accordion-row {
     @apply border-t border-black last:border-b;
   }
   .accordion-title {
-    @apply font-jakarta font-light text-[#D33D43];
+    @apply font-jakarta font-light text-primary;
     padding-inline-start: 0 !important;
     padding-inline-end: clamp(3.5rem, 5.2vw, 6.25rem) !important;
     font-size: clamp(1.0625rem, 1.5625vw, 1.875rem);
@@ -837,6 +837,9 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .field-editor trix-editor {
     @apply min-h-32 rounded-b-lg rounded-t-none border border-[#C6C6C6] bg-base-100
       px-4 py-2.5 font-jakarta font-light;
+  }
+  .field-editor trix-editor :is(b, strong) {
+    @apply font-bold;
   }
   .field-editor trix-toolbar .trix-button-row {
     @apply rounded-t-lg border border-b-0 border-[#C6C6C6] bg-base-200 px-1;

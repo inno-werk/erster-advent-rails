@@ -126,8 +126,8 @@ html: { multipart: true } do |form| %>
         <%= form.text_area :question, rows: 2, class: "field-input" %>
       </div>
       <div class="mt-6">
-        <%= form.label :answer, "Antwort", class: "field-label" %>
-        <%= form.text_area :answer, rows: 5, class: "field-input" %>
+        <%= form.label :content, "Antwort", class: "field-label" %>
+        <div class="field-editor"><%= form.rich_text_area :content %></div>
         <p class="field-hint">
           Leer lassen, um «Weitere Informationen folgen in Kürze.» anzuzeigen.
         </p>

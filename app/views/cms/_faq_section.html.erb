@@ -14,7 +14,11 @@
             <%= item.question %>
           </div>
           <div class="collapse-content px-0">
-            <p class="text-body"><%= item.answer.presence || "Weitere Informationen folgen in Kürze." %></p>
+            <% if item.content.present? %>
+              <div class="text-body cms-rich-text"><%= cms_body(item.content) %></div>
+            <% else %>
+              <p class="text-body"><%= item.answer.presence || "Weitere Informationen folgen in Kürze." %></p>
+            <% end %>
           </div>
         </div>
       <% end %>

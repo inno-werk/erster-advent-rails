@@ -551,7 +551,7 @@ end
     block_type: :faq_item,
     is_active: true,
     question: question,
-    answer: answer
+    content: answer
   )
 end
 
