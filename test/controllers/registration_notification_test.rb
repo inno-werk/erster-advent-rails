@@ -17,17 +17,19 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     assert_difference [ "User.count", "Business.count" ] do
       assert_enqueued_email_with RegistrationMailer, :new_registration, args: ->(args) { args.first.email == "new-registration@example.com" } do
         post user_registration_path, params: { user: {
-          business_name: "Neu GmbH", email: "new-registration@example.com", address: "Bern",
-          name: "Neue Person", phone: "031 000 00 00", password: "password123"
+          business_name: "Neu GmbH", email: "new-registration@example.com",
+          registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+          name: "Neue Person", phone: "+41310000000", password: "password123"
         } }
       end
     end
     user = User.find_by!(email: "new-registration@example.com")
     business = user.business
     assert_equal "Neu GmbH", business.business_name
-    assert_equal "031 000 00 00", business.phone
-    assert_equal "Bern", business.address
-    assert_equal "Bern", business.billing_address
+    assert_equal "+41310000000", business.phone
+    assert_equal "Kramgasse 3", business.address
+    assert_equal "Kramgasse 3\n3011 Bern", business.billing_address
+    assert_equal "Kramgasse 3\n3011 Bern", user.address
     assert_equal user.email, business.email
     assert_equal "Neue Person", business.contact_name
     assert business.pending?
@@ -62,7 +64,8 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     assert_no_difference [ "User.count", "Business.count" ] do
       assert_no_enqueued_emails do
         post user_registration_path, params: { user: {
-          business_name: "Unvollständig", email: "incomplete@example.com", address: "Bern",
+          business_name: "Unvollständig", email: "incomplete@example.com",
+          registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
           name: "Neue Person", phone: "", password: "password123"
         } }
         assert_response :unprocessable_entity
@@ -77,8 +80,9 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     [ "text/html", "text/vnd.turbo-stream.html, text/html" ].each do |accept|
       assert_no_difference [ "User.count", "Business.count" ] do
         post user_registration_path, params: { user: {
-          business_name: "Neu GmbH", email: users(:member).email, address: "Bern",
-          name: "Neue Person", phone: "031 000 00 00", password: "private-test-password"
+          business_name: "Neu GmbH", email: users(:member).email,
+          registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+          name: "Neue Person", phone: "+41310000000", password: "private-test-password"
         } }, headers: { "Accept" => accept }
       end
       assert_response :unprocessable_entity
@@ -96,11 +100,11 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
 
   test "all invalid registration fields have their own error and accessible description" do
     post user_registration_path, params: { user: {
-      business_name: "", email: "invalid", address: "",
-      name: "Neue Person", phone: "", password: "short"
+      business_name: "", email: "invalid", registration_street_address: "",
+      registration_postal_city: "", name: "", phone: "", password: "short"
     } }
     assert_response :unprocessable_entity
-    %w[business_name email address password phone].each do |field|
+    %w[business_name email registration_street_address registration_postal_city name password phone].each do |field|
       assert_select "input[name='user[#{field}]'][aria-invalid=true].input-error" do |inputs|
         assert_includes inputs.first["aria-describedby"].split, "user_#{field}_error"
       end
@@ -109,6 +113,66 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     assert_select "input[name='user[password]'][aria-describedby='user_password_hint user_password_error']"
     assert_select "input[autofocus]", count: 0
     assert_select "input[type=password][value]", count: 0
+  end
+
+  test "phone accepts digits with an optional leading plus and rejects other characters" do
+    [ "031 000 00 00", "031-000-00-00", "031phone", "03+1000", "++4131" ].each_with_index do |phone, index|
+      assert_no_difference [ "User.count", "Business.count" ] do
+        post user_registration_path, params: { user: {
+          business_name: "Ungültige Nummer", email: "invalid-phone-#{index}@example.com",
+          registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+          name: "Neue Person", phone: phone, password: "password123"
+        } }
+      end
+
+      assert_response :unprocessable_entity
+      assert_select "input[name='user[phone]'][aria-invalid=true][aria-describedby=user_phone_error].input-error"
+      assert_select "#user_phone_error[role=alert]", text: /Ziffern/
+    end
+  end
+
+  test "malformed email alone rejects registration at the email field" do
+    assert_no_difference [ "User.count", "Business.count" ] do
+      post user_registration_path, params: { user: {
+        business_name: "Ungültige E-Mail", email: "keine-email",
+        registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+        name: "Neue Person", phone: "+41310000000", password: "password123"
+      } }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select "input[name='user[email]'][aria-invalid=true][aria-describedby=user_email_error].input-error"
+    assert_select "#user_email_error[role=alert]"
+  end
+
+  test "each split address field is required independently" do
+    %i[registration_street_address registration_postal_city].each_with_index do |missing_field, index|
+      attributes = {
+        business_name: "Unvollständige Adresse", email: "invalid-address-#{index}@example.com",
+        registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+        name: "Neue Person", phone: "+41310000000", password: "password123"
+      }
+      attributes[missing_field] = ""
+
+      assert_no_difference [ "User.count", "Business.count" ] do
+        post user_registration_path, params: { user: attributes }
+      end
+
+      assert_response :unprocessable_entity
+      assert_select "input[name='user[#{missing_field}]'][aria-invalid=true][aria-describedby=user_#{missing_field}_error].input-error"
+      assert_select "#user_#{missing_field}_error[role=alert]"
+    end
+  end
+
+  test "signup renders split address and constrained contact inputs" do
+    get new_user_registration_path
+
+    assert_response :success
+    assert_select "input[name='user[email]'][type=email][required]"
+    assert_select "input[name='user[registration_street_address]'][autocomplete=address-line1][required]"
+    assert_select "input[name='user[registration_postal_city]'][autocomplete=postal-code][required]"
+    assert_select "input[name='user[phone]'][type=tel][pattern='[+]?[0-9]+'][inputmode=tel][required]"
+    assert_select "button[type=button][data-password-visibility-target=button][data-action='click->password-visibility#toggle'][aria-pressed=false]"
   end
 
   test "notification addresses info mailbox and identifies the user" do
@@ -136,8 +200,9 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
         assert_no_enqueued_emails do
           assert_no_emails do
             post user_registration_path, params: { user: {
-              business_name: "Neu GmbH", email: email, address: "Bern",
-              name: "Neue Person", phone: "031 000 00 00", password: "password123"
+              business_name: "Neu GmbH", email: email,
+              registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+              name: "Neue Person", phone: "+41310000000", password: "password123"
             } }
           end
         end

@@ -62,6 +62,8 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   def build_resource(hash = {})
     super
+    resource.registration_form = true
+    resource.address = resource.registration_full_address
     resource.build_registration_business
   end
 
@@ -70,7 +72,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   def configure_sign_up_params
-    devise_parameter_sanitizer.permit(:sign_up, keys: [ :business_name, :address, :name, :phone, :category ])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [
+      :business_name, :registration_street_address, :registration_postal_city,
+      :name, :phone, :category
+    ])
   end
 
   def after_inactive_sign_up_path_for(resource)

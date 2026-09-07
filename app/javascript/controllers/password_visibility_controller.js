@@ -1,14 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["input", "showIcon", "hideIcon", "label"]
+  static targets = ["input", "button", "showIcon", "hideIcon", "label"]
 
   connect() {
     this.visible = false
     this.updateVisibility()
   }
 
-  toggle() {
+  toggle(event) {
+    event?.preventDefault()
     this.visible = !this.visible
     this.updateVisibility()
   }
@@ -20,6 +21,10 @@ export default class extends Controller {
 
     if (this.hasLabelTarget) {
       this.labelTarget.textContent = this.visible ? "Passwort verbergen" : "Passwort anzeigen"
+    }
+
+    if (this.hasButtonTarget) {
+      this.buttonTarget.setAttribute("aria-pressed", this.visible.toString())
     }
   }
 }

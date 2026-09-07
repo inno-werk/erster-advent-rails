@@ -2,7 +2,8 @@ module AuthFormsHelper
   REGISTRATION_ERROR_FIELDS = {
     business_name: [ :business_name, :"business.business_name" ],
     email: [ :email, :"business.email" ],
-    address: [ :address, :"business.address", :"business.billing_address" ],
+    registration_street_address: [ :registration_street_address, :"business.address" ],
+    registration_postal_city: [ :registration_postal_city, :"business.billing_address" ],
     name: [ :name, :"business.contact_name" ],
     password: [ :password, :password_confirmation ],
     phone: [ :phone, :"business.phone" ]

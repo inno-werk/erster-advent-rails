@@ -101,15 +101,25 @@ test("the visibility control supports auth forms without separate show and hide 
     .replace("export default class", "class VisibilityController") + "\nVisibilityController")
   const controller = new VisibilityController()
   controller.inputTarget = { type: "text", value: "retained-password" }
+  controller.hasButtonTarget = true
+  controller.buttonTarget = {
+    attributes: {},
+    setAttribute(name, value) { this.attributes[name] = value }
+  }
   controller.hasLabelTarget = true
   controller.labelTarget = { textContent: "Passwort verbergen" }
   controller.connect()
   assert.equal(controller.inputTarget.type, "password")
   assert.equal(controller.labelTarget.textContent, "Passwort anzeigen")
-  controller.toggle()
+  assert.equal(controller.buttonTarget.attributes["aria-pressed"], "false")
+  let prevented = false
+  controller.toggle({ preventDefault() { prevented = true } })
+  assert.equal(prevented, true)
   assert.equal(controller.inputTarget.type, "text")
   assert.equal(controller.labelTarget.textContent, "Passwort verbergen")
+  assert.equal(controller.buttonTarget.attributes["aria-pressed"], "true")
   controller.toggle()
   assert.equal(controller.inputTarget.type, "password")
+  assert.equal(controller.buttonTarget.attributes["aria-pressed"], "false")
   assert.equal(controller.inputTarget.value, "retained-password")
 })

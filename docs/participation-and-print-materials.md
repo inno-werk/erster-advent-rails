@@ -104,8 +104,11 @@ eligibility rule.
 ## Flow and access
 
 Self-registration creates the account and a pending business together, using the
-entered business name, phone, address, contact name and email. The address also
-prefills the billing address. Invalid business details prevent both records from
+entered business name, phone, address, contact name and email. Signup collects
+«Strasse + Hausnummer» separately from «PLZ + ORT»: the street is used as the
+business address, while both lines prefill the billing address and the legacy
+registration address. Signup phone numbers contain digits with an optional leading
+`+`; email retains Devise's format validation. Invalid business details prevent both records from
 being saved; the business remains unpublished until the normal approval and
 participation requirements are met. Registration still uses Devise email confirmation. Confirmation leads to
 `/app/setup/participation`, which begins a separate setup layout without the

@@ -306,7 +306,8 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
   def register_test_account(email: "preview@example.com", name: "Testperson")
     post user_registration_path, params: { user: {
       business_name: "Vorschau Geschäft", email: email, name: name,
-      address: "Bern", phone: "031 000 00 00", password: "password123"
+      registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+      phone: "+41310000000", password: "password123"
     } }
   end
 

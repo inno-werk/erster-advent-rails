@@ -48,7 +48,8 @@
                 <% [
                   [:business_name, :text, "Firmenname", "Geben Sie Ihren Firmennamen ein", "organization"],
                   [:email, :email, "E-Mail-Adresse", "Geben Sie Ihre gültige E-Mail ein", "email"],
-                  [:address, :text, "Adresse", "Geben Sie Ihre Postadresse ein", "street-address"],
+                  [:registration_street_address, :text, "Strasse + Hausnummer", "z. B. Kramgasse 3", "address-line1"],
+                  [:registration_postal_city, :text, "PLZ + ORT", "z. B. 3011 Bern", "postal-code"],
                   [:name, :text, "Vor- und Nachname", "Geben Sie Ihren Vor- und Nachnamen ein", "name"],
                   [:password, :password, "Passwort", "Geben Sie Ihr Passwort ein", "new-password"],
                   [:phone, :telephone, "Telefonnummer", "Geben Sie Ihre Telefonnummer ein", "tel"]
@@ -60,6 +61,8 @@
                     placeholder: placeholder, autocomplete: autocomplete, required: true,
                     autofocus: resource.errors.empty? && field == :business_name
                   ) %>
+                  <% options[:pattern] = "[+]?[0-9]+" if field == :phone %>
+                  <% options[:inputmode] = "tel" if field == :phone %>
                   <div class="form-control">
                     <%= f.label field, class: "label" do %>
                       <span class="label-text font-semibold"><%= label %></span>
@@ -67,7 +70,7 @@
                     <% if password %>
                       <div class="relative" data-controller="password-visibility">
                         <%= f.password_field field, **options, data: { password_visibility_target: "input", auth_password: true } %>
-                        <button type="button" class="btn btn-ghost btn-xs absolute right-2 top-1/2 -translate-y-1/2" data-action="password-visibility#toggle">
+                        <button type="button" aria-pressed="false" class="btn btn-ghost btn-xs absolute right-2 top-1/2 -translate-y-1/2" data-password-visibility-target="button" data-action="click->password-visibility#toggle">
                           <%= heroicon "eye", options: { class: "h-5 w-5" } %>
                           <span class="sr-only" data-password-visibility-target="label">Passwort anzeigen</span>
                         </button>
