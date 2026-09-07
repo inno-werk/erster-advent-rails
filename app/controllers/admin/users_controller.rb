@@ -3,10 +3,14 @@ class Admin::UsersController < Admin::BaseController
   before_action :require_superadmin!, only: [ :new, :create, :update ]
 
   def index
-    @role = list_choice(:role, [ 0, 1, 2 ])
+    @section = list_choice(:section, %w[stores admins], default: "stores")
     @confirmation = list_choice(:confirmation, %w[confirmed pending])
     scope = search_list(User.active.left_joins(:business), "users.name", "users.email", "businesses.business_name", "users.business_name")
-    scope = scope.where(role: @role) if @role
+    scope = if @section == "admins"
+      scope.where(role: [ 1, 2 ])
+    else
+      scope.where(role: 0).where.not(businesses: { id: nil })
+    end
     scope = scope.where.not(confirmed_at: nil) if @confirmation == "confirmed"
     scope = scope.where(confirmed_at: nil) if @confirmation == "pending"
     @users = paginate_list(scope.includes(:business).order(id: :asc))

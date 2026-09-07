@@ -20,12 +20,39 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "user search combines names businesses roles and confirmation filters" do
+  test "user overview defaults to store owners and the admins section shows administrator roles" do
+    member_without_business = User.create!(email: "member-without-business@example.com", password: "password123", role: 0, confirmed_at: Time.current)
+    superadmin = User.create!(email: "superadmin-list@example.com", password: "password123", role: 2, confirmed_at: Time.current)
     sign_in users(:admin)
-    get admin_users_path, params: { q: "Person", role: "0", confirmation: "confirmed" }
+
+    get admin_users_path
+    assert_select "nav[aria-label='Benutzergruppen'] a[aria-current=page]", text: "Benutzer mit Geschäft"
+    assert_select "thead th", text: "Rolle"
+    assert_select "tbody tr", count: 2
+    assert_select "tbody", text: /member@example.com.*User/m
+    assert_select "tbody", text: /other@example.com.*User/m
+    assert_select "tbody", text: /#{Regexp.escape(member_without_business.email)}/, count: 0
+    assert_select "tbody", text: /admin@example.com/, count: 0
+
+    get admin_users_path, params: { section: "admins" }
+    assert_select "nav[aria-label='Benutzergruppen'] a[aria-current=page]", text: "Admins"
+    assert_select "tbody tr", count: 2
+    assert_select "tbody", text: /admin@example.com.*Admin/m
+    assert_select "tbody", text: /#{Regexp.escape(superadmin.email)}.*Superadmin/m
+    assert_select "tbody", text: /member@example.com/, count: 0
+
+    get admin_users_path, params: { section: "invalid" }
+    assert_select "nav[aria-label='Benutzergruppen'] a[aria-current=page]", text: "Benutzer mit Geschäft"
+    assert_select "tbody", text: /member@example.com/
+    assert_select "tbody", text: /admin@example.com/, count: 0
+  end
+
+  test "user search combines names businesses sections and confirmation filters" do
+    sign_in users(:admin)
+    get admin_users_path, params: { q: "Person", section: "stores", confirmation: "confirmed" }
     assert_select "tbody tr", count: 1
     assert_select "tbody", text: /member@example.com/
-    get admin_users_path, params: { q: "Testgeschäft", role: "1" }
+    get admin_users_path, params: { q: "Testgeschäft", section: "admins" }
     assert_select ".admin-list-empty", text: "Keine Benutzer gefunden."
     users(:member).update_column(:confirmed_at, nil)
     get admin_users_path, params: { q: "Testgeschäft", confirmation: "pending" }
@@ -46,6 +73,28 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_select ".admin-list-empty"
     get admin_stores_path, params: { sort: "name_desc" }
     assert_select "tbody tr:first-child", text: /Testgeschäft/
+  end
+
+  test "archived business labels keep the deleted backend value" do
+    business = businesses(:other)
+    business.update!(status: :deleted)
+    sign_in users(:admin)
+
+    get admin_stores_path
+    assert_response :success
+    assert_select "tbody", text: /#{Regexp.escape(business.business_name)}/, count: 0
+
+    get admin_stores_path, params: { status: "deleted" }
+    assert_response :success
+    assert_select "dialog option[value=deleted][selected]", text: "Archiviert"
+    assert_select "tbody tr", count: 1 do
+      assert_select ".badge", text: "Archiviert"
+      assert_select ".badge", text: "Unbekannt", count: 0
+    end
+
+    get admin_store_path(business)
+    assert_select "select[name='business[status]'] option[value=deleted][selected]", text: "Archiviert"
+    assert business.reload.deleted?
   end
 
   test "payment filters distinguish outstanding differences from fully paid memberships" do
@@ -90,21 +139,21 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
 
   test "pagination preserves filters and safely handles invalid or out of range values" do
     12.times do |index|
-      User.create!(email: "list-#{index}@example.com", password: "password123", role: 0, confirmed_at: Time.current)
+      User.create!(email: "list-#{index}@example.com", password: "password123", role: 1, confirmed_at: Time.current)
     end
     sign_in users(:admin)
-    query = { q: "list-", role: "0", confirmation: "confirmed", per: 10 }
+    query = { q: "list-", section: "admins", confirmation: "confirmed", per: 10 }
     get admin_users_path, params: query
     assert_select "tbody tr", count: 10
     next_link = css_select(".admin-list-footer a[rel=next]").sole["href"]
     assert_equal query.stringify_keys.transform_values(&:to_s).merge("page" => "2"), Rack::Utils.parse_nested_query(URI(next_link).query)
     get next_link
     assert_select "tbody tr", count: 2
-    assert_select ".admin-list-footer input[name=role][value='0']"
+    assert_select ".admin-list-footer input[name=section][value=admins]"
     get admin_users_path, params: query.merge(page: 999)
     assert_response :success
     assert_select "tbody tr", count: 2
-    get admin_users_path, params: { per: -1, page: -1, role: "invalid" }
+    get admin_users_path, params: { per: -1, page: -1, section: "invalid" }
     assert_response :success
     assert_select "#list-per-page option[selected][value='20']"
     get admin_participations_path, params: { year: "invalid", category: "invalid" }
@@ -292,13 +341,18 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
 
   test "cleared list searches retain the filters and reset pagination" do
     sign_in users(:admin)
-    get admin_users_path, params: { q: "member", role: 0, per: 10 }
+    get admin_users_path, params: { q: "member", section: "stores", per: 10 }
     assert_select "input[type=search][data-admin-list-target=search][data-action*='input->admin-list#searchChanged']"
-    assert_select "form[role=search] input[name=page]", count: 0
-    get admin_users_path, params: { q: "", role: 0, per: 10 }
+    assert_select "form.admin-list-toolbar" do
+      assert_select "input[type=hidden][name=section]", value: "stores"
+    end
+    assert_select "form.admin-list-toolbar input[name=page]", count: 0
+    get admin_users_path, params: { q: "", section: "stores", per: 10 }
     assert_select "tbody tr", count: 2
     assert_select "#list-per-page option[selected][value='10']"
-    assert_select "dialog select[name=role] option[selected][value='0']"
+    reset_link = css_select("dialog a").find { |link| link.text.strip == "Zurücksetzen" }
+    reset_query = Rack::Utils.parse_nested_query(URI(reset_link["href"]).query)
+    assert_equal({ "section" => "stores", "per" => "10" }, reset_query)
   end
 
   test "print product editors are card free and keep validation inside the fixed bar layout" do
@@ -323,7 +377,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_equal "3 × Plakate", product.reload.title
   end
 
-  test "store overview presents complete business details and the linked owner without status banners" do
+  test "store overview presents complete business details and the linked owner without alert banners" do
     business = businesses(:member)
     business.update!(contact_name: "Kontaktperson Beispiel", email: "kontakt@example.com",
       website: "https://example.com/shop", instagram: "https://instagram.com/testshop",
@@ -336,9 +390,13 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".drawer-content > .admin-detail-header h1", text: business.business_name
     assert_select ".drawer-content > main.admin-detail-scroll"
-    assert_select "main .alert, main .badge, [data-controller=dismiss]", count: 0
+    assert_select "main .alert, [data-controller=dismiss]", count: 0
+    assert_select "section[aria-labelledby=store-administration-heading] .badge", text: "Nicht ausgewählt", count: 1
     assert_select "a[href=?]", edit_admin_store_path(id: business.id), text: "Informationen bearbeiten"
-    assert_select ".admin-detail-header a[href=?]", marketing_store_path(business), text: "Geschäftseintrag ansehen"
+    assert_select ".admin-detail-header a[href=?][target=_blank][rel=noopener]", marketing_store_path(business), text: /Geschäftseintrag ansehen/ do
+      assert_select "svg[aria-hidden=true]", count: 1
+      assert_select ".sr-only", text: "(öffnet in einem neuen Tab)"
+    end
     assert_select "section[aria-labelledby=store-user-heading] a[href=?]", admin_user_path(users(:member))
     assert_select "section[aria-labelledby=store-information-heading] + section[aria-labelledby=store-user-heading] + section[aria-labelledby=store-contact-heading]", count: 1
     assert_select "aside section[aria-labelledby=store-user-heading]", count: 0
@@ -377,8 +435,8 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     sign_in users(:admin)
     get admin_store_path(id: businesses(:member).id)
     assert_response :success
-    assert_select ".admin-detail-header a[href=?]", marketing_store_path(businesses(:member)), text: "Geschäftseintrag ansehen"
-    assert_select "section[aria-labelledby=store-administration-heading] dd", text: "Bezahlt"
+    assert_select ".admin-detail-header a[href=?][target=_blank][rel=noopener]", marketing_store_path(businesses(:member)), text: /Geschäftseintrag ansehen/
+    assert_select "section[aria-labelledby=store-administration-heading] .badge.badge-success", text: "Bezahlt"
     assert_select "section[aria-labelledby=store-orders-heading]" do
       assert_select "tbody tr", count: 1
       assert_select "a[href=?]", admin_print_order_path(order), text: "Printbestellung #{EventConfiguration.year}"
@@ -406,14 +464,16 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
       business.update!(status: status)
       get admin_store_path(id: business.id)
       assert_response :success
-      assert_select "main .alert, main .badge", count: 0
+      assert_select "main .alert", count: 0
       assert_select "select[name='business[status]'] option[selected][value=?]", status
     end
     assert_select "a[href^='javascript:']", count: 0
     assert_select "section[aria-labelledby=store-images-heading]", text: /Noch keine Bilder/
     assert_select "section[aria-labelledby=store-orders-heading]", text: /noch keine Printbestellungen/
     assert_select "section[aria-labelledby=store-payments-heading]", text: /noch keine Zahlungen/
-    assert_select ".admin-detail-field", text: /Mitgliedschaftsstatus\s+Noch nicht ausgewählt/
+    assert_select ".admin-detail-field", text: /Mitgliedschaftsstatus/ do
+      assert_select ".badge:not(.badge-warning):not(.badge-success)", text: "Nicht ausgewählt"
+    end
     patch admin_store_path(id: business.id), params: { business: { status: "confirmed" } }
     assert_redirected_to admin_store_path(id: business.id)
     assert business.reload.confirmed?
@@ -427,7 +487,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     upgrade = participation.request_upgrade("leist_member")
     sign_in users(:admin)
     get admin_store_path(id: businesses(:member).id)
-    assert_select "section[aria-labelledby=store-administration-heading] dd", text: "Bisherige Mitgliedschaft bezahlt · Differenzzahlung offen"
+    assert_select "section[aria-labelledby=store-administration-heading] .badge.badge-warning", text: "Differenzzahlung offen"
     assert_select "section[aria-labelledby=store-payments-heading]" do
       assert_select "form[action=?]", admin_participation_upgrade_path(upgrade)
       assert_select "button", text: "Differenzzahlung bestätigen"
@@ -441,7 +501,9 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     participation_for(category: "no_listing")
     sign_in users(:admin)
     get admin_store_path(id: business.id)
-    assert_select ".admin-detail-field", text: /Mitgliedschaftsstatus\s+Zahlung offen · Teilnahme nicht abgeschlossen/
+    assert_select ".admin-detail-field", text: /Mitgliedschaftsstatus/ do
+      assert_select ".badge.badge-warning", text: "Zahlung offen"
+    end
     get preview_admin_store_path(id: business.id)
     assert_response :success
     assert_select "h1", text: business.business_name

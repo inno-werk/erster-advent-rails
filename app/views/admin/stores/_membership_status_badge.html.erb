@@ -1,0 +1,21 @@
+<% if participation&.pending_upgrade %>
+  <span class="badge badge-soft badge-warning gap-1">
+    <%= heroicon "clock", options: { class: "h-3.5 w-3.5", "aria-hidden": true } %>
+    Differenzzahlung offen
+  </span>
+<% elsif participation&.paid? %>
+  <span class="badge badge-soft badge-success gap-1">
+    <%= heroicon "check-circle", options: { class: "h-3.5 w-3.5", "aria-hidden": true } %>
+    Bezahlt
+  </span>
+<% elsif participation %>
+  <span class="badge badge-soft badge-warning gap-1">
+    <%= heroicon "clock", options: { class: "h-3.5 w-3.5", "aria-hidden": true } %>
+    Zahlung offen
+  </span>
+<% else %>
+  <span class="badge badge-soft gap-1">
+    <%= heroicon "minus-circle", options: { class: "h-3.5 w-3.5", "aria-hidden": true } %>
+    Nicht ausgewählt
+  </span>
+<% end %>

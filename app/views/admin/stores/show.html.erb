@@ -9,7 +9,11 @@
       <h1 class="mt-1 break-words text-xl font-semibold tracking-tight"><%= @business.business_name %></h1>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      <%= link_to "Geschäftseintrag ansehen", @business.publicly_visible? ? marketing_store_path(@business) : preview_admin_store_path(@business), target: "_blank", rel: "noopener", class: "admin-list-button" %>
+      <%= link_to @business.publicly_visible? ? marketing_store_path(@business) : preview_admin_store_path(@business), target: "_blank", rel: "noopener", class: "admin-list-button" do %>
+        Geschäftseintrag ansehen
+        <%= heroicon "arrow-top-right-on-square", options: { class: "h-4 w-4", "aria-hidden": true } %>
+        <span class="sr-only">(öffnet in einem neuen Tab)</span>
+      <% end %>
       <%= link_to "Informationen bearbeiten", edit_admin_store_path(@business), class: "btn btn-primary btn-sm rounded-lg" %>
     </div>
   </header>
@@ -61,13 +65,13 @@
       <dl class="mt-5 space-y-4">
         <%= render "admin/shared/detail_field", label: "Öffentlich sichtbar", value: @business.publicly_visible? ? "Ja" : "Nein" %>
         <%= render "admin/shared/detail_field", label: "Mitgliedschaft #{EventConfiguration.year}", value: @current_participation&.category_title || "Noch nicht ausgewählt" %>
-        <%= render "admin/shared/detail_field", label: "Mitgliedschaftsstatus", value: @current_participation ? participation_payment_label(@current_participation) : "Noch nicht ausgewählt" %>
+        <%= render "admin/shared/detail_field", label: "Mitgliedschaftsstatus", content: render("admin/stores/membership_status_badge", participation: @current_participation) %>
         <%= render "admin/shared/detail_field", label: "Erfasst am", value: l(@business.created_at, format: :short) %>
         <%= render "admin/shared/detail_field", label: "Geändert am", content: time_tag(@business.updated_at, l(@business.updated_at, format: :short)) %>
       </dl>
       <%= form_with model: @business, url: admin_store_path(@business), method: :patch, class: "mt-5 border-t border-base-300 pt-5", data: { turbo_confirm: "Möchten Sie die Freigabe für dieses Geschäft wirklich ändern?" } do |form| %>
         <%= form.label :status, "Freigabe", class: "field-label" %>
-        <%= form.select :status, [["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Gelöscht", "deleted"]], {}, class: "field-input" %>
+        <%= form.select :status, [["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Archiviert", "deleted"]], {}, class: "field-input" %>
         <%= form.submit "Freigabe speichern", class: "admin-list-button mt-3" %>
       <% end %>
     </section>

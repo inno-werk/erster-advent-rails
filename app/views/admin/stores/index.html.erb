@@ -1,5 +1,5 @@
 <%= render layout: "admin/shared/list", locals: { title: "Geschäfte", path: admin_stores_path, filters: [
-  { name: :status, label: "Freigabe", value: @status, options: [["Alle Status", ""], ["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Gelöscht", "deleted"]] },
+  { name: :status, label: "Freigabe", value: @status, options: [["Alle Status", ""], ["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Archiviert", "deleted"]] },
   { name: :sort, label: "Sortierung", value: @sort, default: "name_asc", options: [["Name A–Z", "name_asc"], ["Name Z–A", "name_desc"]] }
 ] } do %>
   <% if @businesses.any? %>

@@ -6,7 +6,7 @@ class Admin::StoresController < Admin::BaseController
     @sort = list_choice(:sort, %w[name_asc name_desc], default: "name_asc")
 
     scope = search_list(Business.left_joins(:user).includes(:user), "businesses.business_name", "users.email", "businesses.address")
-    scope = scope.where(status: @status) if @status
+    scope = @status ? scope.where(status: @status) : scope.where.not(status: :deleted)
     scope = @sort == "name_desc" ? scope.order(business_name: :desc) : scope.order(business_name: :asc)
 
     @businesses = paginate_list(scope.order(id: :asc))

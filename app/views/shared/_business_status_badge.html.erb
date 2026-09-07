@@ -18,6 +18,11 @@
     <%= heroicon "x-circle", options: { class: "w-3.5 h-3.5" } %>
     Abgelehnt
   </span>
+<% when :deleted %>
+  <span class="badge badge-soft gap-1">
+    <%= heroicon "archive-box", options: { class: "w-3.5 h-3.5" } %>
+    Archiviert
+  </span>
 <% else %>
   <span class="badge badge-soft badge-warning gap-1">Unbekannt</span>
 <% end %>

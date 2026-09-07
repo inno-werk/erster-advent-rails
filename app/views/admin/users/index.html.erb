@@ -1,5 +1,8 @@
-<%= render layout: "admin/shared/list", locals: { title: "Benutzer", path: admin_users_path, filters: [
-  { name: :role, label: "Rolle", value: @role, options: [["Alle Rollen", ""], ["Benutzer", "0"], ["Admin", "1"], ["Superadmin", "2"]] },
+<% sections = content_tag(:nav, class: "tabs tabs-border", aria: { label: "Benutzergruppen" }) do %>
+  <%= link_to "Benutzer mit Geschäft", admin_users_path(section: "stores"), class: class_names("tab", "tab-active": @section == "stores"), aria: { current: (@section == "stores" ? "page" : nil) } %>
+  <%= link_to "Admins", admin_users_path(section: "admins"), class: class_names("tab", "tab-active": @section == "admins"), aria: { current: (@section == "admins" ? "page" : nil) } %>
+<% end %>
+<%= render layout: "admin/shared/list", locals: { title: "Benutzer", path: admin_users_path, summary: sections, fixed_params: { section: @section }, filters: [
   { name: :confirmation, label: "E-Mail-Bestätigung", value: @confirmation, options: [["Alle", ""], ["Bestätigt", "confirmed"], ["Ausstehend", "pending"]] }
 ], actions: (current_user.superadmin? ? link_to("Benutzer hinzufügen", new_admin_user_path, class: "btn btn-primary btn-sm rounded-lg") : nil) } do %>
   <% if @users.any? %>
@@ -9,6 +12,7 @@
               <th>Name</th>
               <th>Email</th>
               <th>Geschäft</th>
+              <th>Rolle</th>
               <th class="text-right">Aktionen</th>
             </tr>
           </thead>
@@ -25,6 +29,7 @@
                 </td>
                 <td><%= user.email %></td>
                 <td><%= user.business&.business_name || user.business_name || "-" %></td>
+                <td><%= user.role_name %></td>
                 <td>
                   <div class="flex justify-end gap-4">
                     <%= link_to admin_user_path(user), class: "admin-action-link" do %>
