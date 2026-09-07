@@ -9,7 +9,8 @@ class PrintOrderPdf
   MUTED = "66736E"
   RULE = "DDE4DF"
   LETTER_INK = "202424"
-  ACCENT = "D03036"
+  # Brand primary (--color-primary: #52819c in app/assets/tailwind/application.css).
+  ACCENT = "52819C"
 
   def initialize(export)
     @export = export

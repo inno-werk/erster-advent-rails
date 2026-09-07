@@ -1,6 +1,6 @@
 <section class="min-h-screen bg-gradient-to-r bg-primary">
   <div class="hero min-h-screen bg-transparent">
-    <div class="hero-content w-full max-w-4xl flex-col">
+    <div class="hero-content w-full max-w-4xl flex-col px-4 pt-16 pb-10">
       <div
         class="
           card relative w-full overflow-visible bg-base-100 shadow-2xl rounded-3xl
@@ -51,8 +51,8 @@
                   [:registration_street_address, :text, "Strasse + Hausnummer", "z. B. Kramgasse 3", "address-line1"],
                   [:registration_postal_city, :text, "PLZ + ORT", "z. B. 3011 Bern", "postal-code"],
                   [:name, :text, "Vor- und Nachname", "Geben Sie Ihren Vor- und Nachnamen ein", "name"],
-                  [:password, :password, "Passwort", "Geben Sie Ihr Passwort ein", "new-password"],
-                  [:phone, :telephone, "Telefonnummer", "Geben Sie Ihre Telefonnummer ein", "tel"]
+                  [:phone, :telephone, "Telefonnummer", "Geben Sie Ihre Telefonnummer ein", "tel"],
+                  [:password, :password, "Passwort", "Geben Sie Ihr Passwort ein", "new-password"]
                 ].each do |field, type, label, placeholder, autocomplete| %>
                   <% errors = auth_field_errors(resource, field) %>
                   <% password = field == :password %>
@@ -63,7 +63,7 @@
                   ) %>
                   <% options[:pattern] = "[+]?[0-9]+" if field == :phone %>
                   <% options[:inputmode] = "tel" if field == :phone %>
-                  <div class="form-control">
+                  <div class="form-control<%= " md:col-span-2" if password %>">
                     <%= f.label field, class: "label" do %>
                       <span class="label-text font-semibold"><%= label %></span>
                     <% end %>

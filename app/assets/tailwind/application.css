@@ -474,7 +474,7 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .nav-lockup {
     @apply font-korolev font-bold uppercase;
     margin-inline-start: calc(var(--nav-logo-height) * 0.08415);
-    font-size: calc(var(--nav-logo-height) * 0.15335);
+    font-size: calc(var(--nav-logo-height) * 0.15035);
     line-height: 1;
   }
 
