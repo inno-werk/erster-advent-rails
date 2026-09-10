@@ -1,7 +1,7 @@
 require "test_helper"
 
 class SessionsTest < ActionDispatch::IntegrationTest
-  test "admin and member login share the design but use separate endpoints without registration links" do
+  test "admin and member login share the design but use separate endpoints" do
     {
       admin_login_path => [ admin_session_path, "Admin-Login" ],
       new_user_session_path => [ user_session_path, "Melden Sie sich bei Ihrem Konto an" ]
@@ -12,7 +12,11 @@ class SessionsTest < ActionDispatch::IntegrationTest
       assert_select "form[action=?][method=post]", action
       assert_select "input[name='user[email]'][autocomplete=email]"
       assert_select "input[name='user[password]'][autocomplete=current-password]"
-      assert_select "a[href=?]", new_user_registration_path, count: 0
+      if path == admin_login_path
+        assert_select "a[href=?]", new_user_registration_path, count: 0
+      else
+        assert_select "a.btn[href=?]", new_user_registration_path, text: "Registrieren"
+      end
       assert_select "a[href=?]", new_user_password_path
       assert_select "[role=alert]", count: 0
     end

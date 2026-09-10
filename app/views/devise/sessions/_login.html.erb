@@ -106,6 +106,10 @@
           <div class="pt-2">
             <%= f.submit "Anmelden", class: "btn btn-primary w-full" %>
           </div>
+
+          <% unless admin_login %>
+            <%= link_to "Registrieren", new_user_registration_path, class: "btn btn-outline btn-secondary w-full" %>
+          <% end %>
         </div>
       <% end %>
 
