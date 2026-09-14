@@ -26,7 +26,11 @@ class Admin::PrintProductsController < Admin::BaseController
   end
 
   def update
-    if @product.update(product_params)
+    attributes = product_params
+    remove_image = ActiveModel::Type::Boolean.new.cast(attributes.delete(:remove_image))
+
+    if @product.update(attributes)
+      @product.image.purge if remove_image && !attributes[:image].present?
       redirect_to admin_print_products_path, notice: "Printprodukt gespeichert."
     else
       render :edit, status: :unprocessable_entity
@@ -40,6 +44,6 @@ class Admin::PrintProductsController < Admin::BaseController
   end
 
   def product_params
-    params.require(:print_product).permit(:title, :description, :image, :active, :position)
+    params.require(:print_product).permit(:title, :description, :image, :remove_image, :active, :position)
   end
 end

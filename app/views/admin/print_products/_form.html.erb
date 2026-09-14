@@ -44,6 +44,10 @@
       <h2 id="product-image-heading" class="form-section-title">Produktbild</h2>
       <% if @product.image.attached? && @product.image.persisted? %>
         <%= image_tag @product.image, alt: @product.title, class: "mt-6 h-48 w-full object-contain object-left" %>
+        <label class="mt-4 flex items-center gap-3 text-sm font-medium">
+          <%= form.check_box :remove_image, class: "checkbox checkbox-primary" %>
+          Vorhandenes Bild beim Speichern entfernen
+        </label>
       <% else %>
         <p class="mt-6 text-sm text-base-content/40">Noch kein Produktbild hinterlegt.</p>
       <% end %>

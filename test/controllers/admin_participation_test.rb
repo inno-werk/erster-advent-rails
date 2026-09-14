@@ -567,11 +567,56 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     assert_redirected_to admin_print_products_path
     product = PrintProduct.order(:created_at).last
     assert product.image.attached?
-    get edit_admin_print_product_path(product)
+    get edit_admin_print_product_path(id: product.id)
     assert_response :success
     assert_select "img[alt=?]", "Mit Bild"
     get admin_print_products_path
     assert_response :success
+  end
+
+  test "admin can remove a print product image when saving and failed edits keep it" do
+    product = print_products(:posters)
+    product.image.attach(io: File.open(Rails.root.join("app/assets/images/placeholder.png")), filename: "poster.png", content_type: "image/png")
+    sign_in users(:admin)
+
+    get edit_admin_print_product_path(id: product.id)
+    assert_select "input[type=checkbox][name='print_product[remove_image]']"
+
+    patch admin_print_product_path(id: product.id), params: { print_product: { title: "", description: product.description, position: product.position, remove_image: "1" } }
+    assert_response :unprocessable_entity
+    assert product.reload.image.attached?
+
+    patch admin_print_product_path(id: product.id), params: { print_product: { title: "Plakate ohne Bild", description: product.description, position: product.position, remove_image: "1" } }
+    assert_redirected_to admin_print_products_path
+    assert_equal "Plakate ohne Bild", product.reload.title
+    assert_not product.image.attached?
+  end
+
+  test "a replacement image wins over print product image removal" do
+    product = print_products(:posters)
+    product.image.attach(io: File.open(Rails.root.join("app/assets/images/placeholder.png")), filename: "poster.png", content_type: "image/png")
+    replacement = Rack::Test::UploadedFile.new(Rails.root.join("app/assets/images/placeholder.png"), "image/png")
+    sign_in users(:admin)
+
+    patch admin_print_product_path(id: product.id), params: { print_product: { title: product.title, description: product.description, position: product.position, image: replacement, remove_image: "1" } }
+
+    assert_redirected_to admin_print_products_path
+    assert product.reload.image.attached?
+  end
+
+  test "admin can approve an initial payment from the user page" do
+    participation = participation_for
+    sign_in users(:admin)
+
+    get admin_user_path(id: users(:member).id)
+    assert_select "form[action=?] input[name='participation[payment_status]'][value=paid]", admin_participation_path(participation), count: 1
+
+    patch admin_participation_path(id: participation.id), params: { participation: { payment_status: "paid", amount_cents: 1, paid_at: 10.years.ago } }
+
+    assert_redirected_to admin_user_path(id: users(:member).id)
+    assert participation.reload.paid?
+    assert_equal 20_000, participation.amount_cents
+    assert participation.paid_at > 1.minute.ago
   end
 
   test "non image upload is rejected with validation errors" do
