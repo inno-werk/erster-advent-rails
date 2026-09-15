@@ -30,8 +30,11 @@ button:has(+ #popover-1:popover-open) .icon-up {
         edges. The bar spans the viewport, its content stays in the grid. %>
     <div
       class="
-        fixed top-0 left-0 w-full z-10 duration-300 ease-in-out will-change-transform
+        fixed top-0 left-0 w-full z-10 duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]
+        will-change-transform motion-reduce:transition-none
         transition-[translate,opacity,background-color] translate-y-0 opacity-100
+        group-[.small.down]:ease-[cubic-bezier(0.65,0,0.35,1)]
+        group-[.small.down]:[transition-delay:0s,0s,700ms]
         bg-transparent group-[.small]:bg-primary
         group-[.small.down]:-translate-y-full group-[.small.down]:opacity-0
         group-[.small.up]:translate-y-0 group-[.small.up]:opacity-100
@@ -40,9 +43,10 @@ button:has(+ #popover-1:popover-open) .icon-up {
       <div class="page-container">
         <header
           class="
-            navbar bg-transparent w-full p-0 items-start duration-300 ease-in-out
-            transition-[height,padding]
-            group-[.small]:h-[var(--nav-small-height)] group-[.small]:items-center
+            navbar bg-transparent w-full p-0 items-start duration-700
+            ease-[cubic-bezier(0.22,1,0.36,1)] transition-[height,padding]
+            motion-reduce:transition-none group-[.small.down]:delay-700
+            group-[.small]:h-[var(--nav-small-height)]
             group-[.large]:h-[calc(var(--nav-top-offset)_+_var(--nav-logo-height))]
             group-[.large]:pt-[var(--nav-top-offset)]
           "
@@ -53,8 +57,20 @@ button:has(+ #popover-1:popover-open) .icon-up {
               <%= image_tag "logo.svg",
               alt: "Erster Advent Logo",
               class:
-                "h-full w-auto group-[.small]:h-[var(--nav-small-mark-ratio)]" %>
-              <div class="nav-lockup hidden sm:block group-[.small]:hidden">
+                "h-full w-auto group-[.small]:h-[var(--nav-small-mark-ratio)]
+                transition-[height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]
+                motion-reduce:transition-none group-[.small.down]:delay-700" %>
+              <%# Fades in once the header has mostly grown back, instead of
+                  popping in at full size next to a still-small logo. %>
+              <div
+                class="
+                  nav-lockup hidden sm:block group-[.small]:hidden
+                  transition-[opacity,display] transition-discrete duration-0 ease-out
+                  group-[.large]:duration-500 group-[.large]:delay-300
+                  group-[.small]:opacity-0 group-[.small.down]:duration-500
+                  starting:opacity-0 motion-reduce:transition-none
+                "
+              >
                 <p class="text-black">
                   1.&#8201;Advent<br>Untere<br>Altstadt<br>Bern
                 </p>
@@ -66,6 +82,9 @@ button:has(+ #popover-1:popover-open) .icon-up {
               <p
                 class="
                   hidden group-[.small]:block font-jakarta font-bold text-white
+                  transition-[opacity,display] transition-discrete duration-0 ease-out
+                  group-[.small]:duration-500 group-[.small]:delay-200
+                  starting:opacity-0 motion-reduce:transition-none
                   text-base md:text-lg lg:text-[28px] whitespace-nowrap
                   ms-[clamp(1rem,2.083vw,2.5rem)]
                 "
@@ -75,7 +94,18 @@ button:has(+ #popover-1:popover-open) .icon-up {
             </a>
           </div>
           <!-- desktop nav -->
-          <div class="navbar-end gap-2 flex mx-2">
+          <%# Centred in the minimized bar through a margin rather than by
+              switching the header's align-items, which cannot be animated and
+              made the pills jump when the header expanded again. The height
+              is the .btn-navbar height every control in here shares. %>
+          <div
+            class="
+              navbar-end gap-2 flex mx-2 mt-0 transition-[margin] duration-700
+              ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none
+              group-[.small.down]:delay-700
+              group-[.small]:mt-[calc((var(--nav-small-height)_-_clamp(2.5rem,2.917vw,3.5rem))/2)]
+            "
+          >
             <%# The most important control in the bar: it keeps its full size at
                 every width and only steps aside below ~480px, where the date it
                 sits next to leaves no room at all. Everything else in the bar
