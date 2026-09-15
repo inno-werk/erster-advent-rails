@@ -5,18 +5,26 @@
     out of the page flow because this wrapper is h-0.
 
     The same offset is subtracted from `top`, so once the wrapper sticks the
-    cross rides 0.5rem below the viewport edge, or below the minimized bar when
-    that is out. Adjusting the button's margin for the bar instead would move
-    it while the wrapper is still in flow - with the hero part-way off screen
-    the cross then sat a bar's height below the title. %>
+    cross rides --cross-inset below the viewport edge, or below the minimized
+    bar when that is out. Adjusting the button's margin for the bar instead
+    would move it while the wrapper is still in flow - with the hero part-way
+    off screen the cross then sat a bar's height below the title.
+
+    --cross-inset is the cross's gap to the right viewport edge - the
+    page-container padding plus the button's md:mr-10, and from 2xl the
+    centred container's side space - so the stuck cross has the same distance
+    on top as on the right. It only affects `top`, i.e. the stuck state. %>
 <section
   class="
     page-container sticky z-[6] w-full flex justify-end h-0
     [--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+0.5rem+1px)]
     md:[--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+0.75rem+1px)]
     lg:[--cross-offset:calc(clamp(2.5rem,5.73vw,6.875rem)*0.565+1rem+1px)]
-    top-[calc(0.5rem_-_var(--cross-offset))]
-    group-[.small.up]:top-[calc(var(--nav-small-height)_+_1rem_-_var(--cross-offset))]
+    [--cross-inset:1.25rem] sm:[--cross-inset:2rem] md:[--cross-inset:5.5rem]
+    lg:[--cross-inset:6.5rem] xl:[--cross-inset:7.5rem]
+    2xl:[--cross-inset:calc(max(0px,(100vw_-_1640px)/2)_+_2.5rem)]
+    top-[calc(var(--cross-inset)_-_var(--cross-offset))]
+    group-[.small.up]:top-[calc(var(--nav-small-height)_+_var(--cross-inset)_-_var(--cross-offset))]
     duration-300 ease-in-out transition-[top]
   "
 >
