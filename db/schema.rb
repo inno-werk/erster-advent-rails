@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_07_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_23_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -76,6 +76,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_07_120000) do
     t.string "linkedin", default: "", null: false
     t.string "facebook", default: "", null: false
     t.integer "status", default: 0
+    t.boolean "show_phone_publicly", default: false, null: false
+    t.boolean "show_email_publicly", default: false, null: false
     t.index ["categories"], name: "index_businesses_on_categories", using: :gin
     t.index ["confirmed"], name: "index_businesses_on_confirmed"
     t.index ["status"], name: "index_businesses_on_status"

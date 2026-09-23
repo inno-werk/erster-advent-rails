@@ -64,16 +64,16 @@
 
 <section class="page-container mt-10 md:mt-14 lg:mt-16 mb-16 md:mb-24">
   <div class="font-jakarta font-bold tracking-[0.01em] text-lg lg:text-[30px] lg:leading-[44px]">
-    <% if business.phone.present? %>
+    <% if business.show_phone_publicly? && business.phone.present? %>
       <p>Tel. <%= business.phone %></p>
     <% end %>
-    <% if business.email.present? %>
+    <% if business.show_email_publicly? && business.email.present? %>
       <p><%= mail_to business.email, business.email, class: "hover:text-secondary" %></p>
     <% end %>
     <% if business.website.present? %>
       <p>
-        <%= link_to business.website.sub(%r{\Ahttps?://}, "").sub(%r{/\z}, ""),
-        business.website,
+        <%= link_to business.website_url.sub(%r{/\z}, ""),
+        business.website_url,
         target: "_blank",
         rel: "noopener",
         class: "hover:text-secondary" %>

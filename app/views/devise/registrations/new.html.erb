@@ -61,7 +61,6 @@
                     placeholder: placeholder, autocomplete: autocomplete, required: true,
                     autofocus: resource.errors.empty? && field == :business_name
                   ) %>
-                  <% options[:pattern] = "[+]?[0-9]+" if field == :phone %>
                   <% options[:inputmode] = "tel" if field == :phone %>
                   <div class="form-control<%= " md:col-span-2" if password %>">
                     <%= f.label field, class: "label" do %>
@@ -85,6 +84,18 @@
                   </div>
                 <% end %>
               </div>
+
+              <fieldset class="flex flex-col gap-3">
+                <legend class="mb-3 label-text font-semibold">Öffentliche Informationen auf unserer Website</legend>
+                <label class="flex cursor-pointer items-center gap-3">
+                  <%= f.check_box :show_phone_publicly, class: "checkbox checkbox-primary" %>
+                  <span class="label-text text-base-content">Telefonnummer öffentlich anzeigen</span>
+                </label>
+                <label class="flex cursor-pointer items-center gap-3">
+                  <%= f.check_box :show_email_publicly, class: "checkbox checkbox-primary" %>
+                  <span class="label-text text-base-content">E-Mail-Adresse öffentlich anzeigen</span>
+                </label>
+              </fieldset>
 
               <div class="flex justify-center">
                 <%= f.submit "Registrieren", class: "btn btn-primary px-10" %>

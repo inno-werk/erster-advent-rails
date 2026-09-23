@@ -2,6 +2,7 @@ class User < ApplicationRecord
   include PgSearch::Model
   attr_accessor :account_email_preview_message, :registration_form
   attr_writer :registration_street_address, :registration_postal_city
+  attr_accessor :show_phone_publicly, :show_email_publicly
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :confirmable, :lockable, :trackable
@@ -18,14 +19,7 @@ class User < ApplicationRecord
   validate :allowed_role_change, on: :update
   validates :name, :registration_street_address, :registration_postal_city,
     presence: true, if: :registration_form
-  validates :phone,
-    presence: true,
-    format: {
-      with: /\A\+?\d+\z/,
-      message: "darf nur Ziffern und ein führendes + enthalten",
-      allow_blank: true
-    },
-    if: :registration_form
+  validates :phone, presence: true, if: :registration_form
 
   scope :active, -> { where(deleted: false) }
 
@@ -82,7 +76,9 @@ class User < ApplicationRecord
       billing_address: full_address,
       email: email,
       contact_name: name.to_s,
-      map_link: ""
+      map_link: "",
+      show_phone_publicly: ActiveModel::Type::Boolean.new.cast(show_phone_publicly) || false,
+      show_email_publicly: ActiveModel::Type::Boolean.new.cast(show_email_publicly) || false
     )
   end
 

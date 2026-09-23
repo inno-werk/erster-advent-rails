@@ -94,6 +94,8 @@ class App::MystoreController < App::BaseController
       :phone,
       :address,
       :email,
+      :show_phone_publicly,
+      :show_email_publicly,
       :website,
       :instagram,
       :tiktok,

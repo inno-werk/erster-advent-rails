@@ -406,7 +406,7 @@ class AdminParticipationTest < ActionDispatch::IntegrationTest
     end
     assert_select "dd", text: /Rechnungsgasse 9\s+3011 Bern/
     assert_select "a[href='mailto:kontakt@example.com']"
-    [ business.website, business.instagram, business.tiktok, business.linkedin, business.facebook, business.map_link ].each do |url|
+    [ "https://example.com/shop", business.instagram, business.tiktok, business.linkedin, business.facebook, business.map_link ].each do |url|
       assert_select "main a[href=?]", url
     end
     assert_select ".trix-content", text: /Unser Sortiment/

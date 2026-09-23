@@ -74,7 +74,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   def configure_sign_up_params
     devise_parameter_sanitizer.permit(:sign_up, keys: [
       :business_name, :registration_street_address, :registration_postal_city,
-      :name, :phone, :category
+      :name, :phone, :category, :show_phone_publicly, :show_email_publicly
     ])
   end
 
