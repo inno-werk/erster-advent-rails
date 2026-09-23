@@ -29,7 +29,7 @@
         <%= render "admin/shared/detail_field", label: "Adresse", value: @business.address %>
         <%= render "admin/shared/detail_field", label: "Telefon", value: @business.phone, url: "tel:#{@business.phone.gsub(/\s+/, '')}" %>
         <%= render "admin/shared/detail_field", label: "Geschäftliche E-Mail", value: @business.email, url: "mailto:#{@business.email}" %>
-        <%= render "admin/shared/detail_field", label: "Website", value: @business.website, url: store_external_url(@business.website) %>
+        <%= render "admin/shared/detail_field", label: "Website", value: @business.website, url: store_external_url(@business.website_url) %>
       </dl>
     </section>
 

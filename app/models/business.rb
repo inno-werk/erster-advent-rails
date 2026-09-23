@@ -22,6 +22,9 @@ class Business < ApplicationRecord
 
   validates :business_name, :phone, :address, :billing_address, presence: true
 
+  # Only the domain is stored; "https://" is shown in the form and added for links.
+  normalizes :website, with: ->(value) { value.strip.sub(%r{\A(?:https?://)+}i, "") }
+
 
   attribute :tags, :json, default: []
   attribute :categories, :json, default: []
@@ -34,6 +37,13 @@ class Business < ApplicationRecord
     confirmed.joins(:user).merge(User.active)
       .where.not(user_id: Participation.listing_opted_out.select(:user_id))
   }
+
+  # Rows saved before the domain-only change may still carry a scheme.
+  def website_url
+    return if website.blank?
+
+    "https://#{website.sub(%r{\A(?:https?://)+}i, "")}"
+  end
 
   def publicly_visible?
     persisted? && self.class.publicly_visible.exists?(id: id)

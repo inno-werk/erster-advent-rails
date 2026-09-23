@@ -60,7 +60,7 @@ class Admin::StoresController < Admin::BaseController
 
     permitted = params.require(:business).permit(
       :status, :business_name, :phone, :address, :billing_address, :contact_name,
-      :email, :website, :instagram, :tiktok, :linkedin, :facebook, :map_link,
+      :email, :show_phone_publicly, :show_email_publicly, :website, :instagram, :tiktok, :linkedin, :facebook, :map_link,
       :description, :first_advent_specialities, :main_image, :image_gallery1,
       :image_gallery2, :image_gallery3, categories: []
     )

@@ -115,20 +115,16 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     assert_select "input[type=password][value]", count: 0
   end
 
-  test "phone accepts digits with an optional leading plus and rejects other characters" do
-    [ "031 000 00 00", "031-000-00-00", "031phone", "03+1000", "++4131" ].each_with_index do |phone, index|
-      assert_no_difference [ "User.count", "Business.count" ] do
-        post user_registration_path, params: { user: {
-          business_name: "Ungültige Nummer", email: "invalid-phone-#{index}@example.com",
-          registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
-          name: "Neue Person", phone: phone, password: "password123"
-        } }
-      end
-
-      assert_response :unprocessable_entity
-      assert_select "input[name='user[phone]'][aria-invalid=true][aria-describedby=user_phone_error].input-error"
-      assert_select "#user_phone_error[role=alert]", text: /Ziffern/
+  test "phone accepts any formatting such as spaces between digit groups" do
+    assert_difference [ "User.count", "Business.count" ], 1 do
+      post user_registration_path, params: { user: {
+        business_name: "Formatierte Nummer", email: "spaced-phone@example.com",
+        registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
+        name: "Neue Person", phone: "+41 78 648 69 99", password: "password123"
+      } }
     end
+
+    assert_equal "+41 78 648 69 99", User.find_by!(email: "spaced-phone@example.com").phone
   end
 
   test "malformed email alone rejects registration at the email field" do
@@ -171,7 +167,8 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     assert_select "input[name='user[email]'][type=email][required]"
     assert_select "input[name='user[registration_street_address]'][autocomplete=address-line1][required]"
     assert_select "input[name='user[registration_postal_city]'][autocomplete=postal-code][required]"
-    assert_select "input[name='user[phone]'][type=tel][pattern='[+]?[0-9]+'][inputmode=tel][required]"
+    assert_select "input[name='user[phone]'][type=tel][inputmode=tel][required]"
+    assert_select "input[name='user[phone]'][pattern]", count: 0
     assert_select "button[type=button][data-password-visibility-target=button][data-action='click->password-visibility#toggle'][aria-pressed=false]"
   end
 
@@ -243,5 +240,28 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
         assert html.css("a").any? { |link| link["href"].include?("/users/unlock?unlock_token=test-token") }
       end
     end
+  end
+
+  test "signup offers unchecked public contact checkboxes that are saved on the business" do
+    get new_user_registration_path
+    assert_select "input[type=checkbox][name='user[show_phone_publicly]']:not([checked])"
+    assert_select "input[type=checkbox][name='user[show_email_publicly]']:not([checked])"
+
+    base = {
+      business_name: "Sichtbarkeit", registration_street_address: "Kramgasse 3",
+      registration_postal_city: "3011 Bern", name: "Neue Person", phone: "+41 31 000 00 00",
+      password: "password123"
+    }
+    post user_registration_path, params: { user: base.merge(email: "hidden@example.com") }
+    hidden = User.find_by!(email: "hidden@example.com").business
+    assert_not hidden.show_phone_publicly?
+    assert_not hidden.show_email_publicly?
+
+    post user_registration_path, params: { user: base.merge(
+      email: "visible@example.com", show_phone_publicly: "1", show_email_publicly: "0"
+    ) }
+    visible = User.find_by!(email: "visible@example.com").business
+    assert visible.show_phone_publicly?
+    assert_not visible.show_email_publicly?
   end
 end

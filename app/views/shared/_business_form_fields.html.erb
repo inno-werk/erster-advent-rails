@@ -74,6 +74,10 @@
         <%= form.telephone_field :phone,
                              class: "field-input",
                              placeholder: "+41 44 123 45 67" %>
+        <label class="mt-2 flex items-center gap-3 text-sm">
+          <%= form.check_box :show_phone_publicly, class: "checkbox checkbox-primary checkbox-sm" %>
+          Telefonnummer öffentlich anzeigen
+        </label>
       </div>
 
       <div>
@@ -81,13 +85,25 @@
         <%= form.email_field :email,
                          class: "field-input",
                          placeholder: "kontakt@mein-geschäft.ch" %>
+        <label class="mt-2 flex items-center gap-3 text-sm">
+          <%= form.check_box :show_email_publicly, class: "checkbox checkbox-primary checkbox-sm" %>
+          E-Mail-Adresse öffentlich anzeigen
+        </label>
       </div>
 
       <div class="md:col-span-2">
         <%= form.label :website, "Webseite", class: "field-label" %>
-        <%= form.url_field :website,
-                       class: "field-input",
-                       placeholder: "https://mein-geschäft.ch" %>
+        <div class="flex items-center gap-2">
+          <span class="font-jakarta font-light text-base-content/70">https://</span>
+          <%= form.text_field :website,
+                          value: form.object.website.to_s.sub(%r{\A(?:https?://)+}i, ""),
+                          class: "field-input min-w-0 flex-1",
+                          inputmode: "url",
+                          autocomplete: "url",
+                          autocapitalize: "none",
+                          spellcheck: false,
+                          placeholder: "mein-geschäft.ch" %>
+        </div>
       </div>
 
       <div class="md:col-span-2">

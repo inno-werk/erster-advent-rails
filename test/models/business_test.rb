@@ -56,4 +56,33 @@ class BusinessTest < ActiveSupport::TestCase
     current.update!(category: "non_leist_member")
     assert user.business_editing_allowed?
   end
+
+  test "website stores only the domain and links it over https" do
+    business = businesses(:member)
+    { "mein-geschaeft.ch" => "mein-geschaeft.ch",
+      "  www.example.ch/shop " => "www.example.ch/shop",
+      "https://example.ch" => "example.ch",
+      "HTTP://example.ch" => "example.ch",
+      "" => "" }.each do |input, expected|
+      business.website = input
+      assert_equal expected, business.website
+    end
+
+    business.website = "example.ch/shop"
+    assert_equal "https://example.ch/shop", business.website_url
+    business.website = ""
+    assert_nil business.website_url
+  end
+
+  test "website links from rows saved with a scheme are not doubled" do
+    business = businesses(:member)
+    business.update_column(:website, "https://legacy.ch")
+    assert_equal "https://legacy.ch", business.reload.website_url
+  end
+
+  test "website link cannot become a javascript url" do
+    business = businesses(:member)
+    business.website = "javascript:alert(1)"
+    assert_equal "https://javascript:alert(1)", business.website_url
+  end
 end
