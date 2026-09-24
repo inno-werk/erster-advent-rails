@@ -5,6 +5,8 @@
 # their own, they are the rows inside the one fixed FAQ section rendered at
 # the bottom of the page.
 class CmsBlock < ApplicationRecord
+  include WebImageAttachments
+
   PAGES = %w[home].freeze
   IMAGE_POSITIONS = %w[left right].freeze
 
@@ -28,6 +30,7 @@ class CmsBlock < ApplicationRecord
   validates :image_position, inclusion: { in: IMAGE_POSITIONS }
   validates :question, presence: true, if: :faq_item?
   validates :image, presence: true, if: :full_image_block?
+  validates_web_image :image
   validate :button_needs_text_and_url
 
   scope :for_page, ->(page) { where(page: page) }

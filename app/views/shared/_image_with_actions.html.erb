@@ -12,6 +12,7 @@
   class: "h-full w-full object-cover" %>
 
   <%= form.file_field image_field,
+                  accept: WebImageAttachments::ACCEPT,
                   class: "hidden",
                   id: input_id,
                   onchange: "previewImage(event, 'preview-#{image_field}')" %>

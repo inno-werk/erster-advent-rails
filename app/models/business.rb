@@ -1,5 +1,6 @@
 class Business < ApplicationRecord
    include PgSearch::Model
+  include WebImageAttachments
 
   pg_search_scope :search, against: [ :business_name, :address ],
     associated_against: {
@@ -16,6 +17,7 @@ class Business < ApplicationRecord
   has_one_attached :image_gallery1
   has_one_attached :image_gallery2
   has_one_attached :image_gallery3
+  validates_web_image :main_image, :image_gallery1, :image_gallery2, :image_gallery3
 
   has_rich_text :description
   has_rich_text :first_advent_specialities
