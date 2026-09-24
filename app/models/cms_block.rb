@@ -16,7 +16,7 @@ class CmsBlock < ApplicationRecord
   has_rich_text :title
   has_rich_text :content
 
-  has_one_attached :image
+  has_one_web_image :image, variants: %i[card large wide]
 
   enum :block_type, {
     text_image_block: 0,
@@ -30,7 +30,6 @@ class CmsBlock < ApplicationRecord
   validates :image_position, inclusion: { in: IMAGE_POSITIONS }
   validates :question, presence: true, if: :faq_item?
   validates :image, presence: true, if: :full_image_block?
-  validates_web_image :image
   validate :button_needs_text_and_url
 
   scope :for_page, ->(page) { where(page: page) }

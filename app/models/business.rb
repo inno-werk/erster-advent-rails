@@ -13,11 +13,10 @@ class Business < ApplicationRecord
   has_many :participations, through: :user
   has_many :products, through: :user
 
-  has_one_attached :main_image
-  has_one_attached :image_gallery1
-  has_one_attached :image_gallery2
-  has_one_attached :image_gallery3
-  validates_web_image :main_image, :image_gallery1, :image_gallery2, :image_gallery3
+  has_one_web_image :main_image, variants: %i[card large]
+  has_one_web_image :image_gallery1, variants: %i[card large]
+  has_one_web_image :image_gallery2, variants: %i[card large]
+  has_one_web_image :image_gallery3, variants: %i[card large]
 
   has_rich_text :description
   has_rich_text :first_advent_specialities

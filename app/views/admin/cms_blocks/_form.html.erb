@@ -73,7 +73,7 @@ html: { multipart: true } do |form| %>
           <%= render "shared/image_with_actions",
           form: form,
           image_field: :image,
-          image_url: block.image.attached? ? url_for(block.image) : nil,
+          image_url: web_image(block.image, :card),
           delete_path: nil %>
 
           <fieldset>
@@ -100,7 +100,7 @@ html: { multipart: true } do |form| %>
         <%= render "shared/image_with_actions",
         form: form,
         image_field: :image,
-        image_url: block.image.attached? ? url_for(block.image) : nil,
+        image_url: web_image(block.image, :card),
         delete_path: nil %>
       </div>
 

@@ -5,6 +5,9 @@
 # Only new uploads are checked, so a record holding an older unsupported file
 # can still be saved. A rejected upload is discarded, so a re-rendered form
 # shows the stored image instead of an unsaved blob it cannot link to.
+#
+# Uploads are also served as resized WebP variants (see ImagesHelper#web_image)
+# instead of the multi-megabyte original.
 module WebImageAttachments
   extend ActiveSupport::Concern
 
@@ -12,7 +15,27 @@ module WebImageAttachments
   ACCEPT = CONTENT_TYPES.join(",").freeze
   MAX_BYTE_SIZE = 10.megabytes
 
+  # Longest edge in pixels, roughly twice the largest rendered size for sharp
+  # display on high-density screens.
+  VARIANT_SIZES = { card: 800, large: 1600, wide: 2400 }.freeze
+
   class_methods do
+    # Declares a validated image attachment with the given resized variants.
+    # Variants are preprocessed in a job after upload; older uploads get theirs
+    # on first view or via `bin/rails images:preprocess`.
+    def has_one_web_image(name, variants:)
+      has_one_attached name do |attachable|
+        variants.each do |variant|
+          attachable.variant variant,
+            resize_to_limit: [ VARIANT_SIZES.fetch(variant), VARIANT_SIZES.fetch(variant) ],
+            format: :webp,
+            saver: { quality: 80, strip: true },
+            preprocessed: true
+        end
+      end
+      validates_web_image name
+    end
+
     def validates_web_image(*names)
       names.each do |name|
         validate { validate_web_image(name) }

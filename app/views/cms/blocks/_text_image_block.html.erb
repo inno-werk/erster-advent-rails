@@ -6,8 +6,9 @@
       <% image = capture do %>
         <div class="hidden md:block">
           <% if block.image.attached? %>
-            <%= image_tag block.image,
+            <%= image_tag web_image(block.image, :large),
             alt: "Erster Advent Bern",
+            loading: "lazy",
             class:
               "object-cover w-full aspect-square rounded-[15px] max-w-[748px] max-h-[748px]" %>
           <% end %>

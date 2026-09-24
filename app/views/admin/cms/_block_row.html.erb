@@ -21,7 +21,7 @@
   </div>
 
   <% if block.image.attached? %>
-    <%= image_tag block.image,
+    <%= image_tag web_image(block.image, :card),
     alt: "",
     class: "h-14 w-14 shrink-0 rounded-lg border border-[#C6C6C6] object-cover" %>
   <% else %>

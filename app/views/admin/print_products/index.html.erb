@@ -27,7 +27,7 @@
 <table class="table admin-table">
   <thead><tr><th>Produkt</th><th>Beschreibung</th><th>Verfügbar</th><th>Position</th><th></th></tr></thead>
   <tbody><% @products.each do |product| %><tr>
-    <td><% if product.image.attached? %><%= image_tag product.image, alt: "", class: "h-16 w-16 object-contain" %><% end %><%= product.title %></td>
+    <td><% if product.image.attached? %><%= image_tag web_image(product.image, :card), alt: "", class: "h-16 w-16 object-contain" %><% end %><%= product.title %></td>
     <td><%= product.description %></td><td><%= product.active? ? 'Ja' : 'Nein' %></td><td><%= product.position %></td>
     <td><%= link_to "Bearbeiten", edit_admin_print_product_path(product), class: "link link-primary" %></td>
   </tr><% end %></tbody>
