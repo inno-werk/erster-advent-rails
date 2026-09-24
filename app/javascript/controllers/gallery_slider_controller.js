@@ -9,6 +9,11 @@ import { Controller } from "@hotwired/stimulus";
 //     with a short flick momentum on release, like the XD prototype's
 //     scroll group.
 //
+// On touch screens both are left to the browser instead: the section
+// scrolls natively on the x axis (see .business-gallery-slider), which runs
+// on the compositor thread with the platform's own momentum. Moving the
+// strip from JS there lags behind asynchronous panning and stutters.
+//
 // Until every image has loaded (or failed) the strip is hidden behind a
 // spinner: images have no width before they load, so the strip would
 // otherwise keep growing and jumping while they arrive.
@@ -38,26 +43,15 @@ export default class extends Controller {
         this.dragging = false;
         this.pointerId = null;
         this.velocity = 0;
+        this.driven = false;
         this.handleScroll = this.onScroll.bind(this);
         this.handleMeasure = this.queueMeasure.bind(this);
         this.handlePointerDown = this.onPointerDown.bind(this);
         this.handlePointerMove = this.onPointerMove.bind(this);
         this.handlePointerUp = this.onPointerUp.bind(this);
+        this.handlePointerCancel = this.onPointerCancel.bind(this);
         this.handleDragStart = (event) => event.preventDefault();
-
-        window.addEventListener("scroll", this.handleScroll, { passive: true });
-        window.addEventListener("resize", this.handleMeasure, { passive: true });
-
-        this.element.addEventListener("pointerdown", this.handlePointerDown);
-        this.element.addEventListener("pointermove", this.handlePointerMove);
-        this.element.addEventListener("pointerup", this.handlePointerUp);
-        this.element.addEventListener("pointercancel", this.handlePointerUp);
-        // Without this the browser starts its own image drag on mousedown.
-        this.element.addEventListener("dragstart", this.handleDragStart);
-
-        this.resizeObserver = new ResizeObserver(this.handleMeasure);
-        this.resizeObserver.observe(this.element);
-        this.resizeObserver.observe(this.trackTarget);
+        this.handlePointerTypeChange = this.updateMode.bind(this);
 
         const pendingImages = Array.from(this.trackTarget.querySelectorAll("img")).filter((image) => !image.complete);
         this.pendingImageCount = pendingImages.length;
@@ -76,12 +70,14 @@ export default class extends Controller {
             this.loadingTimeout = setTimeout(() => this.reveal(), this.constructor.LOADING_TIMEOUT);
         }
 
-        this.queueMeasure();
+        this.coarsePointer = window.matchMedia("(pointer: coarse)");
+        this.coarsePointer.addEventListener("change", this.handlePointerTypeChange);
+        this.updateMode();
     }
 
     onImageSettled() {
         this.pendingImageCount -= 1;
-        this.queueMeasure();
+        if (this.driven) this.queueMeasure();
 
         if (this.pendingImageCount <= 0) this.reveal();
     }
@@ -92,22 +88,67 @@ export default class extends Controller {
     }
 
     disconnect() {
+        this.coarsePointer.removeEventListener("change", this.handlePointerTypeChange);
+        this.imageLoadCleanups?.forEach((cleanup) => cleanup());
+        clearTimeout(this.loadingTimeout);
+        this.stopDriving();
+    }
+
+    updateMode() {
+        if (this.coarsePointer.matches) {
+            this.stopDriving();
+        } else {
+            this.startDriving();
+        }
+    }
+
+    startDriving() {
+        if (this.driven) return;
+        this.driven = true;
+
+        this.lastScrollY = window.scrollY;
+
+        window.addEventListener("scroll", this.handleScroll, { passive: true });
+        window.addEventListener("resize", this.handleMeasure, { passive: true });
+
+        this.element.addEventListener("pointerdown", this.handlePointerDown);
+        this.element.addEventListener("pointermove", this.handlePointerMove);
+        this.element.addEventListener("pointerup", this.handlePointerUp);
+        this.element.addEventListener("pointercancel", this.handlePointerCancel);
+        // Without this the browser starts its own image drag on mousedown.
+        this.element.addEventListener("dragstart", this.handleDragStart);
+
+        this.resizeObserver = new ResizeObserver(this.handleMeasure);
+        this.resizeObserver.observe(this.element);
+        this.resizeObserver.observe(this.trackTarget);
+
+        this.queueMeasure();
+    }
+
+    stopDriving() {
+        if (!this.driven) return;
+        this.driven = false;
+
         window.removeEventListener("scroll", this.handleScroll);
         window.removeEventListener("resize", this.handleMeasure);
         this.element.removeEventListener("pointerdown", this.handlePointerDown);
         this.element.removeEventListener("pointermove", this.handlePointerMove);
         this.element.removeEventListener("pointerup", this.handlePointerUp);
-        this.element.removeEventListener("pointercancel", this.handlePointerUp);
+        this.element.removeEventListener("pointercancel", this.handlePointerCancel);
         this.element.removeEventListener("dragstart", this.handleDragStart);
         this.resizeObserver?.disconnect();
-        this.imageLoadCleanups?.forEach((cleanup) => cleanup());
-        clearTimeout(this.loadingTimeout);
 
         if (this.measurementFrame) {
             cancelAnimationFrame(this.measurementFrame);
+            this.measurementFrame = null;
         }
 
         this.stopMomentum();
+        this.endDrag();
+
+        // Hand the strip back to native scrolling at its start.
+        this.offset = 0;
+        this.trackTarget.style.transform = "";
     }
 
     queueMeasure() {
@@ -200,10 +241,7 @@ export default class extends Controller {
     onPointerUp(event) {
         if (!this.dragging || event.pointerId !== this.pointerId) return;
 
-        this.dragging = false;
-        this.pointerId = null;
-        this.element.releasePointerCapture?.(event.pointerId);
-        this.element.classList.remove("is-dragging");
+        this.endDrag();
 
         // A pointer that stopped moving before release should not fling.
         if (event.timeStamp - this.lastPointerTime > 100) {
@@ -211,6 +249,27 @@ export default class extends Controller {
         }
 
         this.startMomentum();
+    }
+
+    // The browser took the gesture over (e.g. as a page scroll), so the
+    // strip stops where it is instead of flinging sideways.
+    onPointerCancel(event) {
+        if (!this.dragging || event.pointerId !== this.pointerId) return;
+
+        this.endDrag();
+        this.velocity = 0;
+    }
+
+    endDrag() {
+        if (!this.dragging) return;
+
+        if (this.element.hasPointerCapture?.(this.pointerId)) {
+            this.element.releasePointerCapture(this.pointerId);
+        }
+
+        this.dragging = false;
+        this.pointerId = null;
+        this.element.classList.remove("is-dragging");
     }
 
     startMomentum() {

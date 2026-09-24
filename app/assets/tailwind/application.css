@@ -565,6 +565,14 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .business-gallery-slider::-webkit-scrollbar {
     display: none;
   }
+  /* Touch screens scroll the strip natively (overflow-x-auto on the
+     section), so the browser owns both pan directions. */
+  @media (pointer: coarse) {
+    .business-gallery-slider {
+      touch-action: pan-x pan-y;
+      cursor: auto;
+    }
+  }
 
   /* "Besonderes am 1. Advent" list on store detail:
      PJS Bold 40/56 items with short #D9D9D9 leader lines */
