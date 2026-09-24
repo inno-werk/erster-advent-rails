@@ -218,7 +218,7 @@ businesses = [
     business_name: "Rathausplatz Schoggi",
     phone: "+41 31 312 66 02",
     address: "Rathausplatz 8\n3011 Bern",
-    categories: [ "Süßwaren", "Essen & Trinken" ],
+    categories: [ "Süsswaren", "Essen & Trinken" ],
     tags: [ "Schokolade", "Pralinen", "Geschenke" ],
     website: "https://erster-advent-bern.ch/rathausplatz-schoggi",
     instagram: "https://instagram.com/rathausplatzschoggi",

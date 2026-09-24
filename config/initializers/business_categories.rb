@@ -10,7 +10,7 @@ BUSINESS_CATEGORIES = [
   "Dekoration",
   "Fotografie",
   "Unterhaltung",
-  "Süßwaren",
+  "Süsswaren",
   "Essen & Trinken",
   "Saisonaler Markt"
   ].freeze
