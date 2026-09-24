@@ -5,6 +5,8 @@
 # their own, they are the rows inside the one fixed FAQ section rendered at
 # the bottom of the page.
 class CmsBlock < ApplicationRecord
+  include WebImageAttachments
+
   PAGES = %w[home].freeze
   IMAGE_POSITIONS = %w[left right].freeze
 
@@ -14,7 +16,7 @@ class CmsBlock < ApplicationRecord
   has_rich_text :title
   has_rich_text :content
 
-  has_one_attached :image
+  has_one_web_image :image, variants: %i[card large wide]
 
   enum :block_type, {
     text_image_block: 0,

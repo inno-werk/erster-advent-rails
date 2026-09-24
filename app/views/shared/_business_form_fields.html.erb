@@ -197,7 +197,7 @@
       <div>
         <p class="field-label">Hauptbild</p>
         <%= render "shared/image_with_actions",
-        image_url: business.main_image,
+        image_url: web_image(business.main_image, :card),
         delete_path: image_delete_paths[:main_image],
         form: form,
         image_field: :main_image %>
@@ -210,19 +210,19 @@
         </p>
         <div class="flex flex-wrap gap-3">
           <%= render "shared/image_with_actions",
-          image_url: business.image_gallery1,
+          image_url: web_image(business.image_gallery1, :card),
           delete_path: image_delete_paths[:image_gallery1],
           form: form,
           image_field: :image_gallery1 %>
 
           <%= render "shared/image_with_actions",
-          image_url: business.image_gallery2,
+          image_url: web_image(business.image_gallery2, :card),
           delete_path: image_delete_paths[:image_gallery2],
           form: form,
           image_field: :image_gallery2 %>
 
           <%= render "shared/image_with_actions",
-          image_url: business.image_gallery3,
+          image_url: web_image(business.image_gallery3, :card),
           delete_path: image_delete_paths[:image_gallery3],
           form: form,
           image_field: :image_gallery3 %>

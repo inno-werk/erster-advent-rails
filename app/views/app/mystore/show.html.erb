@@ -179,7 +179,7 @@
           <% gallery_images.each do |label, image| %>
             <figure>
               <div class="image-tile">
-                <%= image_tag image, class: "h-full w-full object-cover", alt: label %>
+                <%= image_tag web_image(image, :card), class: "h-full w-full object-cover", alt: label %>
               </div>
               <figcaption class="field-hint"><%= label %></figcaption>
             </figure>

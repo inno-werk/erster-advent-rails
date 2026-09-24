@@ -114,7 +114,7 @@
         <% @gallery_images.each do |label, image| %>
           <figure>
             <%= link_to rails_blob_path(image, disposition: "inline"), target: "_blank", rel: "noopener" do %>
-              <%= image_tag image, alt: "#{label} – #{@business.business_name}", class: "aspect-square w-full rounded-lg object-cover", loading: "lazy" %>
+              <%= image_tag web_image(image, :card), alt: "#{label} – #{@business.business_name}", class: "aspect-square w-full rounded-lg object-cover", loading: "lazy" %>
             <% end %>
             <figcaption class="mt-2 text-xs text-base-content/50"><%= label %></figcaption>
           </figure>

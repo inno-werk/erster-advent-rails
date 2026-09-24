@@ -39,6 +39,8 @@ Active Storage manages business and print-product images. Production uses the pr
 
 Validate applicable file type and size at the model boundary and authorize attachment create/delete/read actions through the owning record. Member image actions stay scoped to the current user's business; Admin access remains separately enforced.
 
+Uploaded images accept only JPEG, PNG, WebP, and GIF up to 10 MB (`WebImageAttachments`). Views render resized WebP variants through `ImagesHelper#web_image`, never the original. Active Storage runs in proxy mode (`resolve_model_to_route = :rails_storage_proxy`): the bucket stays private, and files are streamed by the app under stable signed URLs with a one-year `public` cache header, which Thruster and browsers cache. Because such a URL is cacheable by shared caches, do not attach confidential files (contracts, IDs, invoices) through these routes without adding an authenticated download path. Resizing requires `libvips` in the runtime image. After deploying new variant sizes, run `bin/rails images:preprocess` once so existing uploads are resized before their first visitor. The task is safe to re-run.
+
 ## Threat review
 
 For security-relevant work, consider:

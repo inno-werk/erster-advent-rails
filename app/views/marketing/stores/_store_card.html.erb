@@ -6,8 +6,9 @@
       label: business.business_name,
     } do %>
       <% if business.main_image.present? %>
-        <%= image_tag business.main_image,
+        <%= image_tag web_image(business.main_image, :card),
         alt: business.business_name,
+        loading: "lazy",
         class: "object-cover object-center h-full w-full" %>
       <% else %>
         <div class="flex h-full w-full items-center justify-center bg-primary">

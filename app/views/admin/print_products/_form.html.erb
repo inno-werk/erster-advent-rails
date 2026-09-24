@@ -43,7 +43,7 @@
     <section aria-labelledby="product-image-heading">
       <h2 id="product-image-heading" class="form-section-title">Produktbild</h2>
       <% if @product.image.attached? && @product.image.persisted? %>
-        <%= image_tag @product.image, alt: @product.title, class: "mt-6 h-48 w-full object-contain object-left" %>
+        <%= image_tag web_image(@product.image, :card), alt: @product.title, class: "mt-6 h-48 w-full object-contain object-left" %>
         <label class="mt-4 flex items-center gap-3 text-sm font-medium">
           <%= form.check_box :remove_image, class: "checkbox checkbox-primary" %>
           Vorhandenes Bild beim Speichern entfernen
@@ -53,7 +53,7 @@
       <% end %>
       <div class="mt-5">
         <%= form.label :image, "Bild hochladen oder ersetzen", class: "field-label" %>
-        <%= form.file_field :image, accept: "image/jpeg,image/png,image/webp,image/gif", class: "file-input file-input-bordered w-full rounded-lg" %>
+        <%= form.file_field :image, accept: WebImageAttachments::ACCEPT, class: "file-input file-input-bordered w-full rounded-lg" %>
         <p class="field-hint">JPEG, PNG, WebP oder GIF · maximal 10 MB.</p>
       </div>
     </section>

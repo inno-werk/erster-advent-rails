@@ -22,6 +22,10 @@ module UmzugsappCh
 
     config.assets.paths << Rails.root.join("app", "assets", "fonts")
 
+    # Serve uploads through the app with stable URLs and a one-year public
+    # cache header, instead of redirecting to a short-lived S3 URL each time.
+    config.active_storage.resolve_model_to_route = :rails_storage_proxy
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

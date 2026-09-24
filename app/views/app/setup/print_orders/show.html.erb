@@ -13,7 +13,7 @@
         <% item = @print_order.items.find { |entry| entry.print_product_id == product.id } %>
         <article class="admin-card bg-base-100 p-6 flex flex-col gap-4">
           <% if product.image.attached? %>
-            <%= image_tag product.image, alt: product.title, class: "w-full h-40 object-contain" %>
+            <%= image_tag web_image(product.image, :card), alt: product.title, class: "w-full h-40 object-contain" %>
           <% end %>
           <h2 class="text-xl font-bold"><%= product.title %></h2>
           <div class="text-sm leading-relaxed text-base-content/65 flex-1"><%= simple_format product.description %></div>
