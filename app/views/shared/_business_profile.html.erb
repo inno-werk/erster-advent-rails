@@ -72,7 +72,7 @@
     <% end %>
     <% if business.website.present? %>
       <p>
-        <%= link_to business.website_url.sub(%r{/\z}, ""),
+        <%= link_to business.website_url.sub(%r{\Ahttps://}i, "").sub(%r{/\z}, ""),
         business.website_url,
         target: "_blank",
         rel: "noopener",
