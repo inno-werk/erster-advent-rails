@@ -21,7 +21,8 @@
 <% if gallery_images.any? %>
   <% gallery_repeat_count = [(8.0 / gallery_images.size).ceil, 2].max %>
   <% repeated_gallery_images = gallery_images * gallery_repeat_count %>
-  <section class="business-gallery-slider mt-8 md:mt-12 lg:mt-16 overflow-hidden" data-controller="gallery-slider">
+  <section class="business-gallery-slider relative mt-8 md:mt-12 lg:mt-16 overflow-hidden" data-controller="gallery-slider">
+    <span class="business-gallery-spinner loading loading-spinner loading-lg text-base-content/40" aria-hidden="true"></span>
     <div class="flex w-max flex-row will-change-transform" data-gallery-slider-target="track">
       <% repeated_gallery_images.each_with_index do |image, index| %>
         <div class="overflow-hidden bg-base-200 h-64 md:h-96 xl:h-[700px]">

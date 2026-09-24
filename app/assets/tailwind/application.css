@@ -544,6 +544,24 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .business-gallery-slider img {
     -webkit-user-drag: none;
   }
+  /* Set by gallery_slider_controller.js while images load; without JS the
+     strip is simply shown as the images arrive. */
+  /* Fade only on reveal; hiding must be instant or the strip flashes. */
+  .business-gallery-slider:not(.is-loading) [data-gallery-slider-target="track"] {
+    transition: opacity 300ms ease-out;
+  }
+  .business-gallery-slider.is-loading [data-gallery-slider-target="track"] {
+    opacity: 0;
+  }
+  /* Hidden via visibility: daisyUI's .loading sets display in the
+     utilities layer, which would override a display rule here. */
+  .business-gallery-spinner {
+    @apply pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2;
+    visibility: hidden;
+  }
+  .business-gallery-slider.is-loading .business-gallery-spinner {
+    visibility: visible;
+  }
   .business-gallery-slider::-webkit-scrollbar {
     display: none;
   }

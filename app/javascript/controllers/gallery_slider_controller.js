@@ -8,6 +8,10 @@ import { Controller } from "@hotwired/stimulus";
 //   * click (or touch) and hold - dragging moves the strip under the cursor,
 //     with a short flick momentum on release, like the XD prototype's
 //     scroll group.
+//
+// Until every image has loaded (or failed) the strip is hidden behind a
+// spinner: images have no width before they load, so the strip would
+// otherwise keep growing and jumping while they arrive.
 export default class extends Controller {
     static targets = ["track"];
     static SCROLL_FACTOR = 0.8;
@@ -20,6 +24,9 @@ export default class extends Controller {
     static MAX_VELOCITY = 60;
     // Pointer travel (px) before a press counts as a drag rather than a click.
     static DRAG_THRESHOLD = 3;
+    // Reveal the strip anyway if images take longer than this (ms), so a
+    // slow or broken image never keeps the whole gallery hidden.
+    static LOADING_TIMEOUT = 8000;
 
     connect() {
         this.offset = 0;
@@ -52,14 +59,36 @@ export default class extends Controller {
         this.resizeObserver.observe(this.element);
         this.resizeObserver.observe(this.trackTarget);
 
-        this.imageLoadCleanups = Array.from(this.trackTarget.querySelectorAll("img")).map((image) => {
-            if (image.complete) return null;
+        const pendingImages = Array.from(this.trackTarget.querySelectorAll("img")).filter((image) => !image.complete);
+        this.pendingImageCount = pendingImages.length;
+        this.handleImageSettled = this.onImageSettled.bind(this);
+        this.imageLoadCleanups = pendingImages.map((image) => {
+            image.addEventListener("load", this.handleImageSettled, { once: true });
+            image.addEventListener("error", this.handleImageSettled, { once: true });
+            return () => {
+                image.removeEventListener("load", this.handleImageSettled);
+                image.removeEventListener("error", this.handleImageSettled);
+            };
+        });
 
-            image.addEventListener("load", this.handleMeasure, { once: true });
-            return () => image.removeEventListener("load", this.handleMeasure);
-        }).filter(Boolean);
+        if (this.pendingImageCount > 0) {
+            this.element.classList.add("is-loading");
+            this.loadingTimeout = setTimeout(() => this.reveal(), this.constructor.LOADING_TIMEOUT);
+        }
 
         this.queueMeasure();
+    }
+
+    onImageSettled() {
+        this.pendingImageCount -= 1;
+        this.queueMeasure();
+
+        if (this.pendingImageCount <= 0) this.reveal();
+    }
+
+    reveal() {
+        clearTimeout(this.loadingTimeout);
+        this.element.classList.remove("is-loading");
     }
 
     disconnect() {
@@ -72,6 +101,7 @@ export default class extends Controller {
         this.element.removeEventListener("dragstart", this.handleDragStart);
         this.resizeObserver?.disconnect();
         this.imageLoadCleanups?.forEach((cleanup) => cleanup());
+        clearTimeout(this.loadingTimeout);
 
         if (this.measurementFrame) {
             cancelAnimationFrame(this.measurementFrame);
