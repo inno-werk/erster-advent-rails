@@ -28,13 +28,14 @@ function listenerTarget() {
   }
 }
 
-function connect(images = [], { coarse = false } = {}) {
+function connect(images = [], { coarse = false, scrollY = 0, rect = { top: 100, bottom: 400 }, trackWidth = 2000 } = {}) {
   const timers = []
   const frames = []
   const media = { ...listenerTarget(), matches: coarse }
-  const window = { ...listenerTarget(), scrollY: 0, innerHeight: 800, matchMedia: () => media }
+  const window = { ...listenerTarget(), scrollY, innerHeight: 800, matchMedia: () => media }
   const sandbox = {
     window,
+    document: { documentElement: { clientHeight: 800 } },
     requestAnimationFrame: (callback) => frames.push(callback),
     cancelAnimationFrame() {},
     setTimeout: (fn) => { timers.push(fn); return timers.length },
@@ -53,12 +54,17 @@ function connect(images = [], { coarse = false } = {}) {
     setPointerCapture() {},
     hasPointerCapture: () => true,
     releasePointerCapture() {},
-    getBoundingClientRect: () => ({ top: 100, bottom: 400 }),
+    getBoundingClientRect: () => rect,
+    style: {
+      props: {},
+      setProperty(name, value) { this.props[name] = value },
+      removeProperty(name) { delete this.props[name] },
+    },
   }
   const track = {
     style: { transform: "translate3d(-120px, 0, 0)" },
     querySelectorAll: () => images,
-    getBoundingClientRect: () => ({ width: 2000 }),
+    getBoundingClientRect: () => ({ width: trackWidth }),
   }
 
   const controller = new Controller()
@@ -104,12 +110,51 @@ test("touch screens leave the strip to native scrolling", () => {
 
 test("touch screens still show the spinner while images load", () => {
   const images = [fakeImage(false)]
-  const { classes, frames } = connect(images, { coarse: true })
+  const { classes, track } = connect(images, { coarse: true })
 
   assert.ok(classes.has("is-loading"))
   images[0].fire("load")
   assert.ok(!classes.has("is-loading"))
-  assert.equal(frames.length, 0)
+  assert.equal(track.style.transform, "translate3d(-120px, 0, 0)")
+})
+
+test("touch screens drift the strip over the page scroll that shows the gallery", () => {
+  // 300px tall gallery 100px below the top: on screen from scroll 0 to 400.
+  const { element, frames } = connect([], { coarse: true })
+  frames.shift()()
+
+  assert.deepEqual({ ...element.style.props }, {
+    "--gallery-drift-start": "0px",
+    "--gallery-drift-end": "400px",
+    "--gallery-drift": "320px",
+  })
+})
+
+test("the drift starts once a lower gallery enters the screen", () => {
+  // Gallery 1100px down the page (scrolled 500, 600 from the top of the screen).
+  const { element, frames } = connect([], { coarse: true, scrollY: 500, rect: { top: 600, bottom: 900 } })
+  frames.shift()()
+
+  assert.equal(element.style.props["--gallery-drift-start"], "300px")
+  assert.equal(element.style.props["--gallery-drift-end"], "1400px")
+})
+
+test("the drift never runs past the last image", () => {
+  const { element, frames } = connect([], { coarse: true, trackWidth: 600 })
+  frames.shift()()
+
+  assert.equal(element.style.props["--gallery-drift"], "200px")
+})
+
+test("switching to a fine pointer removes the drift", () => {
+  const { element, frames, media, window } = connect([], { coarse: true })
+  frames.shift()()
+
+  media.matches = false
+  media.listeners.get("change")()
+
+  assert.deepEqual({ ...element.style.props }, {})
+  assert.equal(window.listeners.has("scroll"), true)
 })
 
 test("fine pointers drive the strip from page scroll and dragging", () => {

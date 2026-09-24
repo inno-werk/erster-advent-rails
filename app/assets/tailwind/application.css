@@ -566,11 +566,36 @@ button:has(+ #popover-1:popover-open) .icon-up {
     display: none;
   }
   /* Touch screens scroll the strip natively (overflow-x-auto on the
-     section), so the browser owns both pan directions. */
+     section), so the browser owns both pan directions. The page-scroll
+     drift runs as a scroll-driven animation on the compositor; the
+     gallery-slider controller sets its range and distance. Without
+     scroll-driven animations the strip only moves by swiping.
+
+     The drift is laid out up front: the negative margin parks its first
+     --gallery-drift px left of the scroll origin, where swiping cannot
+     reach, and the animation slides the strip from there back to 0. A
+     plain 0 -> -drift translate does not shrink the swipe range, so a
+     strip swiped to its end would drift into empty space. */
   @media (pointer: coarse) {
     .business-gallery-slider {
       touch-action: pan-x pan-y;
       cursor: auto;
+    }
+    @supports (animation-timeline: scroll()) {
+      .business-gallery-slider [data-gallery-slider-target="track"] {
+        margin-left: calc(-1 * var(--gallery-drift, 0px));
+        animation: gallery-drift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: var(--gallery-drift-start, 0px) var(--gallery-drift-end, 0px);
+      }
+    }
+  }
+  @keyframes gallery-drift {
+    from {
+      translate: var(--gallery-drift, 0px) 0;
+    }
+    to {
+      translate: 0 0;
     }
   }
 

@@ -9,10 +9,12 @@ import { Controller } from "@hotwired/stimulus";
 //     with a short flick momentum on release, like the XD prototype's
 //     scroll group.
 //
-// On touch screens both are left to the browser instead: the section
-// scrolls natively on the x axis (see .business-gallery-slider), which runs
-// on the compositor thread with the platform's own momentum. Moving the
-// strip from JS there lags behind asynchronous panning and stutters.
+// On touch screens both are left to the browser instead, because moving the
+// strip from JS there lags behind asynchronous panning and stutters:
+//   * the page-scroll drift is a CSS scroll-driven animation (see
+//     .business-gallery-slider); JS only measures its range and distance
+//   * the section scrolls natively on the x axis, with the platform's own
+//     momentum
 //
 // Until every image has loaded (or failed) the strip is hidden behind a
 // spinner: images have no width before they load, so the strip would
@@ -52,6 +54,9 @@ export default class extends Controller {
         this.handlePointerCancel = this.onPointerCancel.bind(this);
         this.handleDragStart = (event) => event.preventDefault();
         this.handlePointerTypeChange = this.updateMode.bind(this);
+        this.handleDriftMeasure = this.queueDriftMeasure.bind(this);
+        this.drifting = false;
+        this.driftFrame = null;
 
         const pendingImages = Array.from(this.trackTarget.querySelectorAll("img")).filter((image) => !image.complete);
         this.pendingImageCount = pendingImages.length;
@@ -92,12 +97,15 @@ export default class extends Controller {
         this.imageLoadCleanups?.forEach((cleanup) => cleanup());
         clearTimeout(this.loadingTimeout);
         this.stopDriving();
+        this.stopDrift();
     }
 
     updateMode() {
         if (this.coarsePointer.matches) {
             this.stopDriving();
+            this.startDrift();
         } else {
+            this.stopDrift();
             this.startDriving();
         }
     }
@@ -149,6 +157,60 @@ export default class extends Controller {
         // Hand the strip back to native scrolling at its start.
         this.offset = 0;
         this.trackTarget.style.transform = "";
+    }
+
+    startDrift() {
+        if (this.drifting) return;
+        this.drifting = true;
+
+        window.addEventListener("resize", this.handleDriftMeasure, { passive: true });
+        this.driftObserver = new ResizeObserver(this.handleDriftMeasure);
+        this.driftObserver.observe(this.element);
+        this.driftObserver.observe(this.trackTarget);
+
+        this.queueDriftMeasure();
+    }
+
+    stopDrift() {
+        if (!this.drifting) return;
+        this.drifting = false;
+
+        window.removeEventListener("resize", this.handleDriftMeasure);
+        this.driftObserver?.disconnect();
+
+        if (this.driftFrame) {
+            cancelAnimationFrame(this.driftFrame);
+            this.driftFrame = null;
+        }
+
+        ["--gallery-drift-start", "--gallery-drift-end", "--gallery-drift"].forEach((name) =>
+            this.element.style.removeProperty(name)
+        );
+    }
+
+    queueDriftMeasure() {
+        if (this.driftFrame) return;
+
+        this.driftFrame = requestAnimationFrame(() => {
+            this.driftFrame = null;
+            this.measureDrift();
+        });
+    }
+
+    // The same motion as updateOffset, as page-scroll positions: the strip
+    // travels while the gallery is on screen, SCROLL_FACTOR px per scrolled
+    // px, and never past its last image. The layout viewport height is used
+    // because it does not change as the iOS toolbar collapses.
+    measureDrift() {
+        const rect = this.element.getBoundingClientRect();
+        const top = rect.top + window.scrollY;
+        const bottom = rect.bottom + window.scrollY;
+        const start = Math.max(top - document.documentElement.clientHeight, 0);
+        const drift = Math.min((bottom - start) * this.constructor.SCROLL_FACTOR, this.computeMaxOffset());
+
+        this.element.style.setProperty("--gallery-drift-start", `${Math.round(start)}px`);
+        this.element.style.setProperty("--gallery-drift-end", `${Math.round(bottom)}px`);
+        this.element.style.setProperty("--gallery-drift", `${Math.round(drift)}px`);
     }
 
     queueMeasure() {
