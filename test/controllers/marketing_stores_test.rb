@@ -44,6 +44,16 @@ class MarketingStoresTest < ActionDispatch::IntegrationTest
     assert_select "a[href='mailto:laden@example.com']"
   end
 
+  test "public store page shows the website without its scheme but links over https" do
+    business = businesses(:member)
+    business.update_column(:website, "https://example.ch/shop/")
+    participation_for
+
+    get marketing_store_path(id: business.id)
+    assert_response :success
+    assert_select "a[href='https://example.ch/shop/']", text: "example.ch/shop"
+  end
+
   test "member can change public contact visibility in the store editor" do
     sign_in users(:member)
     get edit_app_mystore_path

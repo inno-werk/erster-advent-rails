@@ -1,0 +1,59 @@
+<%# Bank details for invoices. Locals: setting, return_to (optional), cancel_path (optional). %>
+<%= form_with model: setting, url: admin_invoice_setting_path, method: :patch, class: "space-y-6" do |form| %>
+  <%= hidden_field_tag :return_to, local_assigns[:return_to] if local_assigns[:return_to] %>
+  <% if setting.errors.any? %>
+    <div role="alert" class="alert alert-error flex-col items-start gap-2">
+      <ul class="list-disc pl-5 text-sm">
+        <% setting.errors.full_messages.each do |message| %><li><%= message %></li><% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="sm:col-span-2">
+      <%= form.label :iban, "IBAN", class: "field-label" %>
+      <%= form.text_field :iban, value: InvoiceSetting.formatted_iban(setting.iban), required: true, autocomplete: "off", spellcheck: false, class: "field-input font-mono", aria: { describedby: "iban-hint" } %>
+      <p id="iban-hint" class="field-hint">Normale IBAN des Vereinskontos (CH oder LI), keine QR-IBAN.</p>
+    </div>
+    <div>
+      <%= form.label :bank_name, "Bank", class: "field-label" %>
+      <%= form.text_field :bank_name, required: true, maxlength: InvoiceSetting::LIMITS[:bank_name], class: "field-input" %>
+    </div>
+    <div>
+      <%= form.label :creditor_name, "Kontoinhaber", class: "field-label" %>
+      <%= form.text_field :creditor_name, required: true, maxlength: InvoiceSetting::LIMITS[:creditor_name], class: "field-input" %>
+    </div>
+    <div>
+      <%= form.label :street, "Strasse", class: "field-label" %>
+      <%= form.text_field :street, required: true, maxlength: InvoiceSetting::LIMITS[:street], class: "field-input" %>
+    </div>
+    <div>
+      <%= form.label :building_number, "Hausnummer", class: "field-label" %>
+      <%= form.text_field :building_number, maxlength: InvoiceSetting::LIMITS[:building_number], class: "field-input" %>
+    </div>
+    <div>
+      <%= form.label :postal_code, "PLZ", class: "field-label" %>
+      <%= form.text_field :postal_code, required: true, maxlength: InvoiceSetting::LIMITS[:postal_code], class: "field-input" %>
+    </div>
+    <div>
+      <%= form.label :town, "Ort", class: "field-label" %>
+      <%= form.text_field :town, required: true, maxlength: InvoiceSetting::LIMITS[:town], class: "field-input" %>
+    </div>
+    <div>
+      <%= form.label :country, "Land", class: "field-label" %>
+      <%= form.select :country, [ [ "Schweiz", "CH" ], [ "Liechtenstein", "LI" ] ], {}, class: "field-input" %>
+    </div>
+    <div class="sm:col-span-2">
+      <%= form.label :letterhead, "Briefkopf (Absender oben links)", class: "field-label" %>
+      <%= form.text_area :letterhead, rows: InvoiceSetting::MAX_LETTERHEAD_LINES, class: "field-input resize-y", aria: { describedby: "letterhead-hint" } %>
+      <p id="letterhead-hint" class="field-hint">Höchstens <%= InvoiceSetting::MAX_LETTERHEAD_LINES %> Zeilen. Die erste Zeile wird fett gedruckt; alles erscheint in Grossbuchstaben.</p>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-2">
+    <% if local_assigns[:cancel_path] %>
+      <%= link_to "Abbrechen", cancel_path, class: "btn btn-ghost rounded-lg" %>
+    <% end %>
+    <%= form.submit "Bankverbindung speichern", class: "btn btn-primary rounded-lg" %>
+  </div>
+<% end %>

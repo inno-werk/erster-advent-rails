@@ -8,6 +8,17 @@ import { Controller } from "@hotwired/stimulus";
 //   * click (or touch) and hold - dragging moves the strip under the cursor,
 //     with a short flick momentum on release, like the XD prototype's
 //     scroll group.
+//
+// On touch screens both are left to the browser instead, because moving the
+// strip from JS there lags behind asynchronous panning and stutters:
+//   * the page-scroll drift is a CSS scroll-driven animation (see
+//     .business-gallery-slider); JS only measures its range and distance
+//   * the section scrolls natively on the x axis, with the platform's own
+//     momentum
+//
+// Until every image has loaded (or failed) the strip is hidden behind a
+// spinner: images have no width before they load, so the strip would
+// otherwise keep growing and jumping while they arrive.
 export default class extends Controller {
     static targets = ["track"];
     static SCROLL_FACTOR = 0.8;
@@ -20,6 +31,9 @@ export default class extends Controller {
     static MAX_VELOCITY = 60;
     // Pointer travel (px) before a press counts as a drag rather than a click.
     static DRAG_THRESHOLD = 3;
+    // Reveal the strip anyway if images take longer than this (ms), so a
+    // slow or broken image never keeps the whole gallery hidden.
+    static LOADING_TIMEOUT = 8000;
 
     connect() {
         this.offset = 0;
@@ -31,12 +45,76 @@ export default class extends Controller {
         this.dragging = false;
         this.pointerId = null;
         this.velocity = 0;
+        this.driven = false;
         this.handleScroll = this.onScroll.bind(this);
         this.handleMeasure = this.queueMeasure.bind(this);
         this.handlePointerDown = this.onPointerDown.bind(this);
         this.handlePointerMove = this.onPointerMove.bind(this);
         this.handlePointerUp = this.onPointerUp.bind(this);
+        this.handlePointerCancel = this.onPointerCancel.bind(this);
         this.handleDragStart = (event) => event.preventDefault();
+        this.handlePointerTypeChange = this.updateMode.bind(this);
+        this.handleDriftMeasure = this.queueDriftMeasure.bind(this);
+        this.drifting = false;
+        this.driftFrame = null;
+
+        const pendingImages = Array.from(this.trackTarget.querySelectorAll("img")).filter((image) => !image.complete);
+        this.pendingImageCount = pendingImages.length;
+        this.handleImageSettled = this.onImageSettled.bind(this);
+        this.imageLoadCleanups = pendingImages.map((image) => {
+            image.addEventListener("load", this.handleImageSettled, { once: true });
+            image.addEventListener("error", this.handleImageSettled, { once: true });
+            return () => {
+                image.removeEventListener("load", this.handleImageSettled);
+                image.removeEventListener("error", this.handleImageSettled);
+            };
+        });
+
+        if (this.pendingImageCount > 0) {
+            this.element.classList.add("is-loading");
+            this.loadingTimeout = setTimeout(() => this.reveal(), this.constructor.LOADING_TIMEOUT);
+        }
+
+        this.coarsePointer = window.matchMedia("(pointer: coarse)");
+        this.coarsePointer.addEventListener("change", this.handlePointerTypeChange);
+        this.updateMode();
+    }
+
+    onImageSettled() {
+        this.pendingImageCount -= 1;
+        if (this.driven) this.queueMeasure();
+
+        if (this.pendingImageCount <= 0) this.reveal();
+    }
+
+    reveal() {
+        clearTimeout(this.loadingTimeout);
+        this.element.classList.remove("is-loading");
+    }
+
+    disconnect() {
+        this.coarsePointer.removeEventListener("change", this.handlePointerTypeChange);
+        this.imageLoadCleanups?.forEach((cleanup) => cleanup());
+        clearTimeout(this.loadingTimeout);
+        this.stopDriving();
+        this.stopDrift();
+    }
+
+    updateMode() {
+        if (this.coarsePointer.matches) {
+            this.stopDriving();
+            this.startDrift();
+        } else {
+            this.stopDrift();
+            this.startDriving();
+        }
+    }
+
+    startDriving() {
+        if (this.driven) return;
+        this.driven = true;
+
+        this.lastScrollY = window.scrollY;
 
         window.addEventListener("scroll", this.handleScroll, { passive: true });
         window.addEventListener("resize", this.handleMeasure, { passive: true });
@@ -44,7 +122,7 @@ export default class extends Controller {
         this.element.addEventListener("pointerdown", this.handlePointerDown);
         this.element.addEventListener("pointermove", this.handlePointerMove);
         this.element.addEventListener("pointerup", this.handlePointerUp);
-        this.element.addEventListener("pointercancel", this.handlePointerUp);
+        this.element.addEventListener("pointercancel", this.handlePointerCancel);
         // Without this the browser starts its own image drag on mousedown.
         this.element.addEventListener("dragstart", this.handleDragStart);
 
@@ -52,32 +130,87 @@ export default class extends Controller {
         this.resizeObserver.observe(this.element);
         this.resizeObserver.observe(this.trackTarget);
 
-        this.imageLoadCleanups = Array.from(this.trackTarget.querySelectorAll("img")).map((image) => {
-            if (image.complete) return null;
-
-            image.addEventListener("load", this.handleMeasure, { once: true });
-            return () => image.removeEventListener("load", this.handleMeasure);
-        }).filter(Boolean);
-
         this.queueMeasure();
     }
 
-    disconnect() {
+    stopDriving() {
+        if (!this.driven) return;
+        this.driven = false;
+
         window.removeEventListener("scroll", this.handleScroll);
         window.removeEventListener("resize", this.handleMeasure);
         this.element.removeEventListener("pointerdown", this.handlePointerDown);
         this.element.removeEventListener("pointermove", this.handlePointerMove);
         this.element.removeEventListener("pointerup", this.handlePointerUp);
-        this.element.removeEventListener("pointercancel", this.handlePointerUp);
+        this.element.removeEventListener("pointercancel", this.handlePointerCancel);
         this.element.removeEventListener("dragstart", this.handleDragStart);
         this.resizeObserver?.disconnect();
-        this.imageLoadCleanups?.forEach((cleanup) => cleanup());
 
         if (this.measurementFrame) {
             cancelAnimationFrame(this.measurementFrame);
+            this.measurementFrame = null;
         }
 
         this.stopMomentum();
+        this.endDrag();
+
+        // Hand the strip back to native scrolling at its start.
+        this.offset = 0;
+        this.trackTarget.style.transform = "";
+    }
+
+    startDrift() {
+        if (this.drifting) return;
+        this.drifting = true;
+
+        window.addEventListener("resize", this.handleDriftMeasure, { passive: true });
+        this.driftObserver = new ResizeObserver(this.handleDriftMeasure);
+        this.driftObserver.observe(this.element);
+        this.driftObserver.observe(this.trackTarget);
+
+        this.queueDriftMeasure();
+    }
+
+    stopDrift() {
+        if (!this.drifting) return;
+        this.drifting = false;
+
+        window.removeEventListener("resize", this.handleDriftMeasure);
+        this.driftObserver?.disconnect();
+
+        if (this.driftFrame) {
+            cancelAnimationFrame(this.driftFrame);
+            this.driftFrame = null;
+        }
+
+        ["--gallery-drift-start", "--gallery-drift-end", "--gallery-drift"].forEach((name) =>
+            this.element.style.removeProperty(name)
+        );
+    }
+
+    queueDriftMeasure() {
+        if (this.driftFrame) return;
+
+        this.driftFrame = requestAnimationFrame(() => {
+            this.driftFrame = null;
+            this.measureDrift();
+        });
+    }
+
+    // The same motion as updateOffset, as page-scroll positions: the strip
+    // travels while the gallery is on screen, SCROLL_FACTOR px per scrolled
+    // px, and never past its last image. The layout viewport height is used
+    // because it does not change as the iOS toolbar collapses.
+    measureDrift() {
+        const rect = this.element.getBoundingClientRect();
+        const top = rect.top + window.scrollY;
+        const bottom = rect.bottom + window.scrollY;
+        const start = Math.max(top - document.documentElement.clientHeight, 0);
+        const drift = Math.min((bottom - start) * this.constructor.SCROLL_FACTOR, this.computeMaxOffset());
+
+        this.element.style.setProperty("--gallery-drift-start", `${Math.round(start)}px`);
+        this.element.style.setProperty("--gallery-drift-end", `${Math.round(bottom)}px`);
+        this.element.style.setProperty("--gallery-drift", `${Math.round(drift)}px`);
     }
 
     queueMeasure() {
@@ -170,10 +303,7 @@ export default class extends Controller {
     onPointerUp(event) {
         if (!this.dragging || event.pointerId !== this.pointerId) return;
 
-        this.dragging = false;
-        this.pointerId = null;
-        this.element.releasePointerCapture?.(event.pointerId);
-        this.element.classList.remove("is-dragging");
+        this.endDrag();
 
         // A pointer that stopped moving before release should not fling.
         if (event.timeStamp - this.lastPointerTime > 100) {
@@ -181,6 +311,27 @@ export default class extends Controller {
         }
 
         this.startMomentum();
+    }
+
+    // The browser took the gesture over (e.g. as a page scroll), so the
+    // strip stops where it is instead of flinging sideways.
+    onPointerCancel(event) {
+        if (!this.dragging || event.pointerId !== this.pointerId) return;
+
+        this.endDrag();
+        this.velocity = 0;
+    }
+
+    endDrag() {
+        if (!this.dragging) return;
+
+        if (this.element.hasPointerCapture?.(this.pointerId)) {
+            this.element.releasePointerCapture(this.pointerId);
+        }
+
+        this.dragging = false;
+        this.pointerId = null;
+        this.element.classList.remove("is-dragging");
     }
 
     startMomentum() {

@@ -544,8 +544,59 @@ button:has(+ #popover-1:popover-open) .icon-up {
   .business-gallery-slider img {
     -webkit-user-drag: none;
   }
+  /* Set by gallery_slider_controller.js while images load; without JS the
+     strip is simply shown as the images arrive. */
+  /* Fade only on reveal; hiding must be instant or the strip flashes. */
+  .business-gallery-slider:not(.is-loading) [data-gallery-slider-target="track"] {
+    transition: opacity 300ms ease-out;
+  }
+  .business-gallery-slider.is-loading [data-gallery-slider-target="track"] {
+    opacity: 0;
+  }
+  /* Hidden via visibility: daisyUI's .loading sets display in the
+     utilities layer, which would override a display rule here. */
+  .business-gallery-spinner {
+    @apply pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2;
+    visibility: hidden;
+  }
+  .business-gallery-slider.is-loading .business-gallery-spinner {
+    visibility: visible;
+  }
   .business-gallery-slider::-webkit-scrollbar {
     display: none;
+  }
+  /* Touch screens scroll the strip natively (overflow-x-auto on the
+     section), so the browser owns both pan directions. The page-scroll
+     drift runs as a scroll-driven animation on the compositor; the
+     gallery-slider controller sets its range and distance. Without
+     scroll-driven animations the strip only moves by swiping.
+
+     The drift is laid out up front: the negative margin parks its first
+     --gallery-drift px left of the scroll origin, where swiping cannot
+     reach, and the animation slides the strip from there back to 0. A
+     plain 0 -> -drift translate does not shrink the swipe range, so a
+     strip swiped to its end would drift into empty space. */
+  @media (pointer: coarse) {
+    .business-gallery-slider {
+      touch-action: pan-x pan-y;
+      cursor: auto;
+    }
+    @supports (animation-timeline: scroll()) {
+      .business-gallery-slider [data-gallery-slider-target="track"] {
+        margin-left: calc(-1 * var(--gallery-drift, 0px));
+        animation: gallery-drift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: var(--gallery-drift-start, 0px) var(--gallery-drift-end, 0px);
+      }
+    }
+  }
+  @keyframes gallery-drift {
+    from {
+      translate: var(--gallery-drift, 0px) 0;
+    }
+    to {
+      translate: 0 0;
+    }
   }
 
   /* "Besonderes am 1. Advent" list on store detail:
@@ -1061,6 +1112,43 @@ button:has(+ #popover-1:popover-open) .icon-up {
     @apply w-full rounded-lg border border-base-300 bg-white;
     height: 76dvh;
     min-height: 480px;
+  }
+
+  /* Numbered, collapsible step cards (invoice mailing). */
+  .admin-step {
+    @apply rounded-2xl border border-base-300 bg-base-100;
+  }
+  .admin-step > summary {
+    @apply flex cursor-pointer list-none items-center gap-4 rounded-2xl px-5 py-4 sm:px-6
+      transition-colors hover:bg-base-200/60 focus-visible:outline-2 focus-visible:outline-primary;
+  }
+  .admin-step > summary::-webkit-details-marker {
+    display: none;
+  }
+  .admin-step[open] > summary {
+    @apply rounded-b-none border-b border-base-300;
+  }
+  .admin-step-number {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary
+      font-jakarta text-sm font-bold text-primary-content;
+  }
+  .admin-step-title {
+    @apply font-jakarta text-base font-semibold text-base-content;
+  }
+  .admin-step-hint {
+    @apply font-jakarta text-xs font-light text-base-content/60 sm:text-sm;
+  }
+  .admin-step-chevron {
+    @apply h-5 w-5 shrink-0 text-base-content/50 transition-transform;
+  }
+  .admin-step[open] .admin-step-chevron {
+    @apply rotate-180;
+  }
+  .admin-step-body {
+    @apply px-5 py-6 sm:px-6;
+  }
+  .admin-step-label {
+    @apply mb-3 font-jakarta text-xs font-semibold uppercase tracking-wider text-base-content/50;
   }
   .admin-detail-header {
     @apply flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-base-300 bg-base-100 px-4 py-4 sm:px-6;

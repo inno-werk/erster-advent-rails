@@ -489,3 +489,39 @@ linked from the new workflow. The Store transactions route is still an old
 placeholder. Remove or migrate these only after a separate data/usage audit.
 The unrelated insurance test scaffolds/fixtures also remain; the test helper now
 loads only fixtures for actual application tables.
+
+## Participation invoices (QR bill)
+
+Admins send invoices from «Zahlungen» → «Rechnungen versenden»
+(`Admin::InvoiceRunsController`, spec: `docs/features/admin-participation-invoices.md`).
+
+- Recipients are computed on the server: every active-year participation of a
+  non-deleted user with `amount_due_cents > 0` (full price while unpaid, or the
+  payable upgrade difference). Category letters: A Leistmitglied, B
+  Nicht-Leistmitglied, C Kein Eintrag.
+- Bank details and letterhead live in the single `InvoiceSetting` row («Bankverbindung»).
+  The IBAN must be a normal CH/LI IBAN (no QR-IBAN); the QR code uses reference
+  type `NON`, a structured creditor address and no debtor, matching
+  `docs/QR_Rechnung_A_haarglanz.pdf`.
+- Subject and text are saved per event year in `InvoiceText` (edited via
+  «Bearbeiten»/«Speichern» on the page; defaults apply until saved). Saving
+  renders a sample PDF, so unsupported characters or overlong text are
+  rejected immediately. A run is refused if the saved text changed after the
+  page was shown, and sending is disabled while the text is being edited.
+- An `InvoiceRun` snapshots subject, text and bank details; each
+  `ParticipationInvoice` snapshots recipient, category and amount. A form
+  starts at most one run (unique idempotency key) and is refused when the
+  reviewed list changed, `PROD_SEND` is off, bank details are unsaved, or a
+  recipient lacks name/address.
+- `ParticipationInvoiceDeliveryJob` claims `queued → sending` under a lock,
+  re-checks `PROD_SEND` and that the amount is still open (otherwise
+  `cancelled`), then sends and marks `sent`. Jobs never retry automatically;
+  only `failed` invoices can be resent by an admin. An invoice left in
+  `sending` (process crash during SMTP) is shown as «Unklar» and never resent
+  automatically.
+- PDFs are rendered on demand (`ParticipationInvoicePdf`) and not stored. Fonts
+  are Carlito (Calibri metrics) and Liberation Sans (Arial metrics) under
+  `vendor/fonts` (SIL OFL).
+- Development: set `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`,
+  `SMTP_PASSWORD` (e.g. an Ethereal account) and `PROD_SEND=true` to deliver
+  through SMTP; without `SMTP_ADDRESS`, letter_opener is used.

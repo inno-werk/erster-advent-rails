@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_24_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_30_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -99,6 +99,46 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_24_120000) do
     t.index ["page", "position"], name: "index_cms_blocks_on_page_and_position"
   end
 
+  create_table "invoice_runs", force: :cascade do |t|
+    t.integer "year", null: false
+    t.string "subject", null: false
+    t.text "message", null: false
+    t.jsonb "creditor", default: {}, null: false
+    t.bigint "created_by_id"
+    t.string "idempotency_key", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_invoice_runs_on_created_by_id"
+    t.index ["idempotency_key"], name: "index_invoice_runs_on_idempotency_key", unique: true
+    t.check_constraint "year >= 2000 AND year <= 9999", name: "invoice_runs_valid_year"
+  end
+
+  create_table "invoice_settings", force: :cascade do |t|
+    t.string "creditor_name", null: false
+    t.string "street", null: false
+    t.string "building_number", default: "", null: false
+    t.string "postal_code", null: false
+    t.string "town", null: false
+    t.string "country", default: "CH", null: false
+    t.string "iban", null: false
+    t.string "bank_name", null: false
+    t.text "letterhead", default: "", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "invoice_texts", force: :cascade do |t|
+    t.integer "year", null: false
+    t.string "subject", null: false
+    t.text "message", null: false
+    t.bigint "updated_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["updated_by_id"], name: "index_invoice_texts_on_updated_by_id"
+    t.index ["year"], name: "index_invoice_texts_on_year", unique: true
+    t.check_constraint "year >= 2000 AND year <= 9999", name: "invoice_texts_valid_year"
+  end
+
   create_table "orders", force: :cascade do |t|
     t.bigint "product_id", null: false
     t.bigint "id_of_user", null: false
@@ -110,6 +150,34 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_24_120000) do
     t.datetime "updated_at", null: false
     t.index ["id_of_user"], name: "index_orders_on_id_of_user"
     t.index ["product_id"], name: "index_orders_on_product_id"
+  end
+
+  create_table "participation_invoices", force: :cascade do |t|
+    t.bigint "invoice_run_id", null: false
+    t.bigint "participation_id", null: false
+    t.bigint "participation_upgrade_id"
+    t.bigint "user_id", null: false
+    t.integer "year", null: false
+    t.string "category", null: false
+    t.string "previous_category"
+    t.integer "amount_cents", null: false
+    t.string "recipient_email", null: false
+    t.string "recipient_name", null: false
+    t.text "recipient_address", null: false
+    t.string "status", default: "queued", null: false
+    t.datetime "sent_at"
+    t.string "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invoice_run_id", "participation_id"], name: "one_invoice_per_participation_and_run", unique: true
+    t.index ["invoice_run_id"], name: "index_participation_invoices_on_invoice_run_id"
+    t.index ["participation_id", "sent_at"], name: "index_participation_invoices_on_participation_id_and_sent_at"
+    t.index ["participation_id"], name: "index_participation_invoices_on_participation_id"
+    t.index ["participation_upgrade_id"], name: "index_participation_invoices_on_participation_upgrade_id"
+    t.index ["user_id"], name: "index_participation_invoices_on_user_id"
+    t.check_constraint "(status::text = 'sent'::text) = (sent_at IS NOT NULL)", name: "participation_invoices_sent_state"
+    t.check_constraint "amount_cents > 0", name: "participation_invoices_positive_amount"
+    t.check_constraint "status::text = ANY (ARRAY['queued'::character varying, 'sending'::character varying, 'sent'::character varying, 'failed'::character varying, 'cancelled'::character varying]::text[])", name: "participation_invoices_valid_status"
   end
 
   create_table "participation_upgrades", force: :cascade do |t|
@@ -443,8 +511,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_24_120000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "businesses", "users"
+  add_foreign_key "invoice_runs", "users", column: "created_by_id", on_delete: :nullify
+  add_foreign_key "invoice_texts", "users", column: "updated_by_id", on_delete: :nullify
   add_foreign_key "orders", "products"
   add_foreign_key "orders", "users", column: "id_of_user"
+  add_foreign_key "participation_invoices", "invoice_runs", on_delete: :cascade
+  add_foreign_key "participation_invoices", "participation_upgrades", on_delete: :nullify
+  add_foreign_key "participation_invoices", "participations", on_delete: :cascade
+  add_foreign_key "participation_invoices", "users", on_delete: :cascade
   add_foreign_key "participation_upgrades", "participations"
   add_foreign_key "participations", "users"
   add_foreign_key "payments", "users"

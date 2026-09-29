@@ -1,0 +1,76 @@
+<% content_for :title, "Bankverbindung" %>
+<% street = [@setting.street, @setting.building_number].compact_blank.join(" ") %>
+<% postal = [@setting.postal_code, @setting.town].compact_blank.join(" ") %>
+<% country = { "CH" => "Schweiz", "LI" => "Liechtenstein" }.fetch(@setting.country, @setting.country) %>
+
+<div class="mx-auto max-w-5xl space-y-6">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="admin-heading">Bankverbindung</h1>
+      <p class="admin-subtitle mt-1">Konto und Absender für die Rechnungen mit QR-Einzahlungsschein</p>
+    </div>
+    <%= link_to edit_admin_invoice_setting_path, class: "btn btn-primary rounded-lg" do %>
+      <%= heroicon "pencil-square", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+      <%= @setting.persisted? ? "Bearbeiten" : "Prüfen und speichern" %>
+    <% end %>
+  </header>
+
+  <% flash.each do |type, message| %>
+    <div role="alert" class="alert <%= type.to_s == "notice" ? "alert-success" : "alert-error" %> text-sm"><%= message %></div>
+  <% end %>
+
+  <% if @setting.persisted? %>
+    <p class="flex items-center gap-2 text-sm text-base-content/60" data-testid="setting-status">
+      <%= heroicon "check-circle", variant: :solid, options: { class: "h-5 w-5 text-success", "aria-hidden": true } %>
+      Gespeichert – zuletzt geändert am <%= l(@setting.updated_at, format: :short) %>
+    </p>
+  <% else %>
+    <div role="alert" class="alert alert-warning text-sm" data-testid="setting-status">
+      <%= heroicon "exclamation-triangle", variant: :outline, options: { class: "h-5 w-5 shrink-0", "aria-hidden": true } %>
+      <span>Noch nicht gespeichert. Die Angaben stammen aus der Beispielrechnung. Bitte prüfen und einmal speichern – vorher können keine Rechnungen versendet werden.</span>
+    </div>
+  <% end %>
+
+  <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+    <section class="admin-card p-6" aria-labelledby="account-heading">
+      <h2 id="account-heading" class="admin-step-label">Konto</h2>
+      <dl class="divide-y divide-base-200" data-testid="setting-details">
+        <% [
+          ["IBAN", tag.span(InvoiceSetting.formatted_iban(@setting.iban), class: "font-mono tracking-wide")],
+          ["Bank", @setting.bank_name],
+          ["Kontoinhaber", @setting.creditor_name],
+          ["Adresse", safe_join([street, postal, country].compact_blank, tag.br)]
+        ].each do |label, value| %>
+          <div class="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
+            <dt class="text-sm text-base-content/60"><%= label %></dt>
+            <dd class="text-sm font-medium"><%= value %></dd>
+          </div>
+        <% end %>
+      </dl>
+
+      <h2 class="admin-step-label mt-8">Briefkopf</h2>
+      <p class="mb-3 text-xs text-base-content/60">Oben links auf jeder Rechnung, in Grossbuchstaben; die erste Zeile fett.</p>
+      <div class="rounded-xl border border-base-300 px-4 py-3 font-jakarta text-xs uppercase leading-relaxed tracking-wide text-[#B37E5C]" data-testid="setting-letterhead">
+        <% @setting.letterhead.to_s.lines.map(&:strip).reject(&:blank?).each_with_index do |line, index| %>
+          <span class="block <%= "font-bold" if index.zero? %>"><%= line %></span>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="admin-card p-6" aria-labelledby="slip-heading">
+      <h2 id="slip-heading" class="admin-step-label">So erscheint es auf dem Einzahlungsschein</h2>
+      <div class="rounded-xl border border-dashed border-base-300 bg-white p-5 font-sans text-black">
+        <p class="text-[11px]">Konto / Zahlbar an</p>
+        <p class="mt-1 text-sm leading-snug">
+          <%= InvoiceSetting.formatted_iban(@setting.iban) %><br>
+          <%= @setting.creditor_name %><br>
+          <%= street %><br>
+          <%= postal %>
+        </p>
+        <p class="mt-4 text-[11px]">Bankverbindung auf der Rechnung</p>
+        <p class="mt-1 text-xs leading-snug"><strong><%= @setting.bank_name %> – <%= InvoiceSetting.formatted_iban(@setting.iban) %></strong><br><%= [@setting.creditor_name, street, postal].compact_blank.join(" – ") %></p>
+      </div>
+      <p class="mt-4 text-xs text-base-content/60">Die vollständige Rechnung sehen Sie unter <%= link_to "Rechnungen versenden", new_admin_invoice_run_path, class: "admin-action-link text-xs" %> in der Vorschau.</p>
+    </section>
+  </div>
+</div>

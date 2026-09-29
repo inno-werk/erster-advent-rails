@@ -1,4 +1,8 @@
-<%= render layout: "admin/shared/list", locals: { title: "Zahlungen", path: admin_participations_path, filters: [
+<% invoice_action = link_to new_admin_invoice_run_path, class: "btn btn-primary btn-sm rounded-lg" do %>
+  <%= heroicon "envelope", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+  Rechnungen versenden
+<% end %>
+<%= render layout: "admin/shared/list", locals: { title: "Zahlungen", path: admin_participations_path, actions: invoice_action, filters: [
   { name: :year, label: "Teilnahmejahr", type: :year, value: @year, default: EventConfiguration.year },
   { name: :payment_status, label: "Zahlungsstatus", value: @payment_status, options: [["Alle Zahlungen", ""], ["Zahlung offen", "pending"], ["Vollständig bezahlt", "paid"], ["Differenzzahlung offen", "upgrade_pending"]] },
   { name: :category, label: "Mitgliedschaft", value: @category, options: [["Alle Mitgliedschaften", ""]] + Participation::CATEGORIES.map { |key, details| [details[:title], key] } }

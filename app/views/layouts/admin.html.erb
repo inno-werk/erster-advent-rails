@@ -105,7 +105,8 @@
                 text: "Benutzer",
                 icon: "users",
                 active: controller.controller_name == "users" %>
-                <%= render "layouts/menu_item", link: admin_participations_path, text: "Teilnahmen / Zahlungen", icon: "credit-card" %>
+                <%= render "layouts/menu_item", link: admin_participations_path, text: "Teilnahmen / Zahlungen", icon: "credit-card", active: %w[participations invoice_runs].include?(controller.controller_name) %>
+                <%= render "layouts/menu_item", link: admin_invoice_setting_path, text: "Bankverbindung", icon: "banknotes", active: controller.controller_name == "invoice_settings" %>
                 <%= render "layouts/menu_item", link: admin_print_products_path, text: "Printprodukte", icon: "photo" %>
                 <%= render "layouts/menu_item", link: admin_print_orders_path, text: "Printbestellungen", icon: "document-text", active: %w[print_orders print_order_exports].include?(controller.controller_name) %>
                 <%= render "layouts/menu_item",
