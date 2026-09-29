@@ -14,14 +14,17 @@ FROM ruby:$RUBY_VERSION-slim AS base
 # Rails app lives here
 WORKDIR /rails
 
-# Update gems and bundler
-RUN gem update --system --no-document && \
-    gem install -N bundler
+# Install the Bundler version pinned in Gemfile.lock
+RUN gem install -N bundler -v 2.7.1
+
+# Keep downloaded apt packages so the cache mounts below can reuse them
+RUN rm -f /etc/apt/apt.conf.d/docker-clean
 
 # Install base packages
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client
 
 # Set production environment
 ENV BUNDLE_DEPLOYMENT="1" \
@@ -34,9 +37,10 @@ ENV BUNDLE_DEPLOYMENT="1" \
 FROM base AS build
 
 # Install packages needed to build gems and node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential libpq-dev libyaml-dev node-gyp pkg-config python-is-python3 && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential libpq-dev libyaml-dev node-gyp pkg-config python-is-python3
 
 # Install Node.js
 ARG NODE_VERSION=23.10.0
@@ -53,7 +57,8 @@ RUN bundle install && \
 
 # Install node modules
 COPY package.json package-lock.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
 
 # Copy application code
 COPY . .

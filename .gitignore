@@ -37,3 +37,6 @@
 !/app/assets/builds/.keep
 
 /config/credentials/production.key
+
+# Design source files live outside the repo (too large for git)
+/designfiles/
