@@ -1,0 +1,17 @@
+<% content_for :title, "Bankverbindung bearbeiten" %>
+
+<div class="mx-auto max-w-3xl space-y-6">
+  <header>
+    <nav class="admin-breadcrumb mb-2" aria-label="Breadcrumb">
+      <%= link_to "Bankverbindung", admin_invoice_setting_path %>
+      <span aria-hidden="true">/</span>
+      <span class="text-base-content/70" aria-current="page">Bearbeiten</span>
+    </nav>
+    <h1 class="admin-heading">Bankverbindung bearbeiten</h1>
+    <p class="admin-subtitle mt-1">Die Angaben gelten für alle künftigen Rechnungen. Bereits versendete Rechnungen bleiben unverändert.</p>
+  </header>
+
+  <section class="admin-card p-6">
+    <%= render "form", setting: @setting, cancel_path: admin_invoice_setting_path %>
+  </section>
+</div>

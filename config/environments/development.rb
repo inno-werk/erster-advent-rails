@@ -78,6 +78,21 @@ Rails.application.configure do
   config.middleware.insert_after ActionDispatch::Static, Rack::LiveReload
 
   # Use letter_opener to open emails in the browser instead of sending them.
-  config.action_mailer.delivery_method = :letter_opener
+  # Set SMTP_ADDRESS (e.g. smtp.ethereal.email) to test real SMTP delivery
+  # with a catch-all inbox; PROD_SEND=true is still required for sending.
+  if ENV["SMTP_ADDRESS"].present?
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.raise_delivery_errors = true
+    config.action_mailer.smtp_settings = {
+      user_name: ENV["SMTP_USERNAME"],
+      password: ENV["SMTP_PASSWORD"],
+      address: ENV["SMTP_ADDRESS"],
+      port: ENV.fetch("SMTP_PORT", 587).to_i,
+      authentication: :login,
+      enable_starttls_auto: true
+    }
+  else
+    config.action_mailer.delivery_method = :letter_opener
+  end
   config.action_mailer.perform_deliveries = true
 end

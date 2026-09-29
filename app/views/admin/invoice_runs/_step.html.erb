@@ -1,0 +1,22 @@
+<%# Collapsible step card. Render with `render layout:` and a block.
+  Locals: number, title, hint, status, tone (success|warning|error|neutral), open (default true), target (optional Stimulus target) %>
+<% tone_class = { "success" => "badge-success", "warning" => "badge-warning", "error" => "badge-error" }.fetch(local_assigns[:tone].to_s, "badge-ghost") %>
+<details class="admin-step" id="step-<%= number %>" <%= tag.attributes(data: { invoice_steps_target: local_assigns[:target] }) if local_assigns[:target] %> <%= "open" unless local_assigns[:open] == false %>>
+  <summary>
+    <span class="admin-step-number" aria-hidden="true"><%= number %></span>
+    <span class="min-w-0 flex-1">
+      <span class="admin-step-title block"><span class="sr-only">Schritt <%= number %>: </span><%= title %></span>
+      <span class="admin-step-hint block"><%= hint %></span>
+    </span>
+    <% if local_assigns[:status].present? %>
+      <span class="badge badge-soft <%= tone_class %> hidden whitespace-nowrap sm:inline-flex"><%= status %></span>
+    <% end %>
+    <%= heroicon "chevron-down", variant: :outline, options: { class: "admin-step-chevron", "aria-hidden": true } %>
+  </summary>
+  <div class="admin-step-body">
+    <% if local_assigns[:status].present? %>
+      <p class="mb-4 sm:hidden"><span class="badge badge-soft <%= tone_class %>"><%= status %></span></p>
+    <% end %>
+    <%= yield %>
+  </div>
+</details>
