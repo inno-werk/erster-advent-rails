@@ -1113,6 +1113,43 @@ button:has(+ #popover-1:popover-open) .icon-up {
     height: 76dvh;
     min-height: 480px;
   }
+
+  /* Numbered, collapsible step cards (invoice mailing). */
+  .admin-step {
+    @apply rounded-2xl border border-base-300 bg-base-100;
+  }
+  .admin-step > summary {
+    @apply flex cursor-pointer list-none items-center gap-4 rounded-2xl px-5 py-4 sm:px-6
+      transition-colors hover:bg-base-200/60 focus-visible:outline-2 focus-visible:outline-primary;
+  }
+  .admin-step > summary::-webkit-details-marker {
+    display: none;
+  }
+  .admin-step[open] > summary {
+    @apply rounded-b-none border-b border-base-300;
+  }
+  .admin-step-number {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary
+      font-jakarta text-sm font-bold text-primary-content;
+  }
+  .admin-step-title {
+    @apply font-jakarta text-base font-semibold text-base-content;
+  }
+  .admin-step-hint {
+    @apply font-jakarta text-xs font-light text-base-content/60 sm:text-sm;
+  }
+  .admin-step-chevron {
+    @apply h-5 w-5 shrink-0 text-base-content/50 transition-transform;
+  }
+  .admin-step[open] .admin-step-chevron {
+    @apply rotate-180;
+  }
+  .admin-step-body {
+    @apply px-5 py-6 sm:px-6;
+  }
+  .admin-step-label {
+    @apply mb-3 font-jakarta text-xs font-semibold uppercase tracking-wider text-base-content/50;
+  }
   .admin-detail-header {
     @apply flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-base-300 bg-base-100 px-4 py-4 sm:px-6;
   }

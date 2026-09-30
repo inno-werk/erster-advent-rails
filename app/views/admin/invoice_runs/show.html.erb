@@ -1,0 +1,57 @@
+<% content_for :title, "Rechnungsversand" %>
+<% pending = @counts["queued"] + @counts["sending"] %>
+<% if pending.positive? %>
+  <% content_for :head do %><meta http-equiv="refresh" content="5"><% end %>
+<% end %>
+<% content_for :topbar do %>
+  <%= render "app/shared/topbar", crumbs: [["Zahlungen", admin_participations_path(year: @run.year, payment_status: "pending")], ["Rechnungen versenden", new_admin_invoice_run_path], ["Versand vom #{l(@run.created_at, format: :short)}", nil]] %>
+<% end %>
+
+<div class="space-y-8">
+  <div>
+    <h1 class="text-2xl font-semibold tracking-tight">Rechnungsversand <%= @run.year %></h1>
+    <p class="mt-2 text-sm text-base-content/60">Gestartet am <%= l(@run.created_at, format: :long) %> von <%= @run.created_by&.email || "unbekannt" %> · Betreff «<%= @run.subject %>»</p>
+  </div>
+
+  <% flash.each do |type, message| %>
+    <div role="alert" class="alert <%= type.to_s == "notice" ? "alert-success" : "alert-error" %> text-sm"><%= message %></div>
+  <% end %>
+
+  <dl class="grid grid-cols-2 gap-4 sm:grid-cols-5" data-testid="invoice-run-counts">
+    <% [["Total", @invoices.size], ["Versendet", @counts["sent"]], ["Ausstehend", pending], ["Fehlgeschlagen", @counts["failed"]], ["Nicht versendet", @counts["cancelled"]]].each do |label, value| %>
+      <div class="admin-card p-4"><dt class="text-xs text-base-content/60"><%= label %></dt><dd class="text-2xl font-semibold"><%= value %></dd></div>
+    <% end %>
+  </dl>
+  <% if pending.positive? %>
+    <p class="text-sm text-base-content/60" role="status">Der Versand läuft. Diese Seite aktualisiert sich automatisch.</p>
+  <% end %>
+
+  <div class="overflow-x-auto">
+    <table class="table admin-table">
+      <thead><tr><th>Geschäft</th><th>E-Mail</th><th>Position</th><th class="text-right">Betrag</th><th>Status</th><th>Versendet am</th></tr></thead>
+      <tbody>
+        <% @invoices.each do |invoice| %>
+          <tr>
+            <td><%= link_to invoice.recipient_name, admin_user_path(invoice.user_id), class: "link link-primary" %></td>
+            <td class="break-all"><%= invoice.recipient_email %></td>
+            <td><%= invoice_category_label(invoice.category, invoice.previous_category) %></td>
+            <td class="text-right whitespace-nowrap"><%= invoice_chf(invoice.amount_cents) %></td>
+            <td><%= invoice_status_badge(invoice) %><% if invoice.error_message.present? %><div class="mt-1 max-w-xs text-xs text-base-content/60"><%= invoice.error_message %></div><% end %></td>
+            <td class="whitespace-nowrap"><%= invoice.sent_at ? l(invoice.sent_at, format: :short) : "–" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot><tr><th colspan="3">Total</th><th class="text-right whitespace-nowrap"><%= invoice_chf(@invoices.sum(&:amount_cents)) %></th><th colspan="2"></th></tr></tfoot>
+    </table>
+  </div>
+</div>
+
+<% content_for :bottombar do %>
+  <% actions = capture do %>
+    <%= link_to "Zur Übersicht", new_admin_invoice_run_path, class: "admin-list-button" %>
+    <% if @counts["failed"].positive? || @invoices.any? { |invoice| invoice.queued? && invoice.updated_at < 10.minutes.ago } %>
+      <%= button_to "Fehlgeschlagene erneut senden", resend_admin_invoice_run_path(@run), method: :post, class: "btn btn-primary rounded-lg", form: { data: { turbo_confirm: "Fehlgeschlagene Rechnungen jetzt erneut senden? Bereits versendete Rechnungen werden nicht nochmals verschickt." } } %>
+    <% end %>
+  <% end %>
+  <%= render "app/shared/bottombar", actions: actions, hint: "Bereits versendete Rechnungen werden nie erneut verschickt." %>
+<% end %>

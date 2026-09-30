@@ -1,0 +1,62 @@
+<%# Subject and text of the invoice email/PDF. Read-only until «Bearbeiten»;
+  saving stores them for the active year (InvoiceText). %>
+<section class="rounded-xl border border-base-300" aria-labelledby="text-heading" id="invoice-text">
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 px-4 py-3">
+    <div>
+      <h3 id="text-heading" class="text-sm font-semibold">Betreff und Text</h3>
+      <p class="text-xs text-base-content/60">
+        <% if @invoice_text.persisted? %>
+          Gespeichert am <%= l(@invoice_text.updated_at, format: :short) %><%= " von #{@invoice_text.updated_by.email}" if @invoice_text.updated_by %>
+        <% else %>
+          Standardtext für <%= @year %> – noch nicht angepasst
+        <% end %>
+      </p>
+    </div>
+    <% unless @editing_text %>
+      <%= link_to new_admin_invoice_run_path(edit_text: 1, anchor: "invoice-text"), class: "btn btn-sm btn-outline rounded-lg" do %>
+        <%= heroicon "pencil-square", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+        Bearbeiten
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="p-4">
+    <% if @editing_text %>
+      <%= form_with model: @text_form, scope: :invoice_text, url: text_admin_invoice_runs_path, method: :patch, class: "space-y-4" do |form| %>
+        <% if @text_form.errors.any? %>
+          <div role="alert" class="alert alert-error flex-col items-start gap-1 text-sm">
+            <% @text_form.errors.full_messages.each do |message| %><p><%= message %></p><% end %>
+          </div>
+        <% end %>
+        <div>
+          <%= form.label :subject, "Betreff der E-Mail", class: "field-label" %>
+          <%= form.text_field :subject, required: true, maxlength: InvoiceRun::MAX_SUBJECT_LENGTH, class: "field-input", autofocus: true %>
+        </div>
+        <div>
+          <%= form.label :message, "Text", class: "field-label" %>
+          <%= form.text_area :message, rows: 8, required: true, maxlength: InvoiceRun::MAX_MESSAGE_LENGTH, class: "field-input resize-y", aria: { describedby: "message-help" } %>
+          <p id="message-help" class="field-hint">Steht auf der Rechnung unter dem Titel und am Anfang der E-Mail. Maximal <%= InvoiceRun::MAX_MESSAGE_LENGTH %> Zeichen. Nach dem Speichern zeigt die Vorschau den neuen Text.</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <%= link_to "Abbrechen", new_admin_invoice_run_path(anchor: "invoice-text"), class: "btn btn-ghost btn-sm rounded-lg" %>
+          <%= form.button type: "submit", class: "btn btn-primary btn-sm rounded-lg" do %>
+            <%= heroicon "check", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+            Speichern
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <dl class="space-y-4">
+        <div>
+          <dt class="text-xs text-base-content/60">Betreff der E-Mail</dt>
+          <dd class="mt-1 text-sm font-medium" data-testid="invoice-subject"><%= @invoice_text.subject %></dd>
+        </div>
+        <div>
+          <dt class="text-xs text-base-content/60">Text (Rechnung und E-Mail)</dt>
+          <%# pre-line keeps line breaks and empty lines exactly as saved. %>
+          <dd class="mt-1 whitespace-pre-line text-sm leading-relaxed" data-testid="invoice-message"><%= @invoice_text.message %></dd>
+        </div>
+      </dl>
+    <% end %>
+  </div>
+</section>

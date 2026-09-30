@@ -49,3 +49,10 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore design sources, docs, tests, and local notes (not needed at runtime)
+/designfiles
+/docs
+/test
+/profile.log
+/todo.txt

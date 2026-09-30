@@ -52,6 +52,12 @@ Rails.application.routes.draw do
       resources :orders, only: [ :index ]
       resources :participations, only: [ :index, :update ]
       resources :participation_upgrades, only: :update
+      resources :invoice_runs, only: [ :new, :create, :show ] do
+        match :preview, on: :collection, via: [ :get, :post ]
+        patch :text, on: :collection
+        post :resend, on: :member
+      end
+      resource :invoice_setting, only: [ :show, :edit, :update ]
       resources :print_products, except: [ :show, :destroy ]
       resource :print_distribution, only: :update
       resources :print_orders, only: [ :index, :show, :edit, :update ]
