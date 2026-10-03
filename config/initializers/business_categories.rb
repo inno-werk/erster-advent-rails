@@ -12,5 +12,6 @@ BUSINESS_CATEGORIES = [
   "Unterhaltung",
   "Süsswaren",
   "Essen & Trinken",
-  "Saisonaler Markt"
+  "Saisonaler Markt",
+  "Papeterie"
   ].freeze
