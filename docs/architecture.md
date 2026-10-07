@@ -43,7 +43,7 @@ Before schema changes, inspect `db/schema.rb`, all relevant migrations, current 
 
 ## Background work and external effects
 
-Solid Queue is the Active Job backend. Production needs either `SOLID_QUEUE_IN_PUMA=true` or a separate `bin/jobs` process for queued work to execute. Jobs and the services they call must tolerate retries and duplicate delivery.
+Solid Queue is the Active Job backend. Production needs either `SOLID_QUEUE_IN_PUMA=true` or a separate `bin/jobs` process for queued work to execute. Inside Puma, Solid Queue runs in `async` mode by default (worker, dispatcher, and scheduler as threads in the Puma process) to save memory; set `SOLID_QUEUE_MODE=fork` to run them as separate processes again. In async mode a stuck or memory-hungry job affects the web process, and the `processes` setting in `config/queue.yml` is ignored. The production image sets `MALLOC_CONF` to make jemalloc return freed memory to the OS sooner; it can be overridden at runtime. Jobs and the services they call must tolerate retries and duplicate delivery.
 
 Stripe webhook receipt is deliberately separated from processing: the controller verifies and persists a unique event, then enqueues processing. Preserve this boundary. Email mode is checked both before enqueueing where applicable and at delivery time so queued messages cannot bypass a later safety setting.
 
