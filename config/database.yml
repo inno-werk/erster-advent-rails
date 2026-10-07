@@ -27,9 +27,12 @@ test:
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
 production:
+  # With Solid Queue in async mode, job threads share these pools with Puma's
+  # request threads, so primary and queue reserve room beyond RAILS_MAX_THREADS.
   primary:
     <<: *default
     database: <%= ENV["PGDATABASE"] %>
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS", 10).to_i + 5 %>
   cable:
     <<: *default
     database: <%= ENV["PGDATABASE"] %>
@@ -37,7 +40,7 @@ production:
   queue:
     <<: *default
     database: <%= ENV["PGDATABASE"] %>
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS", 10).to_i + 5 %>
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS", 10).to_i + 10 %>
   cache:
     <<: *default
     database: <%= ENV["PGDATABASE"] %>

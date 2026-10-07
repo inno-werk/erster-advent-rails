@@ -30,7 +30,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ENV BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development:test" \
-    RAILS_ENV="production"
+    RAILS_ENV="production" \
+    MALLOC_CONF="dirty_decay_ms:1000,narenas:2,background_thread:true"
 
 
 # Throw-away build stage to reduce size of final image
