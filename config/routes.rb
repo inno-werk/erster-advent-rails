@@ -48,6 +48,9 @@ Rails.application.routes.draw do
           patch :confirm
         end
       end
+      resource :business_export, only: :show do
+        get :download
+      end
       resources :products, only: [ :index ]
       resources :orders, only: [ :index ]
       resources :participations, only: [ :index, :update ]

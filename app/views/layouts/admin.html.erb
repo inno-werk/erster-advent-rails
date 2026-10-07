@@ -99,7 +99,7 @@
                 link: admin_stores_path,
                 text: "Geschäfte",
                 icon: "building-storefront",
-                active: controller.controller_name == "stores" %>
+                active: %w[stores business_exports].include?(controller.controller_name) %>
                 <%= render "layouts/menu_item",
                 link: admin_users_path,
                 text: "Benutzer",

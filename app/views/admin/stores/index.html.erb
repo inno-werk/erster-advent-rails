@@ -1,4 +1,8 @@
-<%= render layout: "admin/shared/list", locals: { title: "Geschäfte", path: admin_stores_path, filters: [
+<% export_action = link_to admin_business_export_path, class: "admin-list-button" do %>
+  <%= heroicon "arrow-down-tray", variant: :outline, options: { class: "h-4 w-4", "aria-hidden": true } %>
+  Excel-Export
+<% end %>
+<%= render layout: "admin/shared/list", locals: { title: "Geschäfte", path: admin_stores_path, actions: export_action, filters: [
   { name: :status, label: "Freigabe", value: @status, options: [["Alle Status", ""], ["Ausstehend", "pending"], ["Bestätigt", "confirmed"], ["Abgelehnt", "rejected"], ["Archiviert", "deleted"]] },
   { name: :sort, label: "Sortierung", value: @sort, default: "name_asc", options: [["Name A–Z", "name_asc"], ["Name Z–A", "name_desc"]] }
 ] } do %>
