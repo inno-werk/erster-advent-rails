@@ -232,9 +232,34 @@ need a CORS configuration.
 | `SMTP_PORT`           | Defaults to `587`.                                                                                                                                                                                                                                                                                                 |
 | `SKIP_DB_PREPARE`     | Set to `true` to skip `db:prepare` on boot.                                                                                                                                                                                                                                                                        |
 | `DB_PREPARE_RETRIES`  | Boot-time `db:prepare` attempts, defaults to `5`.                                                                                                                                                                                                                                                                  |
+| `TURNSTILE_SITE_KEY`  | Cloudflare Turnstile site key for the registration form. Turnstile is active only when this and `TURNSTILE_SECRET_KEY` are both set; see [Spam protection](#spam-protection).                                                                                                                                       |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key, used server-side only. Never expose it in views or logs.                                                                                                                                                                                                                         |
 
 `RAILS_ENV` and the `BUNDLE_*` variables are already baked into the `Dockerfile` and do
 not need to be set.
+
+### Spam protection
+
+Registration, password reset, confirmation resend, and unlock resend are protected
+by a honeypot field, a minimum fill time of 3 seconds (signed render timestamp,
+valid for 24 hours), and per-IP rate limits (registration 10/hour, the others
+5/15 minutes) stored in Solid Cache. Registration also uses Cloudflare Turnstile
+when both `TURNSTILE_*` keys are set. Rejections are logged as
+`[auth_spam_protection] rejected endpoint=… reason=…`.
+
+Rollout order:
+
+1. Deploy without Turnstile keys. Confirm in the logs that `request.remote_ip`
+   resolves to real visitor IPs, not the proxy's. Otherwise all visitors share
+   one rate-limit bucket.
+2. Mention Cloudflare Turnstile in the privacy policy.
+3. Create a Turnstile widget for the production host(s) in Cloudflare, set both
+   keys in Dokploy, and redeploy.
+
+For local testing, Cloudflare's test keys `1x00000000000000000000AA` (site) and
+`1x0000000000000000000000000000000AA` (secret) always pass. If Cloudflare is
+unreachable or reports a configuration error, registration fails open (logged
+as `[turnstile]`). Unsetting the keys disables Turnstile immediately.
 
 ### Gmail for test delivery
 

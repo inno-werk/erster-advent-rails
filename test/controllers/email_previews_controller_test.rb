@@ -78,7 +78,7 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[role='status']", text: /Ihre Registrierung wurde gespeichert/
     assert_select "a[href='#{email_preview_path}']", count: 0
 
-    post user_confirmation_path, params: { user: { email: "preview@example.com" } }
+    post user_confirmation_path, params: { **auth_form_fields, user: { email: "preview@example.com" } }
     get email_preview_path
     assert_response :success
     assert preview_document.at_css("a[href*='confirmation_token=']")
@@ -147,7 +147,7 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
     register_test_account
     get email_preview_path
     previous_id = css_select("body").sole["data-email-preview-notice-id"]
-    post user_confirmation_path, params: { user: { email: "preview@example.com" } }
+    post user_confirmation_path, params: { **auth_form_fields, user: { email: "preview@example.com" } }
     follow_redirect!
     assert_select "[data-email-preview-notice]" do |notices|
       assert_not_equal previous_id, notices.sole["data-email-preview-notice-id-value"]
@@ -169,7 +169,7 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
   test "resend replaces the owning browser preview without sending mail" do
     register_test_account
     old_key = request.session[:account_email_preview_key]
-    assert_no_emails { post user_confirmation_path, params: { user: { email: "preview@example.com" } } }
+    assert_no_emails { post user_confirmation_path, params: { **auth_form_fields, user: { email: "preview@example.com" } } }
     assert_nil AccountEmailPreview.read(old_key)
     get email_preview_path
     assert_response :success
@@ -178,12 +178,12 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
 
   test "password reset can be previewed for the newly registered test account only" do
     register_test_account
-    assert_no_emails { post user_password_path, params: { user: { email: "preview@example.com" } } }
+    assert_no_emails { post user_password_path, params: { **auth_form_fields, user: { email: "preview@example.com" } } }
     get email_preview_path
     assert_response :success
     assert preview_document.at_css("a[href*='reset_password_token=']")
 
-    post user_password_path, params: { user: { email: users(:admin).email } }
+    post user_password_path, params: { **auth_form_fields, user: { email: users(:admin).email } }
     get email_preview_path
     assert_select "dd", text: "preview@example.com"
     assert_select "dd", text: users(:admin).email, count: 0
@@ -191,11 +191,11 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
 
   test "existing user and admin recovery requests never expose their messages" do
     [ users(:member), users(:admin) ].each do |user|
-      assert_no_emails { post user_password_path, params: { user: { email: user.email } } }
+      assert_no_emails { post user_password_path, params: { **auth_form_fields, user: { email: user.email } } }
       get email_preview_path
       assert_response :not_found
       user.update_columns(confirmed_at: nil)
-      assert_no_emails { post user_confirmation_path, params: { user: { email: user.email } } }
+      assert_no_emails { post user_confirmation_path, params: { **auth_form_fields, user: { email: user.email } } }
       get email_preview_path
       assert_response :not_found
     end
@@ -304,7 +304,7 @@ class EmailPreviewsControllerTest < ActionDispatch::IntegrationTest
   private
 
   def register_test_account(email: "preview@example.com", name: "Testperson")
-    post user_registration_path, params: { user: {
+    post user_registration_path, params: { **auth_form_fields, user: {
       business_name: "Vorschau Geschäft", email: email, name: name,
       registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
       phone: "+41310000000", password: "password123"

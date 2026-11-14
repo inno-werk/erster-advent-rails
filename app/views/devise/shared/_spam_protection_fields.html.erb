@@ -1,0 +1,6 @@
+<%# Spam protection, see AuthSpamProtection. The inline style keeps the honeypot hidden even without CSS. %>
+<div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+  <label for="form_note">Bitte leer lassen</label>
+  <input type="text" name="<%= AuthSpamProtection::HONEYPOT_PARAM %>" id="form_note" value="" tabindex="-1" autocomplete="off">
+</div>
+<%= hidden_field_tag AuthSpamProtection::TIMESTAMP_PARAM, AuthSpamProtection.form_token, id: nil %>

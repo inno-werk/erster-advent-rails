@@ -34,6 +34,7 @@
       </div>
 
       <%= form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f| %>
+        <%= render "devise/shared/spam_protection_fields" %>
         <div class="mt-8 space-y-6">
           <div class="form-control">
             <%= f.label :email, class: "label" do %>

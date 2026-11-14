@@ -28,4 +28,12 @@ class ActionDispatch::IntegrationTest
   def default_url_options
     { locale: nil }
   end
+
+  # Valid spam-protection fields for public Devise forms (see AuthSpamProtection).
+  def auth_form_fields(rendered_at: 10.seconds.ago)
+    {
+      AuthSpamProtection::TIMESTAMP_PARAM => AuthSpamProtection.form_token(rendered_at),
+      AuthSpamProtection::HONEYPOT_PARAM => ""
+    }
+  end
 end

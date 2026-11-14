@@ -40,6 +40,7 @@
         url: password_path(resource_name),
         html: { method: :post, class: "mt-8" },
       ) do |f| %>
+        <%= render "devise/shared/spam_protection_fields" %>
         <div class="space-y-6">
           <div class="form-control">
             <%= f.label :email, class: "label" do %>

@@ -1,0 +1,25 @@
+<% content_for :title, "Zu viele Anfragen" %>
+<section class="min-h-screen bg-gradient-to-br from-primary via-primary to-primary">
+  <div class="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+    <div class="relative w-full max-w-xl rounded-3xl bg-base-100 px-8 py-12 shadow-2xl">
+      <div
+        class="
+          absolute -top-10 left-1/2 flex h-20 w-20 -translate-x-1/2 items-center
+          justify-center rounded-full border-4 border-base-100 bg-secondary
+          text-primary-content shadow-xl
+        "
+      >
+        <%= heroicon "clock", options: { class: "h-10 w-10" } %>
+      </div>
+
+      <div class="space-y-3 text-center">
+        <h1 class="text-3xl font-bold text-base-content">Bitte warten Sie einen Moment</h1>
+        <p class="text-base text-base-content/80" role="alert"><%= AuthSpamProtection::RATE_LIMIT_MESSAGE %></p>
+      </div>
+
+      <div class="mt-8">
+        <%= link_to "Zurück zur Anmeldung", new_user_session_path, class: "btn btn-primary w-full" %>
+      </div>
+    </div>
+  </div>
+</section>

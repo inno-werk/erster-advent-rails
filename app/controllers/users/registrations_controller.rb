@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 class Users::RegistrationsController < Devise::RegistrationsController
+  include AuthSpamProtection
+
   layout :registration_layout
   before_action :configure_sign_up_params, only: :create
+  protect_auth_form limit: 10, within: 1.hour, turnstile: true
   prepend_before_action :authenticate_scope!, only: [
     :edit, :update, :destroy, :edit_personal, :update_personal, :edit_password, :update_password
   ]
@@ -92,6 +95,15 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   private
+
+  def respond_to_spam_as_success
+    redirect_to after_inactive_sign_up_path_for(nil), status: :see_other
+  end
+
+  def build_auth_form_resource
+    configure_sign_up_params
+    build_resource(sign_up_params)
+  end
 
   def personal_params
     params.require(:user).permit(:name, :phone, :email)
