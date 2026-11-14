@@ -15,6 +15,22 @@ Authorization is currently role- and ownership-based:
 
 Presentation may hide unavailable actions, but templates and navigation are never enforcement boundaries. Member credentials must not authenticate through the Admin login flow.
 
+### Public form spam protection
+
+Public Devise forms that create accounts or send email (registration, password reset, confirmation resend, unlock resend) must use `AuthSpamProtection` (`protect_auth_form`) and render `devise/shared/spam_protection_fields`. The checks run before Devise's action body, so a rejected submission creates no records, tokens, previews, or mail:
+
+- A honeypot submission receives the same success redirect as a real submission and reveals nothing.
+- A missing, too-fast, tampered, or expired render timestamp re-renders the form with HTTP 422.
+- Per-IP rate limits answer with HTTP 429.
+- Registration also verifies Cloudflare Turnstile when `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are set.
+
+These checks are abuse controls, not an authorization boundary. They intentionally fail open in two cases, and both log errors:
+
+- Cloudflare outages or a misconfigured Turnstile secret.
+- Solid Cache failures, which make the rate-limit counter unavailable.
+
+Do not log the Turnstile token, the honeypot value, or submitted email addresses. `filter_parameters` covers `turnstile` and `form_note`. Rate limits depend on `request.remote_ip`; re-check them whenever the proxy setup changes. If a Content Security Policy is introduced, allow `https://challenges.cloudflare.com` in `script-src` and `frame-src`.
+
 ## Payments and webhooks
 
 Rails owns the participation category, event year, CHF amount, upgrade difference, local obligation, and paid state. Never trust prices, ownership, payment status, or redirect targets submitted by the browser.

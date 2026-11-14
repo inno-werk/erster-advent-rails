@@ -1,0 +1,6 @@
+<% if TurnstileVerifier.enabled? %>
+  <% content_for :head do %>
+    <meta name="turbo-cache-control" content="no-cache">
+  <% end %>
+  <div class="flex justify-center" data-controller="turnstile" data-turnstile-site-key-value="<%= TurnstileVerifier.site_key %>"></div>
+<% end %>

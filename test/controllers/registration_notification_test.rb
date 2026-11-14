@@ -16,7 +16,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     ENV["PROD_SEND"] = "true"
     assert_difference [ "User.count", "Business.count" ] do
       assert_enqueued_email_with RegistrationMailer, :new_registration, args: ->(args) { args.first.email == "new-registration@example.com" } do
-        post user_registration_path, params: { user: {
+        post user_registration_path, params: { **auth_form_fields, user: {
           business_name: "Neu GmbH", email: "new-registration@example.com",
           registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
           name: "Neue Person", phone: "+41310000000", password: "password123"
@@ -49,7 +49,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     ENV["PROD_SEND"] = "true"
     assert_no_difference [ "User.count", "Business.count" ] do
       assert_no_enqueued_emails do
-        post user_registration_path, params: { user: { email: "invalid", password: "short" } }
+        post user_registration_path, params: { **auth_form_fields, user: { email: "invalid", password: "short" } }
       end
     end
     assert_no_enqueued_emails do
@@ -63,7 +63,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
     ENV["PROD_SEND"] = "true"
     assert_no_difference [ "User.count", "Business.count" ] do
       assert_no_enqueued_emails do
-        post user_registration_path, params: { user: {
+        post user_registration_path, params: { **auth_form_fields, user: {
           business_name: "Unvollständig", email: "incomplete@example.com",
           registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
           name: "Neue Person", phone: "", password: "password123"
@@ -79,7 +79,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
   test "duplicate email is marked inline and the password stays out of the response" do
     [ "text/html", "text/vnd.turbo-stream.html, text/html" ].each do |accept|
       assert_no_difference [ "User.count", "Business.count" ] do
-        post user_registration_path, params: { user: {
+        post user_registration_path, params: { **auth_form_fields, user: {
           business_name: "Neu GmbH", email: users(:member).email,
           registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
           name: "Neue Person", phone: "+41310000000", password: "private-test-password"
@@ -99,7 +99,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
   end
 
   test "all invalid registration fields have their own error and accessible description" do
-    post user_registration_path, params: { user: {
+    post user_registration_path, params: { **auth_form_fields, user: {
       business_name: "", email: "invalid", registration_street_address: "",
       registration_postal_city: "", name: "", phone: "", password: "short"
     } }
@@ -117,7 +117,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
 
   test "phone accepts any formatting such as spaces between digit groups" do
     assert_difference [ "User.count", "Business.count" ], 1 do
-      post user_registration_path, params: { user: {
+      post user_registration_path, params: { **auth_form_fields, user: {
         business_name: "Formatierte Nummer", email: "spaced-phone@example.com",
         registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
         name: "Neue Person", phone: "+41 78 648 69 99", password: "password123"
@@ -129,7 +129,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
 
   test "malformed email alone rejects registration at the email field" do
     assert_no_difference [ "User.count", "Business.count" ] do
-      post user_registration_path, params: { user: {
+      post user_registration_path, params: { **auth_form_fields, user: {
         business_name: "Ungültige E-Mail", email: "keine-email",
         registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
         name: "Neue Person", phone: "+41310000000", password: "password123"
@@ -151,7 +151,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
       attributes[missing_field] = ""
 
       assert_no_difference [ "User.count", "Business.count" ] do
-        post user_registration_path, params: { user: attributes }
+        post user_registration_path, params: { **auth_form_fields, user: attributes }
       end
 
       assert_response :unprocessable_entity
@@ -196,7 +196,7 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
       assert_difference [ "User.count", "Business.count" ] do
         assert_no_enqueued_emails do
           assert_no_emails do
-            post user_registration_path, params: { user: {
+            post user_registration_path, params: { **auth_form_fields, user: {
               business_name: "Neu GmbH", email: email,
               registration_street_address: "Kramgasse 3", registration_postal_city: "3011 Bern",
               name: "Neue Person", phone: "+41310000000", password: "password123"
@@ -252,12 +252,12 @@ class RegistrationNotificationTest < ActionDispatch::IntegrationTest
       registration_postal_city: "3011 Bern", name: "Neue Person", phone: "+41 31 000 00 00",
       password: "password123"
     }
-    post user_registration_path, params: { user: base.merge(email: "hidden@example.com") }
+    post user_registration_path, params: { **auth_form_fields, user: base.merge(email: "hidden@example.com") }
     hidden = User.find_by!(email: "hidden@example.com").business
     assert_not hidden.show_phone_publicly?
     assert_not hidden.show_email_publicly?
 
-    post user_registration_path, params: { user: base.merge(
+    post user_registration_path, params: { **auth_form_fields, user: base.merge(
       email: "visible@example.com", show_phone_publicly: "1", show_email_publicly: "0"
     ) }
     visible = User.find_by!(email: "visible@example.com").business

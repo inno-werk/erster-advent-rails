@@ -36,9 +36,12 @@
               action: "turbo:submit-start->auth-form#rememberPassword turbo:before-render@document->auth-form#restorePassword turbo:before-cache@document->auth-form#scrubInputs pagehide@window->auth-form#leavePage"
             }
           }) do |f| %>
+            <%= render "devise/shared/spam_protection_fields" %>
             <div class="space-y-6">
               <% if resource.errors.any? %>
-                <p class="text-sm text-base-content/70">Bitte prüfen Sie die markierten Felder.</p>
+                <% if resource.errors.attribute_names.any? { |attribute| attribute != :base } %>
+                  <p class="text-sm text-base-content/70">Bitte prüfen Sie die markierten Felder.</p>
+                <% end %>
                 <% resource.errors.full_messages_for(:base).each do |message| %>
                   <p class="text-sm text-error" role="alert"><%= message %></p>
                 <% end %>
@@ -96,6 +99,8 @@
                   <span class="label-text text-base-content">E-Mail-Adresse öffentlich anzeigen</span>
                 </label>
               </fieldset>
+
+              <%= render "devise/shared/turnstile" %>
 
               <div class="flex justify-center">
                 <%= f.submit "Registrieren", class: "btn btn-primary px-10" %>
